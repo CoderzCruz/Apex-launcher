@@ -2,9 +2,7 @@
 <resources>
     <!-- Launch theme of the entry activity: Aerix mark on the Aerix canvas, full screen. -->
     <style name="Aerix.SplashScreen" parent="MojoLauncher.AppTheme">
-        <!-- Plain dark canvas: the real splash artwork and its progress bar are drawn by
-             ApexBootSplashView, so nothing squashed or doubled appears before it. -->
-        <item name="android:windowBackground">@color/aerix_canvas</item>
+        <item name="android:windowBackground">@drawable/aerix_splash</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowDisablePreview">false</item>
