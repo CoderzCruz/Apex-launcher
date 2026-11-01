@@ -101,7 +101,9 @@ object AerixDiscordPresence {
         return if (isImageUrl(value)) value else logoAssetKey()
     }
 
-    const val APEX_WEBSITE_URL = ""
+    /** The fork's own destinations. Blank means the matching button/link is skipped entirely. */
+    const val APEX_WEBSITE_URL = "https://github.com/CoderzCruz/Apex-launcher"
+    /** Paste the community invite here to give every install a working button by default. */
     const val APEX_DISCORD_URL = ""
 
     /** Accepts "discord.gg/apex" as well as "https://discord.gg/apex"; drops anything unusable. */
