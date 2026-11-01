@@ -63,7 +63,7 @@ val AerixTypography = Typography(
 
 private val aerixDark = darkColorScheme(
     primary = AerixSurface.accentDefault,
-    onPrimary = AerixSurface.onAccentDefault,
+    onPrimary = Color.White,
     primaryContainer = AerixSurface.accentContainerDefault,
     onPrimaryContainer = AerixSurface.onAccentContainer,
     secondary = AerixSurface.accentSecondary,

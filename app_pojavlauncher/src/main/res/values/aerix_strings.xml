@@ -104,6 +104,11 @@
     <string name="aerix_home_quick_library_sub">%1$d instance(s)</string>
     <string name="aerix_home_quick_files">File space</string>
     <string name="aerix_home_quick_files_sub">Open game directory</string>
+    <string name="aerix_home_quick_backups">Backups</string>
+    <string name="aerix_home_quick_backups_sub">Restore points</string>
+    <string name="aerix_home_quick_accounts">Accounts</string>
+    <string name="aerix_home_quick_accounts_sub">Profiles and skins</string>
+    <string name="aerix_home_quick_contacts">Contacts</string>
     <string name="aerix_home_ready_sub">Your next chapter is only one touch away.</string>
     <string name="aerix_home_empty_sub">Build a world, choose your style, and make it yours.</string>
     <string name="aerix_home_active_sub">Your selected game instance</string>
@@ -203,7 +208,7 @@
     <string name="aerix_settings_cat_experimental">Experimental</string>
     <string name="aerix_settings_color_theme">Colour theme</string>
     <string name="aerix_settings_color_theme_sub">Aerix palette or a custom accent</string>
-    <string name="aerix_settings_theme_aerix">Aerix</string>
+    <string name="aerix_settings_theme_aerix">Crimson Noir</string>
     <string name="aerix_settings_theme_custom">Custom</string>
     <string name="aerix_settings_custom_color">Custom accent</string>
     <string name="aerix_settings_custom_color_sub">Used when the colour theme is Custom</string>

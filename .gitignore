@@ -12,3 +12,6 @@ app_pojavlauncher/.cxx/
 /app_pojavlauncher/libs/ltw-release.aar
 site-preview/
 apk/
+
+# Generated UI concept mockups (design review only, not shipped)
+/design/ui-concepts/
