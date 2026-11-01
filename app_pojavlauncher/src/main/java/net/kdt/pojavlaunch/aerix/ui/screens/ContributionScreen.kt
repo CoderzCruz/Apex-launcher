@@ -81,7 +81,6 @@ data class ContributionMember(
 
 object AerixContribution {
     val ownerRed = Color(0xFFE2374E)
-    val coOwnerBlue = Color(0xFF63C7FF)
     /** Accent for this fork's own maintainer entry. */
     val forkRed = Color(0xFFFF3B4E)
 
@@ -98,34 +97,6 @@ object AerixContribution {
                 "Programs the renderer backends and the plugin support that loads them.",
                 "Builds, signs and ships every release.",
                 "Answers the bug reports and fixes what they turn up."
-            )
-        ),
-        ContributionMember(
-            id = "zerx-mc",
-            name = "Zerx-mc",
-            role = "Co-owner",
-            title = "Runtime and renderer manager",
-            roleColor = coOwnerBlue,
-            logoRes = R.drawable.aerix_contrib_zerx,
-            duties = listOf(
-                "Keeps the renderers working: Proton, Emesis and the bundled GL backends.",
-                "Manages the Java runtimes the launcher installs and picks.",
-                "Tests renderer and runtime builds on real devices before they ship.",
-                "Tracks the upstream renderer projects this launcher bundles."
-            )
-        ),
-        ContributionMember(
-            id = "fire-playz",
-            name = "Fire playz",
-            role = "Co-owner",
-            title = "Social and online manager",
-            roleColor = coOwnerBlue,
-            logoRes = R.drawable.aerix_contrib_fire,
-            duties = listOf(
-                "Runs the launcher's social presence and announcements.",
-                "Handles the community: questions, reports and feedback.",
-                "Keeps the download pages and online listings up to date.",
-                "Passes what the community asks for on to the developers."
             )
         ),
         ContributionMember(
@@ -181,14 +152,14 @@ fun ContributionScreen(onOpen: (ContributionMember) -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus),
                 verticalAlignment = Alignment.Top
             ) {
-                // Both co-owners share the row evenly, and their cards hold two title lines either
-                // way, so the two halves line up exactly.
+                // Everyone other than the owner shares this row evenly; the card keeps a fixed
+                // maximum so a single entry sits centred instead of stretching.
                 AerixContribution.members.drop(1).forEach { member ->
                     MemberColumn(
                         member = member,
                         circleSize = 76.dp,
                         modifier = Modifier.weight(1f),
-                        cardModifier = Modifier.fillMaxWidth(),
+                        cardModifier = Modifier.widthIn(max = 220.dp),
                         onOpen = onOpen
                     )
                 }
