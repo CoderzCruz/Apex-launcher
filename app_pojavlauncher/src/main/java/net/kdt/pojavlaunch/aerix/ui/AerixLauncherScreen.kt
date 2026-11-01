@@ -158,7 +158,16 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
         AerixDiscordPresence.inLauncher(section.name)
     }
 
-    BackHandler(enabled = AerixNav.canGoBack) { AerixNav.back() }
+    // Back leaves a page first, then any other tab, and only then leaves the launcher.
+    BackHandler(enabled = true) {
+        if (AerixNav.canGoBack) {
+            AerixNav.back()
+        } else if (AerixNav.section != LauncherSection.HOME) {
+            AerixNav.navigate(LauncherSection.HOME)
+        } else {
+            activity.finish()
+        }
+    }
 
     CompositionLocalProvider(LocalGuideRegistry provides guideRegistry) {
     AerixBackground {

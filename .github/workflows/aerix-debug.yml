@@ -70,6 +70,7 @@ jobs:
           python3 tests/social_profile_cosmetics_smoke.py
           python3 tests/client_background_smoke.py
           python3 tests/crimson_noir_home_smoke.py
+          python3 tests/nav_back_smoke.py
           mkdir -p "$RUNNER_TEMP/aerix-memory-test"
           javac -d "$RUNNER_TEMP/aerix-memory-test" \
             app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/InstanceMemory.java \
