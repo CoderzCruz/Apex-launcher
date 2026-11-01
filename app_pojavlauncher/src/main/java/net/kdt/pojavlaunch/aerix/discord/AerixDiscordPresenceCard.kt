@@ -166,6 +166,13 @@ fun DiscordPresenceSettingsCard() {
                         color = if (connected) AerixSurface.success else AerixSurface.textSecondary,
                         fontSize = 11.sp
                     )
+                    // Shows exactly what is published as the card image, so a typo or a link that
+                    // Discord cannot fetch is visible instead of guessing.
+                    Text(
+                        text = "image: " + AerixDiscordPresence.logoImageValue(),
+                        color = AerixSurface.textMuted,
+                        fontSize = 10.sp
+                    )
                 }
                 Text(
                     text = DiscordAppId.effective(),
