@@ -80,8 +80,6 @@ object AerixPreferences {
     const val KEY_DISCORD_CLICKABLE_LINKS = "aerixDiscordClickableLinks"
     /** Rich Presence art asset name uploaded to the Discord application. */
     const val KEY_DISCORD_ASSET_NAME = "aerixDiscordAssetName"
-    /** Optional https:// image used instead of the uploaded art asset, for troubleshooting. */
-    const val KEY_DISCORD_ASSET_URL = "aerixDiscordAssetUrl"
 
     const val DEFAULT_CUSTOM_COLOR = 0xFF8DEFE0.toInt()
     const val DEFAULT_BACKGROUND_OPACITY = 60
@@ -173,7 +171,6 @@ object AerixPreferences {
     /** Aerix "aerixDiscordAppId": the Discord application the presence is shown under. */
     var discordAppId by mutableStateOf("")
     var discordAssetName by mutableStateOf("")
-    var discordAssetUrl by mutableStateOf("")
         private set
 
     /** True to switch in-game Rich Presence to Minecraft's verified Discord Game Profile ID. */
@@ -220,7 +217,6 @@ object AerixPreferences {
         discordGameProfileMode = p.getBoolean(KEY_DISCORD_GAME_PROFILE_MODE, true)
         discordClickableLinks = p.getBoolean(KEY_DISCORD_CLICKABLE_LINKS, true)
         discordAssetName = p.getString(KEY_DISCORD_ASSET_NAME, "") ?: ""
-        discordAssetUrl = p.getString(KEY_DISCORD_ASSET_URL, "") ?: ""
     }
 
     fun saveFavoritesJson(value: String) {
@@ -233,13 +229,8 @@ object AerixPreferences {
         edit { putBoolean(KEY_DISCORD_PRESENCE, value) }
     }
 
-    fun saveDiscordAssetUrl(value: String) {
-        discordAssetUrl = value.trim().take(256)
-        edit { putString(KEY_DISCORD_ASSET_URL, discordAssetUrl) }
-    }
-
     fun saveDiscordAssetName(value: String) {
-        discordAssetName = value.trim().take(64)
+        discordAssetName = value.trim().take(256)
         edit { putString(KEY_DISCORD_ASSET_NAME, discordAssetName) }
     }
 

@@ -218,28 +218,15 @@ fun DiscordPresenceSettingsCard() {
 
         MiraiTextInputSettingsCard(
             value = AerixPreferences.discordAssetName,
-            title = "Rich Presence art asset",
-            summary = "Name of the image uploaded under Discord Developer Portal → your Apex " +
-                "application → Rich Presence → Art Assets. Must match exactly; blank means " +
-                "\u201Capex_logo\u201D. Discord shows nothing when the name is not found.",
+            title = "Card image",
+            summary = "The image shown on your Discord card. Keep it as \u201Capex_logo\u201D \u2014 the " +
+                "name of the art asset uploaded under Discord Developer Portal \u2192 Rich Presence " +
+                "\u2192 Art Assets. Blank also means apex_logo. If an uploaded asset never appears, " +
+                "paste a direct https:// image link here instead and it is used as-is.",
             label = "apex_logo",
             position = CardPosition.Middle,
-            onValueChange = { name ->
-                AerixPreferences.saveDiscordAssetName(name)
-                AerixDiscordPresence.syncSettingsChanged(appContext)
-            }
-        )
-
-        MiraiTextInputSettingsCard(
-            value = AerixPreferences.discordAssetUrl,
-            title = "Custom card image URL (optional)",
-            summary = "Only if the uploaded asset never shows up. Paste a direct https:// link to " +
-                "a PNG/JPG (for example a GitHub file link). Leave blank to use the art asset name " +
-                "above \u2014 Discord resolves uploaded assets fastest.",
-            label = "https://\u2026/apex.png",
-            position = CardPosition.Middle,
-            onValueChange = { url ->
-                AerixPreferences.saveDiscordAssetUrl(url)
+            onValueChange = { value ->
+                AerixPreferences.saveDiscordAssetName(value)
                 AerixDiscordPresence.syncSettingsChanged(appContext)
             }
         )

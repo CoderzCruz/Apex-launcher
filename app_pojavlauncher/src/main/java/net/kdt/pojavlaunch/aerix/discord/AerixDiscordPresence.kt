@@ -79,25 +79,28 @@ object AerixDiscordPresence {
      */
     const val APEX_LOGO_ASSET = "apex_logo"
 
-    /** The asset name to publish: whatever is set in settings, else the shipped key. */
-    fun logoAssetKey(): String =
-        AerixPreferences.discordAssetName.trim().ifBlank { APEX_LOGO_ASSET }
-
     /**
-     * What goes into `assets.large_image`. Discord accepts either an uploaded asset key or a plain
-     * https:// image, so a direct URL is used when one is configured and the key otherwise.
+     * One setting covers both cases: a plain value is the art asset name uploaded in the Discord
+     * Developer Portal, while an http(s) value is used as the image URL itself.
      */
-    fun logoImageValue(): String {
-        val url = AerixPreferences.discordAssetUrl.trim()
-        if (url.length in 8..MAX_ASSET_URL_LEN &&
-            (url.startsWith("https://", true) || url.startsWith("http://", true))
-        ) {
-            return url
-        }
-        return logoAssetKey()
+    private fun assetSetting(): String = AerixPreferences.discordAssetName.trim()
+
+    private fun isImageUrl(value: String): Boolean =
+        value.length in 8..MAX_ASSET_URL_LEN &&
+            (value.startsWith("https://", true) || value.startsWith("http://", true))
+
+    /** The asset name to publish: whatever is set in settings, else the shipped key. */
+    fun logoAssetKey(): String {
+        val value = assetSetting()
+        return if (value.isEmpty() || isImageUrl(value)) APEX_LOGO_ASSET else value
     }
 
-    /** This fork has no website or Discord server yet, so cards carry no links. */
+    /** What goes into `assets.large_image`: the configured name or, when a link is given, the URL. */
+    fun logoImageValue(): String {
+        val value = assetSetting()
+        return if (isImageUrl(value)) value else logoAssetKey()
+    }
+
     const val APEX_WEBSITE_URL = ""
     const val APEX_DISCORD_URL = ""
 

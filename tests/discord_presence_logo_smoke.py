@@ -12,7 +12,9 @@ assert 'const val APEX_LOGO_ASSET = "apex_logo"' in src
 # The published name can be overridden from settings; the shipped key is the fallback.
 assert 'fun logoAssetKey()' in src and 'AerixPreferences.discordAssetName' in src
 # A direct image URL may replace the asset key when the portal asset never resolves.
-assert 'fun logoImageValue()' in src and 'AerixPreferences.discordAssetUrl' in src
+assert 'fun logoImageValue()' in src and 'fun assetSetting()' in src
+# A single setting: asset name by default, a direct image URL when a link is typed in.
+assert 'discordAssetUrl' not in src
 # The badge must never repeat the same key as the cover image.
 assert 'badge != logoImageValue()' in src
 assert 'raw.githubusercontent.com' not in src.split('private fun sendActivity()', 1)[1]
