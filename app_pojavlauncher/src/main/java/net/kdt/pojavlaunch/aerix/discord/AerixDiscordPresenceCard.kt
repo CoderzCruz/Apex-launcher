@@ -231,6 +231,20 @@ fun DiscordPresenceSettingsCard() {
         )
 
         MiraiTextInputSettingsCard(
+            value = AerixPreferences.discordAssetUrl,
+            title = "Custom card image URL (optional)",
+            summary = "Only if the uploaded asset never shows up. Paste a direct https:// link to " +
+                "a PNG/JPG (for example a GitHub file link). Leave blank to use the art asset name " +
+                "above \u2014 Discord resolves uploaded assets fastest.",
+            label = "https://\u2026/apex.png",
+            position = CardPosition.Middle,
+            onValueChange = { url ->
+                AerixPreferences.saveDiscordAssetUrl(url)
+                AerixDiscordPresence.syncSettingsChanged(appContext)
+            }
+        )
+
+        MiraiTextInputSettingsCard(
             value = appId,
             title = "Discord application ID",
             summary = "Already set to the Apex Launcher application, so nothing has to be done here. " +

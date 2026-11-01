@@ -83,6 +83,20 @@ object AerixDiscordPresence {
     fun logoAssetKey(): String =
         AerixPreferences.discordAssetName.trim().ifBlank { APEX_LOGO_ASSET }
 
+    /**
+     * What goes into `assets.large_image`. Discord accepts either an uploaded asset key or a plain
+     * https:// image, so a direct URL is used when one is configured and the key otherwise.
+     */
+    fun logoImageValue(): String {
+        val url = AerixPreferences.discordAssetUrl.trim()
+        if (url.length in 8..MAX_ASSET_URL_LEN &&
+            (url.startsWith("https://", true) || url.startsWith("http://", true))
+        ) {
+            return url
+        }
+        return logoAssetKey()
+    }
+
     /** This fork has no website or Discord server yet, so cards carry no links. */
     const val APEX_WEBSITE_URL = ""
     const val APEX_DISCORD_URL = ""
@@ -1017,14 +1031,16 @@ object AerixDiscordPresence {
         if (validPackIcon != null) {
             assets.put("large_image", validPackIcon)
             assets.put("large_text", "$state · Apex Launcher")
-            assets.put("small_image", logoAssetKey())
+            assets.put("small_image", logoImageValue())
             assets.put("small_text", "Apex Launcher")
         } else {
-            assets.put("large_image", logoAssetKey())
+            assets.put("large_image", logoImageValue())
             assets.put("large_text", if (usingMinecraftProfile)
                 "Apex Launcher — Minecraft Java Edition on Android" else "Apex Launcher")
-            if (usingMinecraftProfile) {
-                assets.put("small_image", logoAssetKey())
+            // Never repeat the same key as small_image: some clients drop a duplicate pair.
+            val badge = logoAssetKey()
+            if (usingMinecraftProfile && badge != logoImageValue()) {
+                assets.put("small_image", badge)
                 assets.put("small_text", "Powered by Apex Launcher")
             }
         }
