@@ -72,9 +72,11 @@ object AerixDiscordPresence {
     /** Official clickable destinations & artwork for Aerix Rich Presence cards. */
     const val AERIX_WEBSITE_URL = "https://entitybrian69-bit.github.io/Aerix-launcher/"
     const val AERIX_DISCORD_URL = "https://discord.gg/RS7q9KaCm6"
-    const val APEX_LOGO_URL =
-        "https://raw.githubusercontent.com/CoderzCruz/Apex-launcher/" +
-            "ba0aac1de3cb0ab09b0677adf3ec3108c7688382/assets/apex-logo.png"
+    /**
+     * Rich Presence asset key uploaded to the Apex Launcher Discord application. Mobile clients only
+     * resolve application assets, so the card uses the key rather than a bare image URL.
+     */
+    const val APEX_LOGO_ASSET = "apex_logo"
 
     /** This fork has no website or Discord server yet, so cards carry no links. */
     const val APEX_WEBSITE_URL = ""
@@ -967,14 +969,14 @@ object AerixDiscordPresence {
         if (validPackIcon != null) {
             assets.put("large_image", validPackIcon)
             assets.put("large_text", "$state · Apex Launcher")
-            assets.put("small_image", APEX_LOGO_URL)
+            assets.put("small_image", APEX_LOGO_ASSET)
             assets.put("small_text", "Apex Launcher")
         } else {
-            assets.put("large_image", APEX_LOGO_URL)
+            assets.put("large_image", APEX_LOGO_ASSET)
             assets.put("large_text", if (usingMinecraftProfile)
                 "Apex Launcher — Minecraft Java Edition on Android" else "Apex Launcher")
             if (usingMinecraftProfile) {
-                assets.put("small_image", APEX_LOGO_URL)
+                assets.put("small_image", APEX_LOGO_ASSET)
                 assets.put("small_text", "Powered by Apex Launcher")
             }
         }
