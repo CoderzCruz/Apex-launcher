@@ -86,9 +86,22 @@ object AerixContribution {
 
     val members: List<ContributionMember> = listOf(
         ContributionMember(
+            id = "cruz",
+            name = "Cruz",
+            role = "Fork owner",
+            title = "Apex Launcher build",
+            roleColor = forkRed,
+            logoRes = R.drawable.apex_contrib_cruz,
+            duties = listOf(
+                "Owns this fork: the build, the theme and the releases.",
+                "Publishes the ApexLauncher1.0 APKs and keeps the download page current.",
+                "Reports what breaks back to the people who wrote the code."
+            )
+        ),
+        ContributionMember(
             id = "entitybrian",
             name = "Entitybrian",
-            role = "Owner",
+            role = "Original author",
             title = "Developer / Programmer",
             roleColor = ownerRed,
             logoRes = R.drawable.aerix_contrib_owner,
@@ -97,19 +110,6 @@ object AerixContribution {
                 "Programs the renderer backends and the plugin support that loads them.",
                 "Builds, signs and ships every release.",
                 "Answers the bug reports and fixes what they turn up."
-            )
-        ),
-        ContributionMember(
-            id = "cruz",
-            name = "Cruz",
-            role = "Fork maintainer",
-            title = "Apex Launcher build",
-            roleColor = forkRed,
-            logoRes = R.drawable.apex_contrib_cruz,
-            duties = listOf(
-                "Maintains this fork of the launcher: the build, the theme and the releases.",
-                "Publishes the ApexLauncher1.0 APKs and keeps the download page current.",
-                "Reports what breaks back to the people who wrote the code."
             )
         )
     )
@@ -128,7 +128,7 @@ object AerixContribution {
 fun ContributionScreen(onOpen: (ContributionMember) -> Unit) {
     AerixPage(
         title = "Contribution",
-        subtitle = "The people who build and run Aerix Launcher"
+        subtitle = "Who builds this fork, and the project it is based on"
     ) {
         Column(
             modifier = Modifier
