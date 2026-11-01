@@ -22,6 +22,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
+import android.content.pm.PackageManager
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Build
@@ -119,13 +120,16 @@ object AerixDiscordPresence {
     @Volatile private var bound = false
     @Volatile private var ready = false
 
+    /** Last reason binding failed, shown in Settings so a failure is not a bare "not reachable". */
+    @Volatile private var bindingNote: String = ""
+
     /** What the settings card shows: whether Discord is bound, connected and on which app id. */
     fun connectionStatus(): String {
         if (!AerixPreferences.discordPresenceEnabled) return "Presence off"
         val appId = DiscordAppId.effective()
         if (appId.isBlank()) return "No application id"
         return when {
-            !bound -> "Discord app not reachable"
+            !bound -> bindingNote.ifBlank { "Discord app not reachable" }
             !ready -> "Connecting to Discord…"
             connectedAppId > 0L -> "Connected · app $connectedAppId"
             else -> "Connecting…"
@@ -775,12 +779,11 @@ object AerixDiscordPresence {
 
         val intent = resolveService() ?: run {
             Log.i(TAG, "Discord is not installed on this device")
+            if (bindingNote.isBlank()) bindingNote = "Discord app not installed"
             return
         }
-        bound = runCatching {
-            appContext!!.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
-        }.getOrDefault(false)
-        if (!bound) Log.w(TAG, "Could not bind to Discord's RPC service")
+        bound = bindRpcService(appContext!!, intent)
+        if (!bound) Log.w(TAG, "Could not bind to Discord's RPC service: $bindingNote")
     }
 
     /** Drop the connection immediately (internal helper; use [clearAndDetach] to clear profile first). */
@@ -856,9 +859,7 @@ object AerixDiscordPresence {
             clearOnlyMode = true
             clearOnlyRequiresExit = onlyIfExited
             pendingClearAppId = targetId
-            bound = runCatching {
-                ctx.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
-            }.getOrDefault(false)
+            bound = bindRpcService(ctx, intent)
             if (!bound) {
                 clearOnlyMode = false
                 pendingClearAppId = 0L
@@ -1127,13 +1128,45 @@ object AerixDiscordPresence {
 
     /* ── plumbing ──────────────────────────────────────────────────────────── */
 
+    /**
+     * Discord's service is queried first, then addressed by its own component. An implicit
+     * package intent is only used when the platform will not report the service, because some
+     * Discord builds export the service under an explicit component only.
+     */
     private fun resolveService(): Intent? {
         val ctx = appContext ?: return null
         for (pkg in DISCORD_PACKAGES) {
-            val intent = Intent(ACTION).setPackage(pkg)
-            if (ctx.packageManager.resolveService(intent, 0) != null) return intent
+            val probe = Intent(ACTION).setPackage(pkg)
+            val services = runCatching {
+                ctx.packageManager.queryIntentServices(probe, PackageManager.MATCH_ALL)
+            }.getOrNull()
+            val info = services?.firstOrNull { it.serviceInfo?.exported == true }
+            if (info?.serviceInfo != null) {
+                bindingNote = ""
+                return Intent(ACTION).setComponent(
+                    ComponentName(info.serviceInfo.packageName, info.serviceInfo.name)
+                )
+            }
+            if (ctx.packageManager.resolveService(probe, 0) != null) {
+                bindingNote = ""
+                return probe
+            }
         }
+        bindingNote = "Discord RPC service not found"
         return null
+    }
+
+    /** Binds to Discord's service, recording the failure reason for the settings status line. */
+    private fun bindRpcService(ctx: Context, intent: Intent): Boolean {
+        return runCatching {
+            ctx.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+        }.getOrElse { error ->
+            bindingNote = "Bind failed: ${error.javaClass.simpleName}"
+            Log.w(TAG, "bindService threw", error)
+            false
+        }.also { ok ->
+            if (ok) bindingNote = "" else if (bindingNote.isBlank()) bindingNote = "Bind refused by Discord"
+        }
     }
 
     private fun unbind() {
@@ -1191,14 +1224,16 @@ object AerixDiscordApp {
  * public key) is rejected before it can reach Discord, which would otherwise drop the connection.
  */
 object DiscordAppId {
-    fun hasCustomOverride(): Boolean =
-        AerixPreferences.discordAppId.trim().trim('"', '\'').length >= 15
+    /** A snowflake is 17-20 digits; anything else is a typo and Discord would reject it. */
+    private fun overrideOrNull(): String? {
+        val raw = AerixPreferences.discordAppId.trim().trim('"', '\'')
+        return raw.takeIf { it.length in 17..20 && it.all(Char::isDigit) }
+    }
+
+    fun hasCustomOverride(): Boolean = overrideOrNull() != null
 
     /** The override from settings, or the application id this build ships with. */
-    fun effective(): String {
-        val raw = AerixPreferences.discordAppId.trim().trim('"', '\'')
-        return if (raw.length >= 15) raw else AerixDiscordApp.DEFAULT_APPLICATION_ID
-    }
+    fun effective(): String = overrideOrNull() ?: AerixDiscordApp.DEFAULT_APPLICATION_ID
 
     fun asLong(context: Context?): Long? {
         val raw = effective()

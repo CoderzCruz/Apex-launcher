@@ -112,7 +112,7 @@ fun DiscordPresenceSettingsCard() {
         MiraiSwitchSettingsCard(
             position = CardPosition.Top,
             title = "Discord Rich Presence",
-            summary = "Show what you are doing in Aerix Launcher on your Discord profile, " +
+            summary = "Show what you are doing in Apex Launcher on your Discord profile, " +
                 "and clear when you leave the app or close the game.",
             checked = enabled,
             onCheckedChange = { on ->
@@ -128,7 +128,12 @@ fun DiscordPresenceSettingsCard() {
 
         MiraiSettingsCard(
             position = CardPosition.Middle,
-            innerPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
+            innerPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+            onClick = {
+                AerixPreferences.saveDiscordAppId("")
+                AerixDiscordPresence.syncSettingsChanged(appContext)
+                Toast.makeText(activityContext, "Retrying Discord connection", Toast.LENGTH_SHORT).show()
+            }
         ) {
             var status by remember { mutableStateOf(AerixDiscordPresence.connectionStatus()) }
             LaunchedEffect(enabled, appId) {
@@ -144,7 +149,7 @@ fun DiscordPresenceSettingsCard() {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Status",
+                        text = "Status  ·  tap to retry",
                         color = Color.White,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
@@ -166,10 +171,10 @@ fun DiscordPresenceSettingsCard() {
         MiraiSwitchSettingsCard(
             position = CardPosition.Middle,
             title = "Official Minecraft Game Profile in-game",
-            summary = "Hybrid mode: shows the clickable Aerix Launcher card while in the launcher, " +
+            summary = "Hybrid mode: shows the clickable Apex Launcher card while in the launcher, " +
                 "and switches to Minecraft's verified Discord ID while playing so tapping your " +
-                "presence opens Minecraft's official full Game Profile sheet (\u201Cvia Aerix Launcher\u201D). " +
-                "Turn off to keep \u201CAerix Launcher\u201D as the card title everywhere.",
+                "presence opens Minecraft's official full Game Profile sheet (\u201Cvia Apex Launcher\u201D). " +
+                "Turn off to keep \u201CApex Launcher\u201D as the card title everywhere.",
             checked = gameProfileMode,
             enabled = enabled,
             onCheckedChange = { on ->
