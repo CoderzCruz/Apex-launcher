@@ -189,9 +189,9 @@ android {
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.customDebug
-            resValue "string", "app_name", "Apex Launcher 1.0"
-            resValue "string", "app_short_name", "Apex Launcher 1.0"
-            resValue "string", "aerix_app_label", "Apex Launcher 1.0"
+            resValue "string", "app_name", "Aerix Launcher (Debug)"
+            resValue "string", "app_short_name", "Aerix Launcher (Debug)"
+            resValue "string", "aerix_app_label", "Aerix Launcher (Debug)"
             resValue 'string', 'application_package', 'net.kdt.pojavlaunch.debug'
             resValue 'string', 'storageProviderAuthorities', 'net.kdt.pojavlaunch.scoped.gamefolder.debug'
         }

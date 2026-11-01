@@ -145,7 +145,7 @@ object PojavAccountBridge : LoginListener {
     /** Deterministic non-zero 32-hex session token so MC 1.20.4+ does not enter `"0"` offline dev mode. */
     @JvmStatic
     fun offlineAccessToken(username: String): String =
-        UUID.nameUUIDFromBytes("AerixOfflineToken:${username.trim().ifEmpty { "Steve" }}".toByteArray(Charsets.UTF_8))
+        UUID.nameUUIDFromBytes("ApexOfflineToken:${username.trim().ifEmpty { "Steve" }}".toByteArray(Charsets.UTF_8))
             .toString()
             .replace("-", "")
 

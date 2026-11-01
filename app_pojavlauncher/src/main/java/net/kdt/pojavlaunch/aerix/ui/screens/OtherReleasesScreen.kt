@@ -34,7 +34,7 @@ internal val teamReleases = listOf(TeamRelease(
     // Verified from the CurseForge API/mirror on 2026-10-19, not a guessed title match.
     title = "Aetherium (Fabric)", slug = "aetherium-fabric", projectId = "1749327", type = AssetType.MOD,
     iconUrl = "https://media.forgecdn.net/avatars/thumbnails/2125/90/256/256/639278007572469420.png",
-    attribution = "By Team_Aerix · CurseForge", badges = "Mod · Fabric · Client-side",
+    attribution = "By Team_Apex · CurseForge", badges = "Mod · Fabric · Client-side",
     headline = "A new view of Minecraft performance",
     summary = "Aetherium brings its own terrain renderer, frame-pacing controls and a redesigned video-settings experience to Fabric. The project describes features for both desktop and Android/Pojav setups.",
     features = listOf(
@@ -131,7 +131,7 @@ private fun TeamReleaseCard(activity: FragmentActivity, project: TeamRelease, na
                 if (opening) { CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp); Spacer(Modifier.width(12.dp)) }
                 Text(if (opening) "Opening CurseForge project…" else "View & download in Discover")
             }
-            Text("Opens this exact project in Aerix's CurseForge detail page. Review live files and choose your Minecraft instance before installing.",
+            Text("Opens this exact project in Apex's CurseForge detail page. Review live files and choose your Minecraft instance before installing.",
                 style = MaterialTheme.typography.bodyMedium, color = AerixSurface.textSecondary)
         }
     }

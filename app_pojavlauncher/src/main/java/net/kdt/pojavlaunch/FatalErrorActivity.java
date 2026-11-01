@@ -33,7 +33,7 @@ public class FatalErrorActivity extends AppCompatActivity {
 			throwable = (Throwable) extras.getSerializable("throwable");
 		} catch (Throwable ignored) {
 		}
-		final String stackTrace = "Aerix Launcher " + BuildConfig.VERSION_NAME
+		final String stackTrace = "Apex Launcher " + BuildConfig.VERSION_NAME
                 + " (code " + BuildConfig.VERSION_CODE + ", " + BuildConfig.BUILD_TYPE + ")\n"
                 + "Package: " + getPackageName() + "\n"
                 + "Android: " + android.os.Build.VERSION.RELEASE + "\n\n"

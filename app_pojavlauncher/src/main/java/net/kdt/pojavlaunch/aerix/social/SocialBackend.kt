@@ -60,7 +60,7 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 object SocialBackend {
-    private const val TAG = "AerixSocial"
+    private const val TAG = "ApexSocial"
     private const val PREFS = "aerix_social"
     private const val THIRTY_DAYS_MS = 30L * 24L * 60L * 60L * 1000L
 

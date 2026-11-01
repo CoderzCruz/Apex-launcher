@@ -106,7 +106,7 @@ object AerixClientPackGenerator {
                 {
                   "pack": {
                     "pack_format": $packFmt$modernRange,
-                    "description": "\u00a7c\u2726 Aerix Client $mcVersion \u00a78\u00b7 Crimson Performance"
+                    "description": "\u00a7c\u2726 Apex Client $mcVersion \u00a78\u00b7 Crimson Performance"
                   }
                 }
             """.trimIndent()
@@ -148,11 +148,11 @@ object AerixClientPackGenerator {
                     zos,
                     "assets/minecraft/texts/splashes.txt",
                     listOf(
-                        "✦ Aerix Client!",
+                        "✦ Apex Client!",
                         "Crimson & Obsidian!",
                         "Maximum Mobile FPS!",
                         "Waving 3D Animated Capes!",
-                        "Powered by Aerix Launcher!"
+                        "Powered by Apex Launcher!"
                     ).joinToString("\n")
                 )
             }

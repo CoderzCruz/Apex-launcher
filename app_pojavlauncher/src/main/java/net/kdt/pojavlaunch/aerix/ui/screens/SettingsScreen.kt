@@ -664,7 +664,7 @@ private fun RendererTabContent(activity: FragmentActivity) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Aerix Launcher v${BuildConfig.VERSION_NAME} \u2022 Built by entitybrian",
+                        text = "Apex Launcher v${BuildConfig.VERSION_NAME} \u2022 Built by entitybrian",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = AerixSurface.textPrimary
@@ -2021,7 +2021,7 @@ private fun AboutInfoTabContent(activity: FragmentActivity) {
                     AboutRowCard(
                         iconRes = R.drawable.ic_aerix_mark,
                         iconTint = Color.Unspecified,
-                        title = "Aerix Launcher",
+                        title = "Apex Launcher",
                         subtitle = "Launcher Version: ${BuildConfig.VERSION_NAME}",
                         actions = {
                             AboutPillButton("Check for Updates", accent) {
@@ -2040,7 +2040,7 @@ private fun AboutInfoTabContent(activity: FragmentActivity) {
                         iconRes = R.drawable.aerix_img_avatar_entitybrian,
                         iconTint = Color.Unspecified,
                         title = "entitybrian",
-                        subtitle = "Owner and maintainer of Aerix Launcher.",
+                        subtitle = "Owner and maintainer of Apex Launcher.",
                         actions = {
                             AboutPillButton("GitHub profile", accent) {
                                 PojavNavigator.openUrl(activity, "https://github.com/entitybrian69-bit")

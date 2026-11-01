@@ -85,7 +85,7 @@ object AerixClientInputBridge {
         private set
     var bootStageTitle by mutableStateOf("Initializing Java and game runtime...")
         private set
-    var bootStageDetail by mutableStateOf("Aerix Client · Crimson Edition")
+    var bootStageDetail by mutableStateOf("Apex Client · Crimson Edition")
         private set
     var sessionMinecraftVersion by mutableStateOf<String?>(null)
         private set
@@ -327,7 +327,7 @@ object AerixClientInputBridge {
         logReadOffset = 0L
         bootProgress = 0.08f
         bootStageTitle = "Initializing Java and game runtime..."
-        bootStageDetail = "Aerix Client · Crimson Edition"
+        bootStageDetail = "Apex Client · Crimson Edition"
         hostedLanPort = 0
         hostedLanAddress = ""
         queuePosition = -1
@@ -394,7 +394,7 @@ object AerixClientInputBridge {
                 line.contains("Sound engine started", ignoreCase = true) -> {
                 if (bootProgress < 0.80f) {
                     bootProgress = 0.80f
-                    bootStageTitle = "Mounting Aerix Client Pack..."
+                    bootStageTitle = "Mounting Apex Client Pack..."
                     bootStageDetail = "Applying transparent GUI, custom skybox & 3D capes"
                 }
             }
@@ -402,7 +402,7 @@ object AerixClientInputBridge {
                 if (bootProgress < 0.95f) {
                     bootProgress = 0.95f
                     bootStageTitle = ClientBootLabels.textureAtlases(sessionMinecraftVersion)
-                    bootStageDetail = "Entering Aerix Client Title Dashboard"
+                    bootStageDetail = "Entering Apex Client Title Dashboard"
                 }
             }
         }

@@ -148,7 +148,7 @@ internal fun FirstRunNotificationPopupHost(activity: FragmentActivity) {
                             color = AerixSurface.textPrimary
                         )
                         Text(
-                            text = "Choose how Aerix Launcher notifies you",
+                            text = "Choose how Apex Launcher notifies you",
                             fontSize = 12.sp,
                             color = AerixSurface.textSecondary
                         )

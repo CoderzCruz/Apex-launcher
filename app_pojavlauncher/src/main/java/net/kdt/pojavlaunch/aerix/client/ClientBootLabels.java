@@ -25,7 +25,7 @@ public final class ClientBootLabels {
     }
 
     public static String header(String version) {
-        return version == null || version.isEmpty() ? "Aerix Client" : "Aerix Client " + version;
+        return version == null || version.isEmpty() ? "Apex Client" : "Apex Client " + version;
     }
 
     public static String loadingMods(String version) {

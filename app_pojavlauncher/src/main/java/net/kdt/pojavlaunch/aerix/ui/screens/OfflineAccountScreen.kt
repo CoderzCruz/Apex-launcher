@@ -216,7 +216,7 @@ fun OfflineAccountScreen(activity: FragmentActivity, onClose: () -> Unit, onCrea
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(AerixSpacing.xs)) {
                         MethodChip(text = stringResource(R.string.aerix_account_random_name), selected = false, accent = accent) {
-                            name = "Aerix_" + Random.nextInt(1000, 9999)
+                            name = "Apex_" + Random.nextInt(1000, 9999)
                         }
                         suggestions.forEach { suggestion ->
                             MethodChip(text = suggestion, selected = name == suggestion, accent = accent) { name = suggestion }

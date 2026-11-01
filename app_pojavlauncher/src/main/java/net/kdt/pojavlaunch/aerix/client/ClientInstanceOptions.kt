@@ -23,7 +23,7 @@ object ClientInstanceOptions {
 
     private fun readJson(file: File): JSONObject {
         if (!file.isFile) return JSONObject()
-        require(file.length() <= 1_000_000L) { "Aerix configuration is too large" }
+        require(file.length() <= 1_000_000L) { "Apex configuration is too large" }
         return JSONObject(file.readText())
     }
 

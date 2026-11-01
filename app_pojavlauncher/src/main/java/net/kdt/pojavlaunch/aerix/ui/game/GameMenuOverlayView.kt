@@ -80,7 +80,7 @@ class GameMenuOverlayView @JvmOverloads constructor(
         val version = runCatching {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName
         }.getOrNull()
-        if (version.isNullOrEmpty()) "Aerix Launcher" else "Aerix Launcher · $version"
+        if (version.isNullOrEmpty()) "Apex Launcher" else "Apex Launcher · $version"
     }
 
     init {

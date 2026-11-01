@@ -70,7 +70,7 @@ object AerixPreferences {
     const val KEY_FAVORITES = "aerixFavoriteProjects"
     /** JSON array of pinned instance names (mirai VersionsManageScreen "Pinned" tab). */
     const val KEY_PINNED_INSTANCES = "aerixPinnedInstances"
-    /** Discord Rich Presence: show "Playing Aerix Launcher" on the player's own profile. */
+    /** Discord Rich Presence: show "Playing Apex Launcher" on the player's own profile. */
     const val KEY_DISCORD_PRESENCE = "aerixDiscordPresence"
     /** The Discord application id the presence is published under (Developer Portal). */
     const val KEY_DISCORD_APP_ID = "aerixDiscordAppId"

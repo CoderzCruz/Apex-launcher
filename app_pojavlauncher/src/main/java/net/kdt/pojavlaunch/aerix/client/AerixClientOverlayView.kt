@@ -1732,14 +1732,14 @@ private fun ClientKeyProfilesPage(gameDir: File?) {
 @Composable
 private fun ClientAimPage() {
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("Touch multiplier applies only while looking in Aerix Client; your launcher setting is unchanged.",
+        Text("Touch multiplier applies only while looking in Apex Client; your launcher setting is unchanged.",
             color = LiquidCrystalPalette.TextSecondary, fontSize = 11.sp)
         ClientInformationToggle("Enable touch aim multiplier", AerixClientStore.touchAimEnabled) { AerixClientStore.touchAimEnabled = it }
         Text("Touch aim  ${"%.2f".format(AerixClientStore.touchAimMultiplier)}×", color = Color.White, fontSize = 11.sp)
         Slider(value = AerixClientStore.touchAimMultiplier, onValueChange = {
             AerixClientStore.touchAimMultiplier = it; AerixClientStore.persist()
         }, valueRange = 0.25f..2f)
-        ClientInformationToggle("Enable Aerix gyroscope", AerixClientStore.gyroAdsEnabled) { AerixClientStore.gyroAdsEnabled = it }
+        ClientInformationToggle("Enable Apex gyroscope", AerixClientStore.gyroAdsEnabled) { AerixClientStore.gyroAdsEnabled = it }
         Text("Gyro aim  ${"%.2f".format(AerixClientStore.gyroSensitivity)}×", color = Color.White, fontSize = 11.sp)
         Slider(value = AerixClientStore.gyroSensitivity.coerceIn(0.25f, 2f), onValueChange = {
             AerixClientStore.gyroSensitivity = it; AerixClientStore.persist()
@@ -1762,7 +1762,7 @@ private fun ClientAimPage() {
         ClientInformationToggle("Perspective · F5", AerixClientStore.quickPerspectiveEnabled) { AerixClientStore.quickPerspectiveEnabled = it }
         ClientInformationToggle("Screenshot · F2", AerixClientStore.quickScreenshotEnabled) { AerixClientStore.quickScreenshotEnabled = it }
         ClientInformationToggle("Hitboxes · F3+B", AerixClientStore.quickHitboxesEnabled) { AerixClientStore.quickHitboxesEnabled = it }
-        Text("Gyro requires a supported sensor. Avoid enabling both Aerix and launcher gyro at once.",
+        Text("Gyro requires a supported sensor. Avoid enabling both Apex and launcher gyro at once.",
             color = LiquidCrystalPalette.TextMuted, fontSize = 10.sp)
     }
 }

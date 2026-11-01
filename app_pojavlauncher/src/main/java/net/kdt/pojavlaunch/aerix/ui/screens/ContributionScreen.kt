@@ -106,7 +106,7 @@ object AerixContribution {
             roleColor = ownerRed,
             logoRes = R.drawable.aerix_contrib_owner,
             duties = listOf(
-                "Writes the launcher: the Aerix shell, its settings and its launcher screens.",
+                "Writes the launcher: the Apex shell, its settings and its launcher screens.",
                 "Programs the renderer backends and the plugin support that loads them.",
                 "Builds, signs and ships every release.",
                 "Answers the bug reports and fixes what they turn up."
@@ -338,7 +338,7 @@ fun ContributionDetailScreen(member: ContributionMember, onBack: () -> Unit) {
                     fontWeight = FontWeight.Black
                 )
                 Text(
-                    text = "What they do in Aerix Launcher",
+                    text = "What they do in Apex Launcher",
                     color = AerixSurface.textSecondary,
                     fontSize = 11.sp
                 )

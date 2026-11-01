@@ -83,7 +83,7 @@ data class ClientWaypoint(
 
 object AerixClientStore {
     const val SUPPORTED_MC_VERSION = "1.16.5"
-    const val CLIENT_INSTANCE_NAME = "Aerix Client 1.16.5"
+    const val CLIENT_INSTANCE_NAME = "Apex Client 1.16.5"
 
     // Locked Crimson Red + Dark Gray Theme (immutable, cannot be changed)
     const val LOCKED_CRIMSON_HEX = 0xFFDC1E3AL

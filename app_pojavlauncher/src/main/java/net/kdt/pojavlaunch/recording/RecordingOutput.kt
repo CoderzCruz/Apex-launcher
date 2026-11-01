@@ -20,7 +20,7 @@ internal class RecordingOutput(private val context: Context) {
     private var uri: Uri? = null
     private var file: File? = null
     private var descriptor: ParcelFileDescriptor? = null
-    private val name = "Aerix-${SimpleDateFormat("yyyyMMdd-HHmmss-SSS", Locale.ROOT).format(Date())}.mp4"
+    private val name = "Apex-${SimpleDateFormat("yyyyMMdd-HHmmss-SSS", Locale.ROOT).format(Date())}.mp4"
 
     fun open(): MediaMuxer {
         if (Build.VERSION.SDK_INT >= 29) {
@@ -40,14 +40,14 @@ internal class RecordingOutput(private val context: Context) {
                 ContentValues().apply {
                     put(MediaStore.Video.Media.DISPLAY_NAME, name)
                     put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-                    put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/Aerix")
+                    put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/Apex")
                     put(MediaStore.Video.Media.IS_PENDING, 1)
-                })) { "Cannot create recording in Movies/Aerix" }
+                })) { "Cannot create recording in Movies/Apex" }
             check(recovery.edit().putString("pending_uri", uri.toString()).commit()) { "Cannot track pending recording" }
             descriptor = requireNotNull(context.contentResolver.openFileDescriptor(uri!!, "rw"))
             return MediaMuxer(descriptor!!.fileDescriptor, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
         }
-        val directory = File(requireNotNull(context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)), "Aerix")
+        val directory = File(requireNotNull(context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)), "Apex")
         check(directory.isDirectory || directory.mkdirs()) { "Cannot create recording folder" }
         file = File(directory, name)
         return MediaMuxer(file!!.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
@@ -67,7 +67,7 @@ internal class RecordingOutput(private val context: Context) {
                 put(MediaStore.Video.Media.IS_PENDING, 0)
             }, null, null) > 0) { "Cannot publish recording" }
             recovery.edit().remove("pending_uri").commit()
-            return "Movies/Aerix/$name"
+            return "Movies/Apex/$name"
         }
         val path = requireNotNull(file).absolutePath
         MediaScannerConnection.scanFile(context, arrayOf(path), arrayOf("video/mp4"), null)

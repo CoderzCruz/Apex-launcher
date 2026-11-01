@@ -160,7 +160,7 @@ class RecorderController(private val activity: Activity) {
         audio.setSelection(audioSources.indexOf(savedAudio).coerceAtLeast(0))
 
         TextView(activity).apply {
-            text = "Isolated hardware H.264 MP4 recorder · Saves to Movies/Aerix."
+            text = "Isolated hardware H.264 MP4 recorder · Saves to Movies/Apex."
             textSize = 12f
             setPadding(0, (10 * density).toInt(), 0, 0)
             body.addView(this)

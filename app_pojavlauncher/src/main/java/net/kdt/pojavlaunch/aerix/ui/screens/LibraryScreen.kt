@@ -1396,7 +1396,7 @@ internal fun ModpackExportDialog(
     var format by remember { mutableStateOf(ModpackExportFormat.MODRINTH) }
     var packName by remember(instance.name) { mutableStateOf(instance.name) }
     var packVersion by remember { mutableStateOf("1.0.0") }
-    var packAuthor by remember { mutableStateOf("Aerix") }
+    var packAuthor by remember { mutableStateOf("Apex") }
     var exporting by remember { mutableStateOf(false) }
 
     val availableFolders = listOf(

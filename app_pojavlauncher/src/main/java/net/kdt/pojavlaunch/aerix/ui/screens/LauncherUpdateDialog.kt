@@ -75,7 +75,7 @@ internal fun LauncherUpdateDialog(activity: FragmentActivity, automatic: Boolean
     val heading = when (phase) {
         LauncherUpdatePhase.CHECKING -> "Checking for updates"
         LauncherUpdatePhase.CURRENT -> "No update available"
-        LauncherUpdatePhase.AVAILABLE -> "A new Aerix is ready"
+        LauncherUpdatePhase.AVAILABLE -> "A new Apex is ready"
         LauncherUpdatePhase.DOWNLOADING -> "Downloading update"
         LauncherUpdatePhase.READY -> "Ready to install"
         LauncherUpdatePhase.ERROR -> "Couldn't complete the update"
@@ -187,7 +187,7 @@ internal fun LauncherUpdateDialog(activity: FragmentActivity, automatic: Boolean
                         }
                         LauncherUpdatePhase.READY -> {
                             Text("${release?.tag} downloaded and verified", color = accent, fontWeight = FontWeight.SemiBold)
-                            Text("Tap Install to open Android's confirmation. If asked, allow Aerix to install app updates.")
+                            Text("Tap Install to open Android's confirmation. If asked, allow Apex to install app updates.")
                         }
                         LauncherUpdatePhase.ERROR -> Text(updater.error, color = AerixSurface.danger)
                     }

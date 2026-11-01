@@ -666,7 +666,7 @@ private fun SocialSignIn(activity: FragmentActivity) {
                     }
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        "Aerix Social",
+                        "Apex Social",
                         fontSize = 19.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = AerixSurface.textPrimary

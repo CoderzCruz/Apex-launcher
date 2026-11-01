@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicLong
  *    (`messages`, `friendships`, `profiles`). Any missing publication on [TOPIC_DB] never affects [TOPIC_LIVE].
  */
 object SocialRealtime {
-    private const val TAG = "AerixSocialRealtime"
+    private const val TAG = "ApexSocialRealtime"
     private const val TOPIC_LIVE = "realtime:aerix:live"
     private const val TOPIC_DB = "realtime:aerix:db"
     private const val HEARTBEAT_MS = 22_000L

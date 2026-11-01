@@ -1252,7 +1252,7 @@ object AerixDiscordPresence {
         const val FILES = "In the file browser"
         const val ABOUT = "Reading about the launcher"
         const val SOCIALS = "Chatting in Socials"
-        const val AERIX_CLIENT = "Configuring Aerix Client 1.16.5"
+        const val AERIX_CLIENT = "Configuring Apex Client 1.16.5"
         const val GENERIC = "Browsing"
 
         fun stateFor(section: String?): String = when (section?.uppercase()) {

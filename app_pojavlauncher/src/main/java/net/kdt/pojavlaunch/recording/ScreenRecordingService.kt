@@ -37,7 +37,7 @@ import java.nio.ByteBuffer
  */
 class ScreenRecordingService : Service() {
     private val main = Handler(Looper.getMainLooper())
-    private val thread = HandlerThread("Aerix screen recorder")
+    private val thread = HandlerThread("Apex screen recorder")
     private lateinit var worker: Handler
 
     private var projection: MediaProjection? = null
@@ -376,7 +376,7 @@ class ScreenRecordingService : Service() {
             }
 
             display = projection!!.createVirtualDisplay(
-                "AerixRecorder",
+                "ApexRecorder",
                 config.width,
                 config.height,
                 resources.displayMetrics.densityDpi.coerceAtLeast(160),
@@ -493,6 +493,6 @@ class ScreenRecordingService : Service() {
         const val STOP = "net.kdt.pojavlaunch.recording.STOP"
         private const val CHANNEL = "aerix_screen_recorder"
         private const val NOTIFICATION = 4109
-        private const val TAG = "AerixRecorder"
+        private const val TAG = "ApexRecorder"
     }
 }

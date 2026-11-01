@@ -331,7 +331,7 @@ object PojavInstanceBridge {
                                 addProperty("game", "minecraft")
                                 addProperty("versionId", packVersion.ifBlank { "1.0.0" })
                                 addProperty("name", packName.ifBlank { instance.name })
-                                addProperty("summary", "Exported by Aerix Launcher ($packAuthor)")
+                                addProperty("summary", "Exported by Apex Launcher ($packAuthor)")
                                 add("files", JsonArray())
                                 val deps = JsonObject().apply {
                                     addProperty("minecraft", mcVersion)
@@ -359,7 +359,7 @@ object PojavInstanceBridge {
                                 addProperty("manifestVersion", 1)
                                 addProperty("name", packName.ifBlank { instance.name })
                                 addProperty("version", packVersion.ifBlank { "1.0.0" })
-                                addProperty("author", packAuthor.ifBlank { "Aerix" })
+                                addProperty("author", packAuthor.ifBlank { "Apex" })
                                 add("files", JsonArray())
                                 addProperty("overrides", "overrides")
                             }
@@ -370,7 +370,7 @@ object PojavInstanceBridge {
                             val cfg = buildString {
                                 appendLine("InstanceType=OneSix")
                                 appendLine("name=${packName.ifBlank { instance.name }}")
-                                appendLine("notes=Exported by Aerix Launcher")
+                                appendLine("notes=Exported by Apex Launcher")
                             }
                             val components = JsonArray().apply {
                                 add(JsonObject().apply {

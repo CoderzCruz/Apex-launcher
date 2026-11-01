@@ -280,7 +280,7 @@ object AerixClientCosmetics {
         runCatching {
             val all = Instances.loadAllInstances()
             for (inst in all) {
-                if (inst.isAerixClient || inst.name?.startsWith("Aerix Client", ignoreCase = true) == true) {
+                if (inst.isAerixClient || inst.name?.let { n -> n.startsWith("Apex Client", true) || n.startsWith("Aerix Client", true) } == true) {
                     inst.gameDirectory?.let { syncCapeAssetsToInstance(context, it) }
                 }
             }

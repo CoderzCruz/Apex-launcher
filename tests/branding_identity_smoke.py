@@ -55,7 +55,7 @@ class BrandingIdentitySmoke(unittest.TestCase):
         self.assertGreaterEqual(count, 50)
         strings = ET.parse(RES / "values/strings.xml").getroot()
         self.assertEqual(strings.find("string[@name='lazy_service_default_title']").text,
-                         "Aerix Foreground Service")
+                         "Apex Foreground Service")
 
     def test_notification_icon_is_used_and_valid_png(self):
         for service in ("GameService", "ProgressService"):

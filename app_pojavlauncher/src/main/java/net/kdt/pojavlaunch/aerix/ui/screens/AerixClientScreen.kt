@@ -64,7 +64,7 @@ fun AerixClientScreen(activity: FragmentActivity) {
     val accent = AerixSurface.accent
 
     AerixPage(
-        title = "Aerix Client",
+        title = "Apex Client",
         subtitle = null
     ) {
         // Active download progress banner in Liquid Glass
@@ -251,7 +251,7 @@ fun AerixClientScreen(activity: FragmentActivity) {
                                         res.onSuccess {
                                             Toast.makeText(
                                                 activity,
-                                                "Aerix Client ${spec.mcVersion} ready!",
+                                                "Apex Client ${spec.mcVersion} ready!",
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }.onFailure { err ->

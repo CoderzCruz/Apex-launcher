@@ -63,7 +63,7 @@ class AerixMainFragment : Fragment() {
         super.onAttach(context)
         AerixPreferences.init(context)
         val retentionDays = AerixPreferences.logRetentionDays
-        Thread({ runCatching { PojavFileBridge.pruneOldLogs(retentionDays) } }, "AerixLogPrune").start()
+        Thread({ runCatching { PojavFileBridge.pruneOldLogs(retentionDays) } }, "ApexLogPrune").start()
         PojavTaskBridge.attach()
         PojavInstanceBridge.attach(context)
         PojavAccountBridge.attach(context)

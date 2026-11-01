@@ -152,7 +152,7 @@ internal class RecordingAudio(
         ) {
             "${source.label} must be available"
         }
-        reader = Thread({ readLoop() }, "Aerix audio capture").apply { start() }
+        reader = Thread({ readLoop() }, "Apex audio capture").apply { start() }
     }
 
     private fun readLoop() {

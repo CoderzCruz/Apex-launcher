@@ -231,8 +231,8 @@ fun DiscordPresenceSettingsCard() {
             position = CardPosition.Middle,
             title = "Modpack art, clickable info links & buttons",
             summary = "Show modpack cover artwork, make the headline & status clickable " +
-                "(opening the official Aerix website & Discord), and display \u201CAbout Aerix Launcher\u201D " +
-                "+ \u201CJoin Aerix Discord\u201D buttons on your profile card.",
+                "(opening the official Apex website & Discord), and display \u201CAbout Apex Launcher\u201D " +
+                "+ \u201CJoin Apex Discord\u201D buttons on your profile card.",
             checked = clickableLinks,
             enabled = enabled,
             onCheckedChange = { on ->

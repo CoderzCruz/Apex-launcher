@@ -504,8 +504,8 @@ object AerixSkinServer {
         }
         root.add("skinDomains", domains)
         val meta = JsonObject().apply {
-            addProperty("serverName", "Aerix Launcher (local)")
-            addProperty("implementationName", "Aerix Launcher")
+            addProperty("serverName", "Apex Launcher (local)")
+            addProperty("implementationName", "Apex Launcher")
             addProperty("implementationVersion", "1.6")
             addProperty("feature.no_mojang_namespace", !passThrough)
             addProperty("feature.enable_profile_key", true)
@@ -552,7 +552,7 @@ object AerixSkinServer {
                 addProperty("id", hash.take(32))
                 addProperty("state", "ACTIVE")
                 addProperty("url", "http://127.0.0.1:$port/textures/$hash")
-                addProperty("alias", "Aerix")
+                addProperty("alias", "Apex")
             })
         }
         return JsonObject().apply {

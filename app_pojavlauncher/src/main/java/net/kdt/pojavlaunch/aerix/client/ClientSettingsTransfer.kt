@@ -21,7 +21,7 @@ object ClientSettingsTransfer {
         }
         val performance = JSONObject()
         ClientPerformanceSettings.overrides.forEach { (key, value) -> performance.put(key, value) }
-        return JSONObject().put("format", "AerixClientSettings").put("version", 1)
+        return JSONObject().put("format", "ApexClientSettings").put("version", 1)
             .put("client", values).put("performance", performance).toString(2)
     }
 
@@ -29,7 +29,7 @@ object ClientSettingsTransfer {
     fun importSettings(context: Context, text: String) {
         require(text.length <= 250_000) { "Settings file is too large" }
         val root = JSONObject(text)
-        require(root.optString("format") == "AerixClientSettings" && root.optInt("version") == 1) { "Not a supported Aerix settings file" }
+        require(root.optString("format") == "ApexClientSettings" && root.optInt("version") == 1) { "Not a supported Apex settings file" }
         val client = root.getJSONObject("client")
         val values = mutableMapOf<String, Any>()
         val allKeys = client.keys().asSequence().toList()

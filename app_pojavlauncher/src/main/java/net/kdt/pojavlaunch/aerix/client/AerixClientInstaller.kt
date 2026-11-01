@@ -47,7 +47,7 @@ object AerixClientInstaller {
     private const val TUNED_CLIENT_JVM_ARGS = ""
 
     val availableVersions: List<ClientVersionSpec> = ClientVersions.RELEASES.map { version ->
-        ClientVersionSpec(version, "Aerix Client $version", if (ClientVersions.modern(version))
+        ClientVersionSpec(version, "Apex Client $version", if (ClientVersions.modern(version))
             "Experimental · Java 25 · cape animation needs device testing · time/weather overrides unavailable" else "Fabric · version-matched optimization mods")
     }
 
@@ -64,7 +64,7 @@ object AerixClientInstaller {
     var lastError by mutableStateOf<String?>(null)
         private set
 
-    fun instanceNameFor(mcVersion: String): String = "Aerix Client $mcVersion"
+    fun instanceNameFor(mcVersion: String): String = "Apex Client $mcVersion"
 
     fun findInstalledClientInstance(mcVersion: String? = null): Instance? =
         findInstalledClientInstance(mcVersion, runCatching { Instances.loadAllInstances() }.getOrDefault(emptyList()))
@@ -72,7 +72,7 @@ object AerixClientInstaller {
     fun findInstalledClientInstance(mcVersion: String?, list: List<Instance>): Instance? = runCatching {
         if (mcVersion.isNullOrBlank()) {
             list.firstOrNull { it.isAerixClient }
-                ?: list.firstOrNull { it.name?.startsWith("Aerix Client", ignoreCase = true) == true }
+                ?: list.firstOrNull { it.name?.let { n -> n.startsWith("Apex Client", true) || n.startsWith("Aerix Client", true) } == true }
         } else {
             val expectedName = instanceNameFor(mcVersion)
             list.firstOrNull { inst ->
@@ -299,7 +299,7 @@ object AerixClientInstaller {
 
                 val capeWarning = runCatching { ensureWaveyCapes(modsDir, mcVersion) }.exceptionOrNull()
                 progressFraction = 0.90f
-                statusHeadline = "Applying Aerix Client Pack & FPS Engine..."
+                statusHeadline = "Applying Apex Client Pack & FPS Engine..."
                 statusDetail = "Syncing AERIX CLIENT title, capes & Sodium"
                 AerixClientPackGenerator.buildAndApplyToInstance(context, gameDir, mcVersion)
 

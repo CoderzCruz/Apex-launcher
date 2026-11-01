@@ -321,7 +321,7 @@ internal object LauncherUpdater {
                         val uri = FileProvider.getUriForFile(context, "${context.packageName}.updates", file)
                         context.startActivity(Intent(Intent.ACTION_VIEW).apply {
                             setDataAndType(uri, "application/vnd.android.package-archive")
-                            clipData = ClipData.newRawUri("Aerix update", uri)
+                            clipData = ClipData.newRawUri("Apex update", uri)
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         })
                     }
@@ -338,6 +338,6 @@ internal object LauncherUpdater {
         if (!awaitingPermission) return
         awaitingPermission = false
         if (Build.VERSION.SDK_INT < 26 || context.packageManager.canRequestPackageInstalls()) install(context)
-        else error = "Allow Aerix to install app updates, then tap Install again."
+        else error = "Allow Apex to install app updates, then tap Install again."
     }
 }
