@@ -41,7 +41,7 @@ concurrency:
 env:
   # One APK for every phone: the debug build carries both ARM architectures, so it installs
   # anywhere without a second file to choose between.
-  APK_NAME: Aerix-Launcher-debug.apk
+  APK_NAME: ApexLauncher1.0.apk
   APK_PATH: app_pojavlauncher/build/outputs/apk/noruntime/debug/app_pojavlauncher-noruntime-debug.apk
 
 jobs:
@@ -192,7 +192,7 @@ jobs:
           set -euo pipefail
           TAG="debug-latest"
           SHORT="${GITHUB_SHA:0:7}"
-          STAMPED_NAME="Aerix-Launcher-debug-$SHORT.apk"
+          STAMPED_NAME="${APK_NAME%.apk}-$SHORT.apk"
           BUILT_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
           STAGE="$(mktemp -d)"
           cp "$APK_PATH" "$STAGE/$APK_NAME"
@@ -229,7 +229,8 @@ jobs:
           ANCHOR_SHA="cadb0ab12ff45b582927361b703df878b37e0221"
           if gh release view "$TAG" > /dev/null 2>&1; then
             # Prune previous commit-stamped APKs so only the latest pair remains on debug-latest.
-            for old_asset in $(gh release view "$TAG" --json assets --jq '.assets[].name' | grep -E '^Aerix-Launcher-debug-[0-9a-f]+\.apk$' || true); do
+            STAMPED_BASE="$(printf '%s' "${APK_NAME%.apk}" | sed 's/[.]/\\./g')"
+            for old_asset in $(gh release view "$TAG" --json assets --jq '.assets[].name' | grep -E "^${STAMPED_BASE}-[0-9a-f]+\\.apk$" || true); do
               if [ "$old_asset" != "$STAMPED_NAME" ]; then
                 gh release delete-asset "$TAG" "$old_asset" --yes || true
               fi
