@@ -217,6 +217,20 @@ fun DiscordPresenceSettingsCard() {
         }
 
         MiraiTextInputSettingsCard(
+            value = AerixPreferences.discordAssetName,
+            title = "Rich Presence art asset",
+            summary = "Name of the image uploaded under Discord Developer Portal → your Apex " +
+                "application → Rich Presence → Art Assets. Must match exactly; blank means " +
+                "\u201Capex_logo\u201D. Discord shows nothing when the name is not found.",
+            label = "apex_logo",
+            position = CardPosition.Middle,
+            onValueChange = { name ->
+                AerixPreferences.saveDiscordAssetName(name)
+                AerixDiscordPresence.syncSettingsChanged(appContext)
+            }
+        )
+
+        MiraiTextInputSettingsCard(
             value = appId,
             title = "Discord application ID",
             summary = "Already set to the Apex Launcher application, so nothing has to be done here. " +

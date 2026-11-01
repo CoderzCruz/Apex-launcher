@@ -79,6 +79,10 @@ object AerixDiscordPresence {
      */
     const val APEX_LOGO_ASSET = "apex_logo"
 
+    /** The asset name to publish: whatever is set in settings, else the shipped key. */
+    fun logoAssetKey(): String =
+        AerixPreferences.discordAssetName.trim().ifBlank { APEX_LOGO_ASSET }
+
     /** This fork has no website or Discord server yet, so cards carry no links. */
     const val APEX_WEBSITE_URL = ""
     const val APEX_DISCORD_URL = ""
@@ -1013,14 +1017,14 @@ object AerixDiscordPresence {
         if (validPackIcon != null) {
             assets.put("large_image", validPackIcon)
             assets.put("large_text", "$state · Apex Launcher")
-            assets.put("small_image", APEX_LOGO_ASSET)
+            assets.put("small_image", logoAssetKey())
             assets.put("small_text", "Apex Launcher")
         } else {
-            assets.put("large_image", APEX_LOGO_ASSET)
+            assets.put("large_image", logoAssetKey())
             assets.put("large_text", if (usingMinecraftProfile)
                 "Apex Launcher — Minecraft Java Edition on Android" else "Apex Launcher")
             if (usingMinecraftProfile) {
-                assets.put("small_image", APEX_LOGO_ASSET)
+                assets.put("small_image", logoAssetKey())
                 assets.put("small_text", "Powered by Apex Launcher")
             }
         }

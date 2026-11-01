@@ -78,6 +78,8 @@ object AerixPreferences {
     const val KEY_DISCORD_GAME_PROFILE_MODE = "aerixDiscordGameProfileMode"
     /** Attach modpack art, clickable info URLs, and action buttons to Discord Rich Presence cards. */
     const val KEY_DISCORD_CLICKABLE_LINKS = "aerixDiscordClickableLinks"
+    /** Rich Presence art asset name uploaded to the Discord application. */
+    const val KEY_DISCORD_ASSET_NAME = "aerixDiscordAssetName"
 
     const val DEFAULT_CUSTOM_COLOR = 0xFF8DEFE0.toInt()
     const val DEFAULT_BACKGROUND_OPACITY = 60
@@ -168,6 +170,7 @@ object AerixPreferences {
 
     /** Aerix "aerixDiscordAppId": the Discord application the presence is shown under. */
     var discordAppId by mutableStateOf("")
+    var discordAssetName by mutableStateOf("")
         private set
 
     /** True to switch in-game Rich Presence to Minecraft's verified Discord Game Profile ID. */
@@ -213,6 +216,7 @@ object AerixPreferences {
         discordAppId = p.getString(KEY_DISCORD_APP_ID, "") ?: ""
         discordGameProfileMode = p.getBoolean(KEY_DISCORD_GAME_PROFILE_MODE, true)
         discordClickableLinks = p.getBoolean(KEY_DISCORD_CLICKABLE_LINKS, true)
+        discordAssetName = p.getString(KEY_DISCORD_ASSET_NAME, "") ?: ""
     }
 
     fun saveFavoritesJson(value: String) {
@@ -223,6 +227,11 @@ object AerixPreferences {
     fun saveDiscordPresenceEnabled(value: Boolean) {
         discordPresenceEnabled = value
         edit { putBoolean(KEY_DISCORD_PRESENCE, value) }
+    }
+
+    fun saveDiscordAssetName(value: String) {
+        discordAssetName = value.trim().take(64)
+        edit { putString(KEY_DISCORD_ASSET_NAME, discordAssetName) }
     }
 
     fun saveDiscordAppId(value: String) {
