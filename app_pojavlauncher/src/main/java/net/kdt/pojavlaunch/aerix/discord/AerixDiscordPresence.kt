@@ -104,6 +104,21 @@ object AerixDiscordPresence {
     const val APEX_WEBSITE_URL = ""
     const val APEX_DISCORD_URL = ""
 
+    /** Accepts "discord.gg/apex" as well as "https://discord.gg/apex"; drops anything unusable. */
+    private fun normalizeLink(raw: String): String {
+        val value = raw.trim()
+        if (value.isEmpty() || value.contains(' ')) return ""
+        if (value.startsWith("http://", true) || value.startsWith("https://", true)) return value
+        return if (value.contains('.')) "https://$value" else ""
+    }
+
+    /** Community links typed in settings; blank until the fork has destinations of its own. */
+    fun websiteUrl(): String =
+        normalizeLink(AerixPreferences.discordWebsiteUrl).ifBlank { APEX_WEBSITE_URL }
+
+    fun inviteUrl(): String =
+        normalizeLink(AerixPreferences.discordInviteUrl).ifBlank { APEX_DISCORD_URL }
+
     /** Verified Discord catalog IDs for Minecraft's native Game Profile sheet. */
     const val MINECRAFT_PRIMARY_APP_ID = 1402418491272986635L
     const val MINECRAFT_LEGACY_APP_ID = 356875570916753438L
@@ -1049,18 +1064,23 @@ object AerixDiscordPresence {
         }
         // Links are added only once the fork has destinations of its own. Empty strings keep the
         // card from pointing at the upstream project's website and Discord server.
-        if (clickable && APEX_WEBSITE_URL.isNotBlank()) {
-            activity.put("details_url", APEX_WEBSITE_URL)
-            assets.put("large_url", APEX_WEBSITE_URL)
+        if (clickable) {
+            val site = websiteUrl()
+            val invite = inviteUrl()
+            // An image slot only ever carries an image; a plain web page would blank the cover.
+            if (isImageUrl(site)) assets.put("large_url", site)
+            if (isImageUrl(invite)) assets.put("small_url", invite)
+            if (site.isNotBlank()) activity.put("details_url", site)
+            if (invite.isNotBlank()) activity.put("state_url", invite)
             if (supportsExtendedFields) {
                 val buttons = JSONArray()
-                    .put(JSONObject().put("label", "About Apex").put("url", APEX_WEBSITE_URL))
-                if (APEX_DISCORD_URL.isNotBlank()) {
-                    activity.put("state_url", APEX_DISCORD_URL)
-                    if (validPackIcon != null || usingMinecraftProfile) assets.put("small_url", APEX_DISCORD_URL)
-                    buttons.put(JSONObject().put("label", "Join Apex Discord").put("url", APEX_DISCORD_URL))
+                if (site.isNotBlank()) {
+                    buttons.put(JSONObject().put("label", "About Apex").put("url", site))
                 }
-                activity.put("buttons", buttons)
+                if (invite.isNotBlank()) {
+                    buttons.put(JSONObject().put("label", "Join Apex Discord").put("url", invite))
+                }
+                if (buttons.length() > 0) activity.put("buttons", buttons)
             }
         }
         activity.put("assets", assets)

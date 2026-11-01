@@ -18,6 +18,7 @@
 
 package net.kdt.pojavlaunch.aerix.discord
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
@@ -82,6 +83,21 @@ import net.kdt.pojavlaunch.aerix.theme.AerixThemeManager
  * 3. Toggle for **Cover Art, Clickable Info Links & Profile Action Buttons**.
  * 4. Live Discord profile card preview + optional custom Application ID override.
  */
+
+/** Opens [url] in a browser, or explains that the destination does not exist yet. */
+private fun openLinkOrToast(context: Context, url: String, fallback: String) {
+    if (url.isBlank()) {
+        Toast.makeText(context, fallback, Toast.LENGTH_SHORT).show()
+        return
+    }
+    val opened = runCatching {
+        context.startActivity(
+            Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+    }.isSuccess
+    if (!opened) Toast.makeText(context, fallback, Toast.LENGTH_SHORT).show()
+}
+
 @Composable
 fun DiscordPresenceSettingsCard() {
     val activityContext = LocalContext.current
@@ -223,10 +239,8 @@ fun DiscordPresenceSettingsCard() {
                 onPreviewModeChange = { previewInGame = it },
                 gameProfileMode = gameProfileMode && appId.trim().length < 15,
                 clickableLinks = clickableLinks,
-                onOpenWebsite = { Toast.makeText(activityContext, "Coming soon", Toast.LENGTH_SHORT).show() },
-                onOpenDiscord = {
-                    Toast.makeText(activityContext, "Discord server is pending", Toast.LENGTH_SHORT).show()
-                }
+                onOpenWebsite = { openLinkOrToast(activityContext, AerixDiscordPresence.websiteUrl(), "Coming soon") },
+                onOpenDiscord = { openLinkOrToast(activityContext, AerixDiscordPresence.inviteUrl(), "Discord server is pending") }
             )
         }
 
@@ -241,6 +255,33 @@ fun DiscordPresenceSettingsCard() {
             position = CardPosition.Middle,
             onValueChange = { value ->
                 AerixPreferences.saveDiscordAssetName(value)
+                AerixDiscordPresence.syncSettingsChanged(appContext)
+            }
+        )
+
+        MiraiTextInputSettingsCard(
+            value = AerixPreferences.discordInviteUrl,
+            title = "Discord invite link",
+            summary = "Paste your server invite (discord.gg/\u2026). This turns the card into a " +
+                "\u201CJoin Apex Discord\u201D button that friends can tap, and makes the status line " +
+                "clickable. Leave blank for none.",
+            label = "discord.gg/\u2026",
+            position = CardPosition.Middle,
+            onValueChange = { url ->
+                AerixPreferences.saveDiscordInviteUrl(url)
+                AerixDiscordPresence.syncSettingsChanged(appContext)
+            }
+        )
+
+        MiraiTextInputSettingsCard(
+            value = AerixPreferences.discordWebsiteUrl,
+            title = "Website link (optional)",
+            summary = "Shown as an \u201CAbout Apex\u201D button and makes the first card line " +
+                "clickable. Any http(s) page works.",
+            label = "https://\u2026",
+            position = CardPosition.Middle,
+            onValueChange = { url ->
+                AerixPreferences.saveDiscordWebsiteUrl(url)
                 AerixDiscordPresence.syncSettingsChanged(appContext)
             }
         )

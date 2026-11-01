@@ -22,7 +22,7 @@ logo = (root / 'assets/apex-logo.png').read_bytes()
 assert logo[:4] == b'\x89PNG'
 assert len(logo) > 10_000
 activity = src.split('private fun sendActivity()', 1)[1].split('private fun send(frame:', 1)[0]
-assets, links = activity.split('val assets = JSONObject()', 1)[1].split('if (clickable && APEX_WEBSITE_URL.isNotBlank()) {', 1)
+assets, links = activity.split('val assets = JSONObject()', 1)[1].split('if (clickable) {', 1)
 assert 'assets.put("large_image", logoImageValue())' in assets
 assert 'assets.put("small_image", logoImageValue())' in assets
 # No upstream links or buttons on the card.
@@ -34,4 +34,8 @@ preview = (base / 'AerixDiscordPresenceCard.kt').read_text().split('fun DiscordR
 assert 'painterResource(R.drawable.ic_apex_mark)' in preview
 assert 'painterResource(R.drawable.aerix_logo)' not in preview
 assert 'About Apex' in preview and 'Join Apex Discord' in preview
+# Community buttons come from settings, and an image slot never carries a web page.
+assert 'fun websiteUrl()' in src and 'fun inviteUrl()' in src
+assert 'AerixPreferences.discordInviteUrl' in src
+assert 'if (isImageUrl(site)) assets.put("large_url", site)' in src
 print('Discord presence logo wiring passed')
