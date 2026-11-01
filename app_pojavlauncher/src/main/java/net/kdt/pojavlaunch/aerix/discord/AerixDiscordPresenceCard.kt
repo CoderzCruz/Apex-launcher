@@ -126,6 +126,43 @@ fun DiscordPresenceSettingsCard() {
             }
         )
 
+        MiraiSettingsCard(
+            position = CardPosition.Middle,
+            innerPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
+        ) {
+            var status by remember { mutableStateOf(AerixDiscordPresence.connectionStatus()) }
+            LaunchedEffect(enabled, appId) {
+                while (true) {
+                    status = AerixDiscordPresence.connectionStatus()
+                    delay(1000)
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Status",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = status,
+                        color = if (AerixDiscordPresence.isConnected()) AerixSurface.success else AerixSurface.textSecondary,
+                        fontSize = 11.sp
+                    )
+                }
+                Text(
+                    text = DiscordAppId.effective(),
+                    color = AerixSurface.textMuted,
+                    fontSize = 10.sp
+                )
+            }
+        }
+
         MiraiSwitchSettingsCard(
             position = CardPosition.Middle,
             title = "Official Minecraft Game Profile in-game",
@@ -167,8 +204,10 @@ fun DiscordPresenceSettingsCard() {
                 onPreviewModeChange = { previewInGame = it },
                 gameProfileMode = gameProfileMode && appId.trim().length < 15,
                 clickableLinks = clickableLinks,
-                onOpenWebsite = { openUrl(AerixDiscordPresence.AERIX_WEBSITE_URL) },
-                onOpenDiscord = { openUrl(AerixDiscordPresence.AERIX_DISCORD_URL) }
+                onOpenWebsite = { Toast.makeText(activityContext, "Coming soon", Toast.LENGTH_SHORT).show() },
+                onOpenDiscord = {
+                    Toast.makeText(activityContext, "Discord server is pending", Toast.LENGTH_SHORT).show()
+                }
             )
         }
 

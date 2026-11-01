@@ -87,6 +87,12 @@ object AerixDiscordPresence {
     const val MINECRAFT_LEGACY_APP_ID = 356875570916753438L
 
     private const val CLEAR_FLUSH_DELAY_MS = 400L
+
+    /**
+     * How long the card stays up after the launcher goes to the background. Opening Discord to look
+     * at your own profile backgrounds the launcher, so an immediate clear made the card invisible.
+     */
+    private const val BACKGROUND_GRACE_MS = 120_000L
     private const val CLEAR_BIND_TIMEOUT_MS = 5_500L
     private const val PENDING_INTENT_REQUEST_CLEAR = 94120
     private const val STATE_FILE_NAME = "aerix_discord_presence.json"
@@ -109,9 +115,25 @@ object AerixDiscordPresence {
     private var appContext: Context? = null
     private var service: IDiscordRpcService? = null
     private var connection: IDiscordRpcConnection? = null
-    private var connectedAppId: Long = 0L
-    private var bound = false
-    private var ready = false
+    @Volatile private var connectedAppId: Long = 0L
+    @Volatile private var bound = false
+    @Volatile private var ready = false
+
+    /** What the settings card shows: whether Discord is bound, connected and on which app id. */
+    fun connectionStatus(): String {
+        if (!AerixPreferences.discordPresenceEnabled) return "Presence off"
+        val appId = DiscordAppId.effective()
+        if (appId.isBlank()) return "No application id"
+        return when {
+            !bound -> "Discord app not reachable"
+            !ready -> "Connecting to Discord…"
+            connectedAppId > 0L -> "Connected · app $connectedAppId"
+            else -> "Connecting…"
+        }
+    }
+
+    /** True when the installed Discord client accepted the connection. */
+    fun isConnected(): Boolean = ready && connection != null
 
     /** Catalog IDs rejected by the installed Discord app during this session (e.g. close 4000). */
     private val rejectedAppIds = HashSet<Long>()
@@ -126,6 +148,9 @@ object AerixDiscordPresence {
     /** Previous app ID whose card must be cleared before switching to a different app ID. */
     @Volatile
     private var staleAppIdToClearFirst: Long = 0L
+
+    /** Pending clear scheduled when the launcher went to the background. */
+    private var exitClearRunnable: Runnable? = null
 
     /** True when binding solely to clear the active card and disconnect. */
     @Volatile
@@ -446,6 +471,7 @@ object AerixDiscordPresence {
         appContext = app
         handoffToGameInProgress = false
         AerixPreferences.init(app)
+        cancelPendingExitClear()
         invalidatePendingClear()
         cancelClearAlarm(app)
 
@@ -507,8 +533,25 @@ object AerixDiscordPresence {
                 modpackIconUrl = activeModpackIconUrl
             )
         )
-        // Clear while the process is still alive instead of relying on a delayed background wake.
-        clearAndDetach(app, onlyIfExited = true)
+        // Keep the card up for a grace period: the launcher is backgrounded every time Discord is
+        // opened, and a card cleared on that first tap is a card nobody ever sees.
+        scheduleExitClear(app)
+    }
+
+    private fun scheduleExitClear(app: Context) {
+        cancelPendingExitClear()
+        val runnable = Runnable {
+            exitClearRunnable = null
+            if (readDiskState(app)?.owner != "none") return@Runnable
+            clearAndDetach(app, onlyIfExited = true)
+        }
+        exitClearRunnable = runnable
+        main.postDelayed(runnable, BACKGROUND_GRACE_MS)
+    }
+
+    private fun cancelPendingExitClear() {
+        exitClearRunnable?.let { main.removeCallbacks(it) }
+        exitClearRunnable = null
     }
 
     /**
