@@ -72,8 +72,13 @@ object AerixDiscordPresence {
     /** Official clickable destinations & artwork for Aerix Rich Presence cards. */
     const val AERIX_WEBSITE_URL = "https://entitybrian69-bit.github.io/Aerix-launcher/"
     const val AERIX_DISCORD_URL = "https://discord.gg/RS7q9KaCm6"
-    const val AERIX_LOGO_URL =
-        "https://raw.githubusercontent.com/entitybrian69-bit/Aerix-launcher/4a3b1c37a8d4838eaa5cb8933610db7fb6efdec5/assets/aerix-logo.png"
+    const val APEX_LOGO_URL =
+        "https://raw.githubusercontent.com/CoderzCruz/Apex-launcher/" +
+            "ba0aac1de3cb0ab09b0677adf3ec3108c7688382/assets/apex-logo.png"
+
+    /** This fork has no website or Discord server yet, so cards carry no links. */
+    const val APEX_WEBSITE_URL = ""
+    const val APEX_DISCORD_URL = ""
 
     /** Verified Discord catalog IDs for Minecraft's native Game Profile sheet. */
     const val MINECRAFT_PRIMARY_APP_ID = 1402418491272986635L
@@ -922,11 +927,11 @@ object AerixDiscordPresence {
         val usingMinecraftProfile = isMinecraftCatalogId(connectedAppId)
         val clickable = AerixPreferences.discordClickableLinks
 
-        val cardName = if (usingMinecraftProfile) "Minecraft" else "Aerix Launcher"
+        val cardName = if (usingMinecraftProfile) "Minecraft" else "Apex Launcher"
         // status_display_type: 0 = Name ("Playing Minecraft"), 2 = Details ("In the launcher" / "Playing Minecraft 1.21")
         val statusDisplayType = if (usingMinecraftProfile) 0 else 2
-        val effectiveDetails = if (usingMinecraftProfile && !details.contains("Aerix", ignoreCase = true)) {
-            "$details · via Aerix Launcher"
+        val effectiveDetails = if (usingMinecraftProfile && !details.contains("Apex", ignoreCase = true)) {
+            "$details · via Apex Launcher"
         } else {
             details
         }
@@ -951,7 +956,7 @@ object AerixDiscordPresence {
                 activity.put(
                     "party",
                     JSONObject()
-                        .put("id", "aerix_${activeParty.id.take(48)}")
+                        .put("id", "apex_${activeParty.id.take(48)}")
                         .put("size", sizeArr)
                 )
             }
@@ -961,35 +966,31 @@ object AerixDiscordPresence {
         val validPackIcon = activeModpackIconUrl?.takeIf { clickable && inGameMode && isValidHttpAssetUrl(it) }
         if (validPackIcon != null) {
             assets.put("large_image", validPackIcon)
-            assets.put("large_text", "$state · Aerix Launcher")
-            assets.put("small_image", AERIX_LOGO_URL)
-            assets.put("small_text", "Aerix Launcher — Tap to join Discord")
+            assets.put("large_text", "$state · Apex Launcher")
+            assets.put("small_image", APEX_LOGO_URL)
+            assets.put("small_text", "Apex Launcher")
         } else {
-            assets.put("large_image", AERIX_LOGO_URL)
+            assets.put("large_image", APEX_LOGO_URL)
             assets.put("large_text", if (usingMinecraftProfile)
-                "Aerix Launcher — Minecraft Java Edition on Android" else "Aerix Launcher — Official Website & Info")
+                "Apex Launcher — Minecraft Java Edition on Android" else "Apex Launcher")
             if (usingMinecraftProfile) {
-                assets.put("small_image", AERIX_LOGO_URL)
-                assets.put("small_text", "Powered by Aerix Launcher")
+                assets.put("small_image", APEX_LOGO_URL)
+                assets.put("small_text", "Powered by Apex Launcher")
             }
         }
-        if (clickable) {
-            activity.put("details_url", AERIX_WEBSITE_URL)
-            activity.put("state_url", AERIX_DISCORD_URL)
-            assets.put("large_url", AERIX_WEBSITE_URL)
-            if (validPackIcon != null || usingMinecraftProfile) assets.put("small_url", AERIX_DISCORD_URL)
+        // Links are added only once the fork has destinations of its own. Empty strings keep the
+        // card from pointing at the upstream project's website and Discord server.
+        if (clickable && APEX_WEBSITE_URL.isNotBlank()) {
+            activity.put("details_url", APEX_WEBSITE_URL)
+            assets.put("large_url", APEX_WEBSITE_URL)
             if (supportsExtendedFields) {
                 val buttons = JSONArray()
-                    .put(
-                        JSONObject()
-                            .put("label", "About Aerix Launcher")
-                            .put("url", AERIX_WEBSITE_URL)
-                    )
-                    .put(
-                        JSONObject()
-                            .put("label", "Join Aerix Discord")
-                            .put("url", AERIX_DISCORD_URL)
-                    )
+                    .put(JSONObject().put("label", "About Apex").put("url", APEX_WEBSITE_URL))
+                if (APEX_DISCORD_URL.isNotBlank()) {
+                    activity.put("state_url", APEX_DISCORD_URL)
+                    if (validPackIcon != null || usingMinecraftProfile) assets.put("small_url", APEX_DISCORD_URL)
+                    buttons.put(JSONObject().put("label", "Join Apex Discord").put("url", APEX_DISCORD_URL))
+                }
                 activity.put("buttons", buttons)
             }
         }

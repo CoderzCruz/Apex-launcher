@@ -6,16 +6,22 @@ import re
 root = Path(__file__).resolve().parents[1]
 base = root / 'app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/discord'
 src = (base / 'AerixDiscordPresence.kt').read_text()
-url = re.search(r'const val AERIX_LOGO_URL\s*=\s*"([^"]+)"', src).group(1)
-assert url == ('https://raw.githubusercontent.com/entitybrian69-bit/Aerix-launcher/'
-               '4a3b1c37a8d4838eaa5cb8933610db7fb6efdec5/assets/aerix-logo.png')
-logo = (root / 'assets/aerix-logo.png').read_bytes()
-assert hashlib.sha256(logo).hexdigest() == '19b955b6c9842c425d8778ca577b2befe991d2517fe929bfb0184c2d6197a03d'
-assert logo == (root / 'app_pojavlauncher/src/main/res/drawable-nodpi/aerix_logo.png').read_bytes()
+# The card artwork is the fork's own file, served straight from this repository.
+parts = re.findall(r'"([^"]*)"', src.split('const val APEX_LOGO_URL =', 1)[1].split(
+    '\n\n', 1)[0].split('/** ', 1)[0])
+url = ''.join(parts)
+assert url.startswith('https://raw.githubusercontent.com/CoderzCruz/Apex-launcher/')
+assert url.endswith('/assets/apex-logo.png'), url
+assert len(url) < 256
+logo = (root / 'assets/apex-logo.png').read_bytes()
+assert logo[:4] == b'\x89PNG'
+assert len(logo) > 10_000
 activity = src.split('private fun sendActivity()', 1)[1].split('private fun send(frame:', 1)[0]
-assets, links = activity.split('val assets = JSONObject()', 1)[1].split('if (clickable) {', 1)
-assert 'assets.put("large_image", AERIX_LOGO_URL)' in assets
-assert 'assets.put("small_image", AERIX_LOGO_URL)' in assets
+assets, links = activity.split('val assets = JSONObject()', 1)[1].split('if (clickable && APEX_WEBSITE_URL.isNotBlank()) {', 1)
+assert 'assets.put("large_image", APEX_LOGO_URL)' in assets
+assert 'assets.put("small_image", APEX_LOGO_URL)' in assets
+# No upstream links or buttons on the card.
+assert 'AERIX_WEBSITE_URL' not in links and 'AERIX_DISCORD_URL' not in links
 assert 'clickable && inGameMode && isValidHttpAssetUrl(it)' in assets
 assert 'activity.put("assets", assets)' in links
 preview = (base / 'AerixDiscordPresenceCard.kt').read_text().split('fun DiscordRichPresenceLivePreview', 1)[1]
