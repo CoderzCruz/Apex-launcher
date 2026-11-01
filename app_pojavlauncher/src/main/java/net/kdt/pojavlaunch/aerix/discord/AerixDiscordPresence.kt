@@ -44,8 +44,8 @@ import java.util.UUID
 /**
  * Publishes rich, clickable Discord Rich Presence cards from Aerix Launcher to the Discord app:
  *
- * 1. **Aerix Launcher Card Mode** (always used in launcher, and optionally in-game):
- *    - Published under `Aerix Launcher` (`1563812135744839771`) with crisp Aerix / modpack cover
+ * 1. **Apex Launcher Card Mode** (always used in launcher, and optionally in-game):
+ *    - Published under `Apex Launcher` (`1566402542487736410`) with crisp Apex / modpack cover
  *      art (`assets.large_image`), clickable cover & badge URLs (`large_url`, `small_url`),
  *      clickable headline & status links (`details_url`, `state_url`) opening the official Aerix
  *      Launcher website and Discord community, action buttons (`About Aerix` + `Join Discord`),
@@ -53,9 +53,9 @@ import java.util.UUID
  * 2. **Official Minecraft Game Profile Mode** (Hybrid in-game option, enabled by default):
  *    - While in-game, switches RPC connection to Minecraft's verified Discord catalog ID
  *      (`1402418491272986635`, with automatic cascade fallback to `356875570916753438` and then
- *      Aerix's ID `1563812135744839771` if a mobile client rejects external catalog IDs) so
+ *      the Minecraft catalog ID if a mobile client rejects external catalog IDs) so
  *      tapping the card on Discord opens Minecraft's native full-screen Game Profile sheet while
- *      displaying `"via Aerix Launcher"` and the Aerix badge.
+ *      displaying `"via Apex Launcher"` and the Apex badge.
  * 3. **Exit cleanup**:
  *    - Send an explicit clear before disconnecting, without a delayed alarm that wakes the app.
  *      Android may freeze or kill the process before a one-minute timer can fire.
@@ -512,7 +512,7 @@ object AerixDiscordPresence {
     /**
      * Called right before `:launcher` kills its own PID in ContextAwareDoneListener to launch
      * GameActivity in `:game`. If Hybrid Game Profile mode will switch to Minecraft's catalog ID,
-     * sends an immediate clear on the Aerix Launcher card before detaching.
+     * sends an immediate clear on the Apex Launcher card before detaching.
      */
     @JvmStatic
     fun prepareHandoffToGame(context: Context?) {
@@ -1133,12 +1133,12 @@ object AerixDiscordPresence {
 
 /**
  * The Discord application the presence is published under, registered once for the project as
- * "Aerix Launcher" (Developer Portal → New Application). Its name is the title on the card, so it
+ * "Apex Launcher" (Developer Portal → New Application). Its name is the title on the card, so it
  * has to be this application and not a per-user one: every install shows the same card with no
  * setup. A user can still override it in Settings → Launcher; blank means "use this".
  */
 object AerixDiscordApp {
-    const val DEFAULT_APPLICATION_ID = "1563812135744839771"
+    const val DEFAULT_APPLICATION_ID = "1566402542487736410"
 }
 
 /**

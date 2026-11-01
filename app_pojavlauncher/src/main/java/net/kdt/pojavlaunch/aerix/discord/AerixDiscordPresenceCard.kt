@@ -175,9 +175,9 @@ fun DiscordPresenceSettingsCard() {
         MiraiTextInputSettingsCard(
             value = appId,
             title = "Discord application ID",
-            summary = "Already set to the Aerix Launcher application, so nothing has to be done here. " +
+            summary = "Already set to the Apex Launcher application, so nothing has to be done here. " +
                 "Fill this in only to publish under a custom Discord application ID.",
-            label = "Built in: 1563812135744839771 — override if you know why",
+            label = "Built in: 1566402542487736410 — override if you know why",
             position = CardPosition.Bottom,
             onValueChange = { raw ->
                 val clean = raw.filter { it.isDigit() }.take(20)
