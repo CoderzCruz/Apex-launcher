@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import net.kdt.pojavlaunch.aerix.ui.ApexBootSplashView;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.tasks.AsyncAssetManager;
 
@@ -24,10 +25,16 @@ public class TestStorageActivity extends Activity {
     private AlertDialog mPermissionRequestDialog;
     private boolean mPermsRequired = false;
     private boolean mPermsDialogShown = false;
+    /** The boot artwork with its live progress bar; null while the permission dialog is up. */
+    private ApexBootSplashView mSplash;
+    private boolean mBootStarted = false;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mPermsDialogShown = false;
+        setContentView(R.layout.activity_apex_boot);
+        mSplash = findViewById(R.id.apex_boot_splash);
         if(Build.VERSION.SDK_INT >= 23 && Build.VERSION.SDK_INT < 29 && !isStorageAllowed(this)) {
             mPermsRequired = true;
         } else exit();
@@ -88,17 +95,23 @@ public class TestStorageActivity extends Activity {
     }
 
     private void exit() {
+        if (mBootStarted) return;
+        mBootStarted = true;
         if(!Tools.checkStorageRoot(this)) {
             startActivity(new Intent(this, MissingStorageActivity.class));
+            finish();
             return;
         }
         //Initialize constants (implicitly) and preferences after we confirm that we have storage.
+        if (mSplash != null) mSplash.setProgress(6);
         LauncherPreferences.loadPreferences(this);
-        AsyncAssetManager.unpackComponents(this);
-        AsyncAssetManager.unpackSingleFiles(this);
-
-        Intent intent =  new Intent(this, LauncherActivity.class);
-        startActivity(intent);
-        finish();
+        // The splash stays up until the components are unpacked, showing the real progress of it.
+        AsyncAssetManager.boot(this, percent -> runOnUiThread(() -> {
+            if (mSplash != null) mSplash.setProgress(percent);
+        }), () -> {
+            if (isFinishing()) return;
+            startActivity(new Intent(this, LauncherActivity.class));
+            finish();
+        });
     }
 }
