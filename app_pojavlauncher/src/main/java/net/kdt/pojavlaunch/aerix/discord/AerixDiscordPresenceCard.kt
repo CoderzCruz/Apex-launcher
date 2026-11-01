@@ -132,13 +132,20 @@ fun DiscordPresenceSettingsCard() {
             onClick = {
                 AerixPreferences.saveDiscordAppId("")
                 AerixDiscordPresence.syncSettingsChanged(appContext)
-                Toast.makeText(activityContext, "Retrying Discord connection", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    activityContext,
+                    if (AerixDiscordPresence.isConnected()) "Refreshing Discord card"
+                    else "Retrying Discord connection",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         ) {
             var status by remember { mutableStateOf(AerixDiscordPresence.connectionStatus()) }
+            var connected by remember { mutableStateOf(AerixDiscordPresence.isConnected()) }
             LaunchedEffect(enabled, appId) {
                 while (true) {
                     status = AerixDiscordPresence.connectionStatus()
+                    connected = AerixDiscordPresence.isConnected()
                     delay(1000)
                 }
             }
@@ -149,14 +156,14 @@ fun DiscordPresenceSettingsCard() {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Status  ·  tap to retry",
+                        text = if (connected) "Status  ·  live" else "Status  ·  tap to retry",
                         color = Color.White,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
                         text = status,
-                        color = if (AerixDiscordPresence.isConnected()) AerixSurface.success else AerixSurface.textSecondary,
+                        color = if (connected) AerixSurface.success else AerixSurface.textSecondary,
                         fontSize = 11.sp
                     )
                 }
