@@ -82,6 +82,8 @@ data class ContributionMember(
 object AerixContribution {
     val ownerRed = Color(0xFFE2374E)
     val coOwnerBlue = Color(0xFF63C7FF)
+    /** Accent for this fork's own maintainer entry. */
+    val forkRed = Color(0xFFFF3B4E)
 
     val members: List<ContributionMember> = listOf(
         ContributionMember(
@@ -124,6 +126,19 @@ object AerixContribution {
                 "Handles the community: questions, reports and feedback.",
                 "Keeps the download pages and online listings up to date.",
                 "Passes what the community asks for on to the developers."
+            )
+        ),
+        ContributionMember(
+            id = "cruz",
+            name = "Cruz",
+            role = "Fork maintainer",
+            title = "Apex Launcher build",
+            roleColor = forkRed,
+            logoRes = R.drawable.apex_contrib_cruz,
+            duties = listOf(
+                "Maintains this fork of the launcher: the build, the theme and the releases.",
+                "Publishes the ApexLauncher1.0 APKs and keeps the download page current.",
+                "Reports what breaks back to the people who wrote the code."
             )
         )
     )
