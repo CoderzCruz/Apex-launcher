@@ -57,6 +57,13 @@ class BrandingIdentitySmoke(unittest.TestCase):
         self.assertEqual(strings.find("string[@name='lazy_service_default_title']").text,
                          "Apex Foreground Service")
 
+    def test_no_loading_screen(self):
+        themes = (RES / "values/aerix_themes.xml").read_text()
+        splash = themes.split('Aerix.SplashScreen', 1)[1].split('</style>', 1)[0]
+        # The entry window shows the plain canvas, not a splash image or progress screen.
+        self.assertIn("@color/aerix_canvas", splash)
+        self.assertNotIn("@drawable/aerix_splash", splash)
+
     def test_notification_icon_is_used_and_valid_png(self):
         for service in ("GameService", "ProgressService"):
             code = (APP / f"src/main/java/net/kdt/pojavlaunch/services/{service}.java").read_text()
