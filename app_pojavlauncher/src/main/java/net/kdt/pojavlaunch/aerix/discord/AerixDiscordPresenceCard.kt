@@ -54,6 +54,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -199,16 +200,21 @@ private fun DiscordRichPresenceLivePreview(
 ) {
     val accent = AerixThemeManager.currentAccent()
     val usingOfficialMcProfile = previewInGame && gameProfileMode
+    val toastContext = LocalContext.current
+    val onAboutApex = { Toast.makeText(toastContext, "Coming soon", Toast.LENGTH_SHORT).show() }
+    val onJoinDiscord = {
+        Toast.makeText(toastContext, "Discord server is pending", Toast.LENGTH_SHORT).show()
+    }
 
-    val cardHeader = if (usingOfficialMcProfile) "Playing a game" else "Playing Aerix Launcher"
+    val cardHeader = if (usingOfficialMcProfile) "Playing a game" else "Playing Apex Launcher"
     val titleLine = when {
         usingOfficialMcProfile -> "Minecraft"
         previewInGame -> "Playing Minecraft 1.21.4"
         else -> "In the launcher"
     }
     val detailsLine = when {
-        usingOfficialMcProfile -> "Playing Minecraft 1.21.4 · via Aerix Launcher"
-        previewInGame -> "Aerix Launcher · Survival SMP"
+        usingOfficialMcProfile -> "Playing Minecraft 1.21.4 · via Apex Launcher"
+        previewInGame -> "Apex Launcher · Survival SMP"
         else -> "Browsing the dashboard"
     }
     val stateLine = if (usingOfficialMcProfile) "Survival SMP (2 of 4)" else null
@@ -298,8 +304,8 @@ private fun DiscordRichPresenceLivePreview(
                             }
                     ) {
                         Image(
-                            painter = painterResource(R.drawable.aerix_logo),
-                            contentDescription = "Aerix Cover Art",
+                            painter = painterResource(R.drawable.ic_apex_mark),
+                            contentDescription = "Apex Cover Art",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(62.dp)
@@ -308,8 +314,8 @@ private fun DiscordRichPresenceLivePreview(
                         )
                         if (usingOfficialMcProfile) {
                             Image(
-                                painter = painterResource(R.drawable.aerix_logo),
-                                contentDescription = "Aerix Badge",
+                                painter = painterResource(R.drawable.ic_apex_mark),
+                                contentDescription = "Apex Badge",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .size(22.dp)
@@ -395,14 +401,14 @@ private fun DiscordRichPresenceLivePreview(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         DiscordActionButtonPreview(
-                            label = "About Aerix Launcher",
+                            label = "About Apex",
                             modifier = Modifier.weight(1f),
-                            onClick = onOpenWebsite
+                            onClick = onAboutApex
                         )
                         DiscordActionButtonPreview(
-                            label = "Join Aerix Discord",
+                            label = "Join Apex Discord",
                             modifier = Modifier.weight(1f),
-                            onClick = onOpenDiscord
+                            onClick = onJoinDiscord
                         )
                     }
                 }
@@ -412,7 +418,7 @@ private fun DiscordRichPresenceLivePreview(
         Text(
             text = if (usingOfficialMcProfile) {
                 "Tip: In Official Minecraft mode, friends tapping the game card open Minecraft's native " +
-                    "Discord Game Profile sheet, while tapping the text/buttons opens Aerix Launcher's website & Discord."
+                    "Discord Game Profile sheet. The About and Discord buttons below are placeholders for this build."
             } else {
                 "Note: Discord shows Rich Presence action buttons to friends and server members viewing your " +
                     "profile (tap any link or button above to test where it opens)."
