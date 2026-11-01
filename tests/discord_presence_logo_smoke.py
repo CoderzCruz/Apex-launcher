@@ -19,5 +19,8 @@ assert 'assets.put("small_image", AERIX_LOGO_URL)' in assets
 assert 'clickable && inGameMode && isValidHttpAssetUrl(it)' in assets
 assert 'activity.put("assets", assets)' in links
 preview = (base / 'AerixDiscordPresenceCard.kt').read_text().split('fun DiscordRichPresenceLivePreview', 1)[1]
-assert 'painterResource(R.drawable.aerix_logo)' in preview
+# The fork's preview draws its own mark, not the upstream logo.
+assert 'painterResource(R.drawable.ic_apex_mark)' in preview
+assert 'painterResource(R.drawable.aerix_logo)' not in preview
+assert 'About Apex' in preview and 'Join Apex Discord' in preview
 print('Discord presence logo wiring passed')
