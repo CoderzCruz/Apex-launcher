@@ -162,6 +162,9 @@ object AerixDiscordPresence {
     @Volatile private var bindingNote: String = ""
 
     /** What the settings card shows: whether Discord is bound, connected and on which app id. */
+    /** The last activity error Discord reported, for the settings status card. */
+    fun lastError(): String = lastRpcError
+
     fun connectionStatus(): String {
         if (!AerixPreferences.discordPresenceEnabled) return "Presence off"
         val appId = DiscordAppId.effective()
@@ -186,6 +189,14 @@ object AerixDiscordPresence {
      */
     @Volatile
     private var supportsExtendedFields = true
+
+    /**
+     * Discord answers an unknown or rejected activity field with an ERROR frame. Instead of throwing
+     * every optional field away at once, each error drops just one group and the card is resent, so a
+     * client that dislikes `details_url` still gets its buttons.
+     */
+    private var extendedDropLevel = 0
+    @Volatile private var lastRpcError: String = ""
 
     /** Previous app ID whose card must be cleared before switching to a different app ID. */
     @Volatile
@@ -338,8 +349,9 @@ object AerixDiscordPresence {
                 }
             } else if (frame.contains("\"ERROR\"")) {
                 Log.w(TAG, "Discord RPC error frame: $frame")
+                lastRpcError = frame.take(200)
                 if (!clearOnlyMode && supportsExtendedFields) {
-                    supportsExtendedFields = false
+                    if (extendedDropLevel < 3) extendedDropLevel++ else supportsExtendedFields = false
                     main.post { sendActivity() }
                 }
             }
@@ -916,6 +928,8 @@ object AerixDiscordPresence {
         AerixPreferences.init(app)
         rejectedAppIds.clear()
         supportsExtendedFields = true
+        extendedDropLevel = 0
+        lastRpcError = ""
         if (!AerixPreferences.discordPresenceEnabled) {
             clearAndDetach(app)
             return
@@ -928,6 +942,8 @@ object AerixDiscordPresence {
         pendingClearAppId = 0L
         rejectedAppIds.clear()
         supportsExtendedFields = true
+        extendedDropLevel = 0
+        lastRpcError = ""
         syncSettingsChanged(context)
     }
 
@@ -1029,7 +1045,7 @@ object AerixDiscordPresence {
             .put("timestamps", JSONObject().put("start", startedAt.coerceAtLeast(1L)))
 
         // Live Aerix Social Party size `(current of max)` when in an active party!
-        if (supportsExtendedFields) {
+        if (supportsExtendedFields && extendedDropLevel < 2) {
             val activeParty = runCatching {
                 SocialBackend.parties.firstOrNull { !it.isExpired() }
             }.getOrNull()
@@ -1069,12 +1085,14 @@ object AerixDiscordPresence {
         if (clickable) {
             val site = websiteUrl()
             val invite = inviteUrl()
-            // An image slot only ever carries an image; a plain web page would blank the cover.
-            if (isImageUrl(site)) assets.put("large_url", site)
-            if (isImageUrl(invite)) assets.put("small_url", invite)
-            if (site.isNotBlank()) activity.put("details_url", site)
-            if (invite.isNotBlank()) activity.put("state_url", invite)
-            if (supportsExtendedFields) {
+            if (extendedDropLevel < 1) {
+                // An image slot only ever carries an image; a plain web page would blank the cover.
+                if (isImageUrl(site)) assets.put("large_url", site)
+                if (isImageUrl(invite)) assets.put("small_url", invite)
+                if (site.isNotBlank()) activity.put("details_url", site)
+                if (invite.isNotBlank()) activity.put("state_url", invite)
+            }
+            if (supportsExtendedFields && extendedDropLevel < 3) {
                 val buttons = JSONArray()
                 if (site.isNotBlank()) {
                     buttons.put(JSONObject().put("label", "About Apex").put("url", site))

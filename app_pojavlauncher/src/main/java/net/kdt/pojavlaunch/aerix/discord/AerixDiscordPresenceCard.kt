@@ -158,10 +158,12 @@ fun DiscordPresenceSettingsCard() {
         ) {
             var status by remember { mutableStateOf(AerixDiscordPresence.connectionStatus()) }
             var connected by remember { mutableStateOf(AerixDiscordPresence.isConnected()) }
+            var rpcError by remember { mutableStateOf(AerixDiscordPresence.lastError()) }
             LaunchedEffect(enabled, appId) {
                 while (true) {
                     status = AerixDiscordPresence.connectionStatus()
                     connected = AerixDiscordPresence.isConnected()
+                    rpcError = AerixDiscordPresence.lastError()
                     delay(1000)
                 }
             }
@@ -189,6 +191,17 @@ fun DiscordPresenceSettingsCard() {
                         color = AerixSurface.textMuted,
                         fontSize = 10.sp
                     )
+                    // Prints what Discord complained about, so a rejected field can be fixed
+                    // instead of guessed at.
+                    if (rpcError.isNotBlank()) {
+                        Text(
+                            text = "discord: " + rpcError.take(120),
+                            color = AerixSurface.textMuted,
+                            fontSize = 9.sp,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
                 Text(
                     text = DiscordAppId.effective(),
