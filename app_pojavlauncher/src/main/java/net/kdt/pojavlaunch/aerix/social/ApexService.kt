@@ -80,6 +80,13 @@ object ApexService {
     /** Models this key can actually call, filled in on first use. */
     private var modelCache: List<String>? = null
 
+    /** The model that answered last, so a busy flagship never costs two tries on every message. */
+    private var preferredModel: String? = null
+
+    /** Name of the model currently answering, for the chat header. */
+    var lastModel by mutableStateOf<String?>(null)
+        private set
+
     /** Private conversation with the assistant, newest last. */
     var turns by mutableStateOf<List<ServiceTurn>>(emptyList())
         private set
@@ -293,7 +300,12 @@ object ApexService {
             val discovered = modelCache ?: discoverModels(key).also {
                 if (it.isNotEmpty()) modelCache = it
             }
-            val models = (discovered.ifEmpty { FALLBACK_MODELS }).take(6)
+            val ranked = (discovered.ifEmpty { FALLBACK_MODELS }).take(6)
+            // A model that just answered goes first: Google often leaves the newest name briefly
+            // overloaded while older ones serve fine.
+            val models = preferredModel?.let { pinned ->
+                listOf(pinned) + ranked.filter { it != pinned }
+            } ?: ranked
 
             // Two rounds: Google answers 503 when a model is briefly overloaded, and that clears up
             // in seconds, so one quick retry is worth more than dropping to the offline answers.
@@ -307,6 +319,8 @@ object ApexService {
                         val (code, text) = postGenerate(model, viaHeader, key, body)
                         if (code in 200..299 && text != null) {
                             lastError = null
+                            preferredModel = model
+                            lastModel = model
                             return@withContext text
                         }
                         if (code in 200..299 && text == null) {

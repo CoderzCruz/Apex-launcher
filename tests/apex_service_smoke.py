@@ -87,4 +87,8 @@ for path in ROOT.rglob("*"):
     if path.suffix in {".kt", ".gradle", ".yml", ".py", ".xml", ".txt", ".properties"}:
         assert key_prefix not in path.read_text(errors="ignore"), f"AI key leaked into {path}"
 
+assert "preferredModel" in service, "the model that answered must be reused"
+assert "NON_CHAT_MARKERS" in service, "speech and image models must stay out of the list"
+assert "lastModel" in service and "ApexService.lastModel" in chats
+
 print("Apex Service wiring passed")

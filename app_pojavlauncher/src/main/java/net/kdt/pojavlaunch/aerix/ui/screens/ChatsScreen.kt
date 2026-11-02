@@ -709,7 +709,11 @@ private fun ServiceThread(onBack: () -> Unit) {
                     fontWeight = FontWeight.ExtraBold
                 )
                 Text(
-                    text = if (ApexService.hasBrain) "AI connected · Gemini" else "Built-in answers · AI key Settings me daalo",
+                    text = if (ApexService.hasBrain) {
+                        "AI connected · " + (ApexService.lastModel ?: "Gemini")
+                    } else {
+                        "Built-in answers · AI key Settings me daalo"
+                    },
                     color = AerixSurface.textMuted,
                     fontSize = 9.5.sp
                 )
