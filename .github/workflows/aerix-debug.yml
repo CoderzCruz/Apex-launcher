@@ -207,6 +207,58 @@ jobs:
           echo "::notice title=apex-service::key $STATUS"
           test "$STATUS" != "MISSING"
 
+      - name: Probe the Apex Service brain
+        id: apexprobe
+        shell: bash
+        # Real call to the Gemini API with the saved key. Prints only status codes and the model
+        # name, never the key, and never fails the build: a broken brain must not block an APK.
+        continue-on-error: true
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.error, urllib.request
+
+          key = os.environ.get("APEX_SERVICE_AI_KEY", "").strip()
+          base = "https://generativelanguage.googleapis.com/v1beta"
+          summary = "no-key"
+          if key:
+              def call(url, payload=None):
+                  data = json.dumps(payload).encode() if payload else None
+                  req = urllib.request.Request(url, data=data, method="POST" if payload else "GET")
+                  req.add_header("x-goog-api-key", key)
+                  if payload:
+                      req.add_header("Content-Type", "application/json")
+                  try:
+                      with urllib.request.urlopen(req, timeout=40) as r:
+                          return r.status, json.loads(r.read().decode())
+                  except urllib.error.HTTPError as e:
+                      return e.code, {}
+                  except Exception:
+                      return 0, {}
+
+              status, listing = call(f"{base}/models?pageSize=200")
+              models = [m.get("name", "").split("/")[-1] for m in listing.get("models", [])
+                        if "generateContent" in m.get("supportedGenerationMethods", [])]
+              flash = [m for m in models if "flash" in m]
+              pick = (flash or models or [""])[0]
+              summary = f"models={status}/{len(models)}"
+              if pick:
+                  code, body = call(f"{base}/models/{pick}:generateContent", {
+                      "contents": [{"parts": [{"text": "Reply with OK only."}]}],
+                      "generationConfig": {"thinkingConfig": {"thinkingLevel": "low"},
+                                           "maxOutputTokens": 900},
+                  })
+                  text = ""
+                  try:
+                      text = body["candidates"][0]["content"]["parts"][0]["text"].strip()
+                  except Exception:
+                      text = ""
+                  summary += f" test={code}:{'OK' if text else 'EMPTY'}:{pick}"
+
+          print("::notice title=apex-probe::" + summary.replace(":", " "))
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write("summary=" + summary + "\n")
+          PY
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
@@ -219,6 +271,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION_CODE: ${{ steps.verify.outputs.version_code }}
           AI_STATUS: ${{ steps.apexkey.outputs.status }}
+          AI_PROBE: ${{ steps.apexprobe.outputs.summary }}
         shell: bash
         run: |
           set -euo pipefail
@@ -256,6 +309,7 @@ jobs:
             echo "- **Built:** \`$BUILT_AT\`"
             echo "- **SHA-256:** \`$SHA256\`"
             echo "- **Apex Service brain:** \`$AI_STATUS\`"
+            echo "- **Apex Service probe:** \`$AI_PROBE\`"
           } > "$STAGE/RELEASE_NOTES.md"
 
           # Anchor the tag ref to the root 2020 keystore commit so GitHub's /releases list

@@ -340,6 +340,7 @@ private fun ChatThread(target: ChatTarget, onBack: () -> Unit) {
             val answer = runCatching { ApexService.reply(message.body, recent) }.getOrNull()
             if (!answer.isNullOrBlank()) {
                 botReplies = botReplies + (message.id to answer)
+                ApexService.lastError?.let { notice = it }
             }
         }
     }
@@ -713,6 +714,9 @@ private fun ServiceThread(onBack: () -> Unit) {
                     fontSize = 9.5.sp
                 )
             }
+        }
+        ApexService.lastError?.let { error ->
+            Text(text = error, color = AerixSurface.errorDarkContainer, fontSize = 9.5.sp)
         }
         Spacer(Modifier.height(AerixSpacing.sm))
 

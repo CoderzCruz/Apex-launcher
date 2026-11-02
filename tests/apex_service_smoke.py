@@ -28,7 +28,10 @@ assert "private fun stripMention(" in service
 
 # Real AI path.
 assert "generativelanguage.googleapis.com" in service
-assert "gemini-2.5-flash" in service, "the free Gemini flash model must stay the default"
+assert "gemini-3.8-flash" in service, "current flash models must be in the fallback list"
+assert "discoverModels(" in service, "model names retire, so the list must be discovered live"
+assert "supportedGenerationMethods" in service and "generateContent" in service
+assert "thinkingConfig" in service and '"low"' in service, "3.x thinking must not eat the answer budget"
 assert 'setRequestProperty("x-goog-api-key"' in service
 assert "suspend fun reply(" in service and "suspend fun ask(" in service
 

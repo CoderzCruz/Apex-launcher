@@ -55,8 +55,24 @@ object ApexService {
         "@apex service", "@apex", "apex service", "!apex", "/apex", "hey apex", "hi apex"
     )
 
-    private const val ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models"
-    private val MODELS = listOf("gemini-2.5-flash", "gemini-2.0-flash")
+    private const val ENDPOINT = "https://generativelanguage.googleapis.com/v1beta"
+
+    /**
+     * Used only when the live model list cannot be fetched. Google retires model names on a
+     * schedule (2.5 Flash and older 404 now), so the real list is discovered at runtime and this
+     * is just a safety net, newest first.
+     */
+    private val FALLBACK_MODELS = listOf(
+        "gemini-3.8-flash",
+        "gemini-3.7-flash",
+        "gemini-3.5-flash",
+        "gemini-flash-latest",
+        "gemini-3.5-flash-lite",
+        "gemini-2.5-flash"
+    )
+
+    /** Models this key can actually call, filled in on first use. */
+    private var modelCache: List<String>? = null
 
     /** Private conversation with the assistant, newest last. */
     var turns by mutableStateOf<List<ServiceTurn>>(emptyList())
@@ -153,6 +169,42 @@ object ApexService {
         }
     }
 
+    /**
+     * Asks the API which models this key may call. Survives model renames, which happen often
+     * enough that hard-coding a name would break the assistant every few months.
+     */
+    private fun discoverModels(key: String): List<String> {
+        val conn = runCatching {
+            (URL("$ENDPOINT/models?pageSize=200").openConnection() as HttpURLConnection)
+        }.getOrNull() ?: return emptyList()
+        return try {
+            conn.requestMethod = "GET"
+            conn.connectTimeout = 10_000
+            conn.readTimeout = 15_000
+            conn.setRequestProperty("x-goog-api-key", key)
+            if (conn.responseCode !in 200..299) return emptyList()
+            val raw = conn.inputStream.bufferedReader().use { it.readText() }
+            val models = JSONObject(raw).optJSONArray("models") ?: return emptyList()
+            val usable = ArrayList<String>()
+            for (i in 0 until models.length()) {
+                val model = models.optJSONObject(i) ?: continue
+                val name = model.optString("name").removePrefix("models/")
+                if (name.isBlank()) continue
+                val methods = model.optJSONArray("supportedGenerationMethods") ?: continue
+                val generates = (0 until methods.length())
+                    .any { methods.optString(it) == "generateContent" }
+                if (generates) usable.add(name)
+            }
+            // Flash models are fast and covered by the free tier; keep the API's own order inside
+            // each group (newest first) with a stable sort.
+            usable.sortedBy { if (it.contains("flash")) 0 else 1 }
+        } catch (_: Exception) {
+            emptyList()
+        } finally {
+            conn.disconnect()
+        }
+    }
+
     private suspend fun askGemini(key: String, prompt: String, context: List<String>): String? =
         withContext(Dispatchers.IO) {
             // Soft client-side throttle; free API keys have their own quota.
@@ -161,7 +213,7 @@ object ApexService {
             lastCallMs = now
 
             val body = JSONObject().apply {
-                put("system_instruction", JSONObject().put(
+                put("systemInstruction", JSONObject().put(
                     "parts", JSONArray().put(JSONObject().put("text", systemPrompt(context)))
                 ))
                 put("contents", JSONArray().put(
@@ -172,19 +224,27 @@ object ApexService {
                 ))
                 put("generationConfig", JSONObject().apply {
                     put("temperature", 0.7)
-                    put("maxOutputTokens", 300)
+                    put("maxOutputTokens", 900)
+                    // 3.x models "think" before answering and the thinking tokens share the output
+                    // budget, so keep the level low: chat answers do not need deep reasoning, and a
+                    // high level can spend the whole budget before writing a single visible word.
+                    put("thinkingConfig", JSONObject().put("thinkingLevel", "low"))
                 })
             }.toString()
 
-            // Google shipped two key styles: older AIza keys and the newer auth keys. The header
-            // form is documented for both, the "?key=" query form still works everywhere else,
-            // so a key is tried both ways before the assistant gives up on it.
-            for (model in MODELS) {
+            val discovered = modelCache ?: discoverModels(key).also {
+                if (it.isNotEmpty()) modelCache = it
+            }
+            val models = discovered.ifEmpty { FALLBACK_MODELS }
+
+            for (model in models) {
+                // Older AIza keys and the newer AQ. keys both accept the header; the query form is
+                // the second chance if a key is rejected that way.
                 for (viaHeader in listOf(true, false)) {
                     val url = if (viaHeader) {
-                        "$ENDPOINT/$model:generateContent"
+                        "$ENDPOINT/models/$model:generateContent"
                     } else {
-                        "$ENDPOINT/$model:generateContent?key=$key"
+                        "$ENDPOINT/models/$model:generateContent?key=$key"
                     }
                     val conn = runCatching {
                         (URL(url).openConnection() as HttpURLConnection)
@@ -192,7 +252,7 @@ object ApexService {
                     try {
                         conn.requestMethod = "POST"
                         conn.connectTimeout = 12_000
-                        conn.readTimeout = 20_000
+                        conn.readTimeout = 25_000
                         conn.doOutput = true
                         conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
                         if (viaHeader) conn.setRequestProperty("x-goog-api-key", key)
@@ -201,16 +261,19 @@ object ApexService {
                         val code = conn.responseCode
                         if (code in 200..299) {
                             val text = conn.inputStream.bufferedReader().use { it.readText() }
-                            extractText(text)?.let { return@withContext it }
+                            val answer = extractText(text)
+                            if (answer != null) return@withContext answer
+                            lastError = "AI ne khali jawab diya"
                         } else {
                             lastError = when (code) {
-                                400, 401, 403 -> "AI key reject ho gayi — nayi key banao (Gemini API allowed)"
+                                400, 401, 403 -> "AI key reject ho gayi — nayi key banao"
+                                404 -> "AI model nahi mila"
                                 429 -> "AI quota khatam, thodi der baad try karo"
                                 else -> "AI server error ($code)"
                             }
-                            // A key problem shows up the same way for every model; a model problem
-                            // (404) means try the next model instead.
-                            if (code != 404) break
+                            // 400/401/403 will fail the same way for every model; a 404 means this
+                            // model name is gone, so move on to the next one.
+                            if (code in 400..403) break
                         }
                     } catch (_: Exception) {
                         lastError = "AI se connect nahi hua"
@@ -218,6 +281,7 @@ object ApexService {
                         conn.disconnect()
                     }
                 }
+                if (lastError?.contains("key reject") == true) break
             }
             null
         }
