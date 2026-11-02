@@ -1395,6 +1395,7 @@ object AerixDiscordPresence {
             "ACCOUNTS", "ADD_ACCOUNT", "OFFLINE_ACCOUNT" -> ACCOUNTS
             "FILES" -> FILES
             "SOCIALS" -> SOCIALS
+            "PUBLIC_CHAT" -> "Chatting in public chat"
             "DIWALI" -> "Reading the Diwali surprise"
             "ABOUT", "OTHER_RELEASES" -> ABOUT
             else -> GENERIC

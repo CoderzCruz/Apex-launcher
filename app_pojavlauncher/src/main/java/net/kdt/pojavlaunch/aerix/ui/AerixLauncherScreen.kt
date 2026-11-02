@@ -199,6 +199,9 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
                             LauncherSection.OTHER_RELEASES -> net.kdt.pojavlaunch.aerix.ui.screens.OtherReleasesScreen(activity, navigate)
                             LauncherSection.HOME -> HomeScreen(activity, navigate)
                             LauncherSection.AERIX_CLIENT -> net.kdt.pojavlaunch.aerix.ui.screens.AerixClientScreen(activity)
+                            LauncherSection.PUBLIC_CHAT -> net.kdt.pojavlaunch.aerix.ui.screens.PublicChatScreen(
+                                onOpenSocials = { navigate(LauncherSection.SOCIALS) }
+                            )
                             LauncherSection.DIWALI -> net.kdt.pojavlaunch.aerix.ui.screens.DiwaliSpecialScreen(
                                 onClose = { navigate(LauncherSection.HOME) }
                             )

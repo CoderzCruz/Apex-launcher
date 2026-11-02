@@ -3087,6 +3087,83 @@ object SocialBackend {
         return ok
     }
 
+    /* ── public chat ──────────────────────────────────────────────────────── */
+
+    /** One shared room every Apex Launcher player lands in: same title, same party. */
+    const val PUBLIC_CHAT_TITLE = "Apex Public Chat"
+
+    /** How long the shared room lives before it is recreated (the party cap is 12 hours). */
+    private const val PUBLIC_CHAT_MINUTES = 720
+
+    /** The room currently in use, remembered so the screen does not re-query on every poll. */
+    var publicChatPartyId by mutableStateOf<String?>(null)
+        private set
+
+    /**
+     * Finds the shared room, creating it when nobody has opened one yet, and joins it so the
+     * member can read and write. Returns null when the account is not signed in.
+     */
+    suspend fun openPublicChat(): SocialParty? = attempt {
+        ensureToken()
+        val me = userId ?: return@attempt null
+        refreshParties()
+
+        var room = parties.firstOrNull {
+            it.title.equals(PUBLIC_CHAT_TITLE, ignoreCase = true)
+        }
+
+        if (room == null) {
+            // First player online opens the room; everyone after simply joins it.
+            room = createParty(
+                title = PUBLIC_CHAT_TITLE,
+                instanceName = null,
+                versionId = null,
+                mcVersion = null,
+                loader = null,
+                maxMembers = 16,
+                expiryMinutes = PUBLIC_CHAT_MINUTES,
+                isPublic = true
+            )
+        }
+        val partyId = room?.id ?: return@attempt null
+        publicChatPartyId = partyId
+
+        // Join (or refresh my seat) so the room's chat is readable for this account.
+        callRaw(
+            "POST",
+            "$PROJECT_URL/rest/v1/party_members?on_conflict=party_id,member",
+            JsonArray().apply {
+                add(JsonObject().apply {
+                    addProperty("party_id", partyId)
+                    addProperty("member", me)
+                })
+            }.toString(),
+            extraHeaders = mapOf("Prefer" to "resolution=merge-duplicates,return=minimal")
+        )
+        room
+    }
+
+    /** Messages of the shared room, oldest first; empty when the room is not open yet. */
+    suspend fun loadPublicChatMessages(): List<SocialMessage> {
+        val partyId = publicChatPartyId ?: openPublicChat()?.id ?: return emptyList()
+        return loadPartyMessages(partyId)
+    }
+
+    suspend fun sendPublicChatMessage(text: String): Boolean {
+        val partyId = publicChatPartyId ?: openPublicChat()?.id ?: return false
+        return sendPartyMessage(partyId, text)
+    }
+
+    /** In-game name of a message's author, when the room knows it. */
+    fun publicChatAuthorName(message: SocialMessage): String {
+        val party = parties.firstOrNull { it.id == publicChatPartyId }
+        val member = party?.members?.firstOrNull { it.userId == message.sender }
+        return member?.mcUsername?.takeIf { it.isNotBlank() }
+            ?: member?.cleanName?.takeIf { it.isNotBlank() }
+            ?: message.senderName?.takeIf { it.isNotBlank() }
+            ?: "Player"
+    }
+
     suspend fun loadPartyMessages(partyId: String): List<SocialMessage> {
         return attempt {
             ensureToken()
