@@ -50,7 +50,9 @@ jobs:
     timeout-minutes: 60
     env:
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-      # Optional brain for Apex Service; blank simply means knowledge-base answers.
+      # Optional brain for Apex Service. Add it under Settings → Secrets and variables →
+      # Actions as "APEX_SERVICE_AI_KEY"; when it is missing the assistant still answers
+      # from its built-in knowledge base, so the build never breaks without it.
       APEX_SERVICE_AI_KEY: ${{ secrets.APEX_SERVICE_AI_KEY }}
     steps:
       - name: Checkout
