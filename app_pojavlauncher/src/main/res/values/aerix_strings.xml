@@ -330,6 +330,8 @@
     <string name="aerix_settings_asset_platform_sub">Platform preselected on the download screen</string>
     <string name="aerix_settings_curseforge_key">CurseForge API key</string>
     <string name="aerix_settings_curseforge_key_sub">Overrides the key built into the app; leave empty to use the built-in key</string>
+    <string name="aerix_settings_ai_key">Apex Service (AI) key</string>
+    <string name="aerix_settings_ai_key_sub">Optional free Google AI Studio key. With a key Apex Service answers every question with real AI; without one it answers launcher questions from a built-in knowledge base.</string>
 
     <!-- File manager (mirai filemanager/ui) -->
     <string name="aerix_nav_files">Files</string>

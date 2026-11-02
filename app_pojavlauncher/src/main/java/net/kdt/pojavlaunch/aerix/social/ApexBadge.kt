@@ -26,7 +26,8 @@ enum class ApexBadge(val label: String, val emoji: String, val colorArgb: Long) 
     CEO("CEO", "\uD83D\uDC51", 0xFFFFB020),
     OWNER("OWNER", "\uD83D\uDC51", 0xFFEF233C),
     DEVELOPER("DEV", "\uD83D\uDEE0", 0xFF38BDF8),
-    TEAM("TEAM", "\u2B50", 0xFFB388FF);
+    TEAM("TEAM", "\u2B50", 0xFFB388FF),
+    SERVICE("BOT", "\uD83E\uDD16", 0xFF7C5CFF);
 
     /** "👑 CEO" as shown next to a name. */
     val chip: String get() = "$emoji $label"
@@ -40,7 +41,9 @@ object ApexBadges {
     private val byName: Map<String, ApexBadge> = mapOf(
         "yadavboy" to ApexBadge.CEO,
         "cruz" to ApexBadge.OWNER,
-        "entitybrian" to ApexBadge.DEVELOPER
+        "entitybrian" to ApexBadge.DEVELOPER,
+        // The in-app assistant always wears its own badge.
+        "apex service" to ApexBadge.SERVICE
     )
 
     fun forName(name: String?): ApexBadge? {

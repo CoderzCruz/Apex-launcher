@@ -1581,6 +1581,15 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     value = AerixPreferences.curseForgeApiKey,
                     onValueChange = { AerixPreferences.saveCurseForgeApiKey(it) }
                 )
+                // Optional brain for Apex Service. Blank is fine: the assistant then answers
+                // from the built-in knowledge base instead of the Gemini API.
+                MiraiTextSettingsCard(
+                    position = CardPosition.Middle,
+                    title = stringResource(R.string.aerix_settings_ai_key),
+                    summary = stringResource(R.string.aerix_settings_ai_key_sub),
+                    value = AerixPreferences.googleAiKey,
+                    onValueChange = { AerixPreferences.saveGoogleAiKey(it) }
+                )
                 MiraiSwitchSettingsCard(
                     position = CardPosition.Middle,
                     title = stringResource(R.string.preference_force_english_title),

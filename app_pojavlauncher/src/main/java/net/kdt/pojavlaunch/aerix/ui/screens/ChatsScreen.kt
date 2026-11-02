@@ -72,6 +72,7 @@ import kotlinx.coroutines.launch
 import net.kdt.pojavlaunch.aerix.components.AerixGhostButton
 import net.kdt.pojavlaunch.aerix.social.ApexBadge
 import net.kdt.pojavlaunch.aerix.social.ApexBadges
+import net.kdt.pojavlaunch.aerix.social.ApexService
 import net.kdt.pojavlaunch.aerix.social.SocialBackend
 import net.kdt.pojavlaunch.aerix.social.SocialMessage
 import net.kdt.pojavlaunch.aerix.social.SocialParty
@@ -94,6 +95,9 @@ private sealed interface ChatTarget {
     data class Dm(val peerId: String, val name: String) : ChatTarget
     data class Group(val partyId: String, val name: String) : ChatTarget
     data object Public : ChatTarget
+
+    /** The assistant's own thread. */
+    data object Service : ChatTarget
 }
 
 /**
@@ -113,6 +117,7 @@ fun ChatsScreen(onOpenSocials: () -> Unit) {
             is ChatTarget.Dm -> current.name
             is ChatTarget.Group -> current.name
             ChatTarget.Public -> "Apex Public Chat"
+            ChatTarget.Service -> ApexService.TAGLINE
             null -> "Direct messages and groups"
         }
     ) {
@@ -122,7 +127,9 @@ fun ChatsScreen(onOpenSocials: () -> Unit) {
         }
 
         val open = target
-        if (open != null) {
+        if (open is ChatTarget.Service) {
+            ServiceThread(onBack = { target = null })
+        } else if (open != null) {
             ChatThread(
                 target = open,
                 onBack = { target = null }
@@ -142,7 +149,10 @@ fun ChatsScreen(onOpenSocials: () -> Unit) {
             }
             Spacer(Modifier.height(AerixSpacing.md))
             when (tab) {
-                ChatTab.DMS -> DmList { friend -> target = friend }
+                ChatTab.DMS -> DmList(
+                    onOpen = { friend -> target = friend },
+                    onOpenService = { target = ChatTarget.Service }
+                )
                 ChatTab.GROUPS -> GroupList { group -> target = group }
                 ChatTab.PUBLIC -> PublicRoomCard { target = ChatTarget.Public }
             }
@@ -177,16 +187,26 @@ private fun ChatPill(
 }
 
 @Composable
-private fun DmList(onOpen: (ChatTarget.Dm) -> Unit) {
+private fun DmList(onOpen: (ChatTarget.Dm) -> Unit, onOpenService: () -> Unit) {
     val friends = SocialBackend.friends
-    if (friends.isEmpty()) {
-        EmptyCard(
-            title = "No friends yet",
-            body = "Add someone from Socials and your conversation shows up here."
-        )
-        return
-    }
     LazyColumn(verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
+        // The assistant is pinned above real friends, the way Discord keeps its helper on top.
+        item(key = "apex-service") {
+            ChatListRow(
+                name = ApexService.NAME,
+                subtitle = if (ApexService.hasBrain) ApexService.TAGLINE else "Knowledge base · add an AI key",
+                badge = ApexBadge.SERVICE,
+                onClick = onOpenService
+            )
+        }
+        if (friends.isEmpty()) {
+            item(key = "no-friends") {
+                EmptyCard(
+                    title = "No friends yet",
+                    body = "Add someone from Socials and your conversation shows up here."
+                )
+            }
+        }
         items(friends, key = { it.id }) { friend ->
             ChatListRow(
                 name = friend.displayName.ifBlank { friend.mcUsername },
@@ -286,12 +306,17 @@ private fun ChatThread(target: ChatTarget, onBack: () -> Unit) {
     var recording by remember { mutableStateOf(false) }
     var player by remember { mutableStateOf<MediaPlayer?>(null) }
     var notice by remember(target) { mutableStateOf<String?>(null) }
+    // Answers Apex Service gave inside this room, newest last. They live in the app, so a mention
+    // gets one answer per player instead of the whole room fighting over who replies.
+    var botReplies by remember(target) { mutableStateOf<List<Pair<Long, String>>>(emptyList()) }
+    val answered = remember(target) { mutableSetOf<Long>() }
     val voiceFile = remember(context) { File(context.cacheDir, "apex-voice.m4a") }
 
     suspend fun load(): List<SocialMessage> = when (target) {
         is ChatTarget.Dm -> SocialBackend.loadMessages(target.peerId)
         is ChatTarget.Group -> SocialBackend.loadPartyMessages(target.partyId)
         ChatTarget.Public -> SocialBackend.loadPublicChatMessages()
+        ChatTarget.Service -> emptyList()
     }
 
     LaunchedEffect(target) {
@@ -300,6 +325,22 @@ private fun ChatThread(target: ChatTarget, onBack: () -> Unit) {
             val latest = runCatching { load() }.getOrDefault(emptyList())
             if (latest.isNotEmpty()) messages = latest
             delay(CHAT_POLL_MS)
+        }
+    }
+
+    LaunchedEffect(target, messages) {
+        val asked = messages.filter {
+            !answered.contains(it.id) &&
+                it.sender != SocialBackend.myUserId() &&
+                ApexService.mentionsUs(it.body)
+        }
+        asked.take(2).forEach { message ->
+            answered += message.id
+            val recent = messages.takeLast(6).map { "${authorOf(it)}: ${it.body}" }
+            val answer = runCatching { ApexService.reply(message.body, recent) }.getOrNull()
+            if (!answer.isNullOrBlank()) {
+                botReplies = botReplies + (message.id to answer)
+            }
         }
     }
 
@@ -312,6 +353,7 @@ private fun ChatThread(target: ChatTarget, onBack: () -> Unit) {
                 is ChatTarget.Dm -> SocialBackend.sendMessage(target.peerId, clean)
                 is ChatTarget.Group -> SocialBackend.sendPartyMessage(target.partyId, clean)
                 ChatTarget.Public -> SocialBackend.sendPublicChatMessage(clean)
+                ChatTarget.Service -> false
             }
             if (ok) {
                 draft = ""
@@ -382,6 +424,17 @@ private fun ChatThread(target: ChatTarget, onBack: () -> Unit) {
                     }
                 )
             }
+            items(botReplies, key = { "apex-service-" + it.first }) { entry ->
+                BotRow(text = entry.second)
+            }
+        }
+
+        if (target is ChatTarget.Group || target == ChatTarget.Public) {
+            Text(
+                text = "Tip: message me with @apex — main yahin jawab dunga.",
+                color = AerixSurface.textMuted,
+                fontSize = 9.5.sp
+            )
         }
 
         Spacer(Modifier.height(AerixSpacing.sm))
@@ -416,6 +469,7 @@ private fun ChatThread(target: ChatTarget, onBack: () -> Unit) {
                                 } ?: false
                                 is ChatTarget.Group,
                                 ChatTarget.Public -> SocialBackend.sendPublicChatVoice(bytes)
+                                ChatTarget.Service -> false
                             }
                             if (!ok) notice = SocialBackend.lastError ?: "Voice message failed"
                             messages = runCatching { load() }.getOrDefault(messages)
@@ -453,7 +507,6 @@ private fun ChatThread(target: ChatTarget, onBack: () -> Unit) {
     }
 }
 
-@Composable
 private fun authorOf(message: SocialMessage): String {
     val mine = message.sender == SocialBackend.myUserId()
     if (mine) return SocialBackend.myEffectiveDisplayName()
@@ -515,13 +568,17 @@ private class TailBubbleShape(
     override fun hashCode(): Int = (corner.hashCode() * 31 + tail.hashCode()) * 31 + onRight.hashCode()
 }
 
+/**
+ * Shared shell of every message: an optional author line, then the tailed bubble.
+ * [onClick] makes the whole bubble tappable, which voice notes use for playback.
+ */
 @Composable
-private fun MessageRow(
-    message: SocialMessage,
+private fun BubbleBox(
     mine: Boolean,
-    authorName: String,
-    playingUrl: String?,
-    onPlay: (String) -> Unit
+    authorName: String?,
+    badge: ApexBadge?,
+    onClick: (() -> Unit)? = null,
+    content: @Composable () -> Unit
 ) {
     val density = LocalDensity.current
     val bubbleShape = remember(mine, density) {
@@ -531,15 +588,11 @@ private fun MessageRow(
             onRight = mine
         )
     }
-    val audioUrl = message.attachmentUrl?.takeIf {
-        it.startsWith("http") && (it.endsWith(".m4a") || it.contains("voice-"))
-    }
-
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = if (mine) Alignment.End else Alignment.Start
     ) {
-        if (!mine) {
+        if (!mine && authorName != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(start = 12.dp, bottom = 2.dp)
@@ -550,7 +603,7 @@ private fun MessageRow(
                     fontSize = 10.5.sp,
                     fontWeight = FontWeight.ExtraBold
                 )
-                BadgeChip(ApexBadges.forName(authorName))
+                BadgeChip(badge)
             }
         }
         Box(
@@ -561,25 +614,161 @@ private fun MessageRow(
                     color = if (mine) AerixSurface.accent.copy(alpha = 0.28f) else AerixSurface.panelRaised,
                     shape = bubbleShape
                 )
+                .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            if (audioUrl != null) {
-                Row(
-                    modifier = Modifier.clickable { onPlay(audioUrl) },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = if (playingUrl == audioUrl) "\u23F8" else "\u25B6\uFE0F", fontSize = 14.sp)
-                    Spacer(Modifier.width(7.dp))
-                    Text(
-                        text = "Voice message",
-                        color = Color.White,
-                        fontSize = 12.5.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            } else {
-                Text(text = message.body, color = Color.White.copy(alpha = 0.95f), fontSize = 13.sp)
+            content()
+        }
+    }
+}
+
+@Composable
+private fun MessageRow(
+    message: SocialMessage,
+    mine: Boolean,
+    authorName: String,
+    playingUrl: String?,
+    onPlay: (String) -> Unit
+) {
+    val audioUrl = message.attachmentUrl?.takeIf {
+        it.startsWith("http") && (it.endsWith(".m4a") || it.contains("voice-"))
+    }
+    val playAction: (() -> Unit)? = if (audioUrl != null) {
+        { onPlay(audioUrl) }
+    } else {
+        null
+    }
+    BubbleBox(
+        mine = mine,
+        authorName = if (mine) null else authorName,
+        badge = if (mine) null else ApexBadges.forName(authorName),
+        onClick = playAction
+    ) {
+        if (audioUrl != null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = if (playingUrl == audioUrl) "\u23F8" else "\u25B6\uFE0F", fontSize = 14.sp)
+                Spacer(Modifier.width(7.dp))
+                Text(
+                    text = "Voice message",
+                    color = Color.White,
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
+        } else {
+            Text(text = message.body, color = Color.White.copy(alpha = 0.95f), fontSize = 13.sp)
+        }
+    }
+}
+
+/** An answer Apex Service posted inside a room. */
+@Composable
+private fun BotRow(text: String) {
+    BubbleBox(mine = false, authorName = ApexService.NAME, badge = ApexBadge.SERVICE) {
+        Text(text = text, color = Color.White.copy(alpha = 0.95f), fontSize = 13.sp)
+    }
+}
+
+/* ── the assistant's own thread ────────────────────────────────────────── */
+
+private const val SERVICE_WELCOME =
+    "Namaste! Main Apex Service hoon — Apex Launcher ka assistant.\n\n" +
+        "Pooch sakte ho: chat kaise use karein, voice note kaise bhejein, themes, Discord card, " +
+        "badges, install, ya koi bhi sawaal. Kisi bhi room me @apex likhoge to wahin jawab dunga."
+
+@Composable
+private fun ServiceThread(onBack: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+    var draft by remember { mutableStateOf("") }
+    val turns = ApexService.turns
+    val thinking = ApexService.thinking
+
+    fun send(text: String) {
+        val clean = text.trim()
+        if (clean.isEmpty() || thinking) return
+        draft = ""
+        scope.launch { ApexService.ask(clean) }
+    }
+
+    LaunchedEffect(turns.size, thinking) {
+        val count = turns.size + if (thinking) 1 else 0
+        if (count > 0) listState.scrollToItem(count - 1)
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AerixGhostButton(text = "\u2039  Back", iconRes = null, onClick = onBack)
+            Spacer(Modifier.width(AerixSpacing.sm))
+            Column {
+                Text(
+                    text = ApexService.NAME,
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                Text(
+                    text = if (ApexService.hasBrain) "AI connected · Gemini" else "Built-in answers · AI key Settings me daalo",
+                    color = AerixSurface.textMuted,
+                    fontSize = 9.5.sp
+                )
+            }
+        }
+        Spacer(Modifier.height(AerixSpacing.sm))
+
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            if (turns.isEmpty()) {
+                item(key = "welcome") {
+                    BubbleBox(mine = false, authorName = ApexService.NAME, badge = ApexBadge.SERVICE) {
+                        Text(
+                            text = SERVICE_WELCOME,
+                            color = Color.White.copy(alpha = 0.95f),
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+            }
+            items(turns, key = { it.id }) { turn ->
+                BubbleBox(
+                    mine = turn.fromUser,
+                    authorName = if (turn.fromUser) null else ApexService.NAME,
+                    badge = if (turn.fromUser) null else ApexBadge.SERVICE
+                ) {
+                    Text(text = turn.text, color = Color.White.copy(alpha = 0.95f), fontSize = 13.sp)
+                }
+            }
+            if (thinking) {
+                item(key = "thinking") {
+                    BubbleBox(mine = false, authorName = ApexService.NAME, badge = ApexBadge.SERVICE) {
+                        Text(text = "…", color = Color.White, fontSize = 14.sp)
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(AerixSpacing.sm))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+        ) {
+            OutlinedTextField(
+                value = draft,
+                onValueChange = { draft = it.take(1000) },
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("Ask Apex Service…", color = AerixSurface.textMuted, fontSize = 12.sp) },
+                singleLine = true,
+                textStyle = TextStyle(color = Color.White, fontSize = 13.sp),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                keyboardActions = KeyboardActions(onSend = { send(draft) })
+            )
+            AerixGhostButton(text = "Send", iconRes = null, onClick = { send(draft) })
         }
     }
 }

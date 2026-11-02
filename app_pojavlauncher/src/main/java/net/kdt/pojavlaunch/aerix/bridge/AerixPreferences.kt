@@ -66,6 +66,8 @@ object AerixPreferences {
     const val KEY_ASSET_PLATFORM = "assetPlatformSource"
     const val KEY_LOG_RETENTION_DAYS = "launcherLogRetentionDays"
     const val KEY_CURSEFORGE_API_KEY = "curseForgeApiKey"
+    /** Free Google AI Studio key that turns Apex Service into a real AI assistant. */
+    const val KEY_GOOGLE_AI_KEY = "apexServiceAiKey"
     /** JSON array of favorite Discover projects (mirai download/assets/favorites). */
     const val KEY_FAVORITES = "aerixFavoriteProjects"
     /** JSON array of pinned instance names (mirai VersionsManageScreen "Pinned" tab). */
@@ -162,6 +164,10 @@ object AerixPreferences {
     var curseForgeApiKey by mutableStateOf("")
         private set
 
+    /** Google AI key for Apex Service; blank means the built-in knowledge base answers. */
+    var googleAiKey by mutableStateOf("")
+        private set
+
     /** Favorite projects as a JSON array of {platform,id,title,description,author,iconUrl,downloads,type}. */
     var favoritesJson by mutableStateOf("[]")
         private set
@@ -219,6 +225,7 @@ object AerixPreferences {
             AssetPlatform.valueOf(p.getString(KEY_ASSET_PLATFORM, AssetPlatform.MODRINTH.name)!!)
         }.getOrDefault(AssetPlatform.MODRINTH)
         curseForgeApiKey = p.getString(KEY_CURSEFORGE_API_KEY, "") ?: ""
+        googleAiKey = p.getString(KEY_GOOGLE_AI_KEY, "") ?: ""
         logRetentionDays = p.getInt(KEY_LOG_RETENTION_DAYS, 7).coerceIn(1, 14)
         favoritesJson = p.getString(KEY_FAVORITES, "[]") ?: "[]"
         pinnedJson = p.getString(KEY_PINNED_INSTANCES, "[]") ?: "[]"
@@ -300,6 +307,11 @@ object AerixPreferences {
     fun saveCurseForgeApiKey(value: String) {
         curseForgeApiKey = value.trim()
         edit { putString(KEY_CURSEFORGE_API_KEY, curseForgeApiKey) }
+    }
+
+    fun saveGoogleAiKey(value: String) {
+        googleAiKey = value.trim()
+        edit { putString(KEY_GOOGLE_AI_KEY, googleAiKey) }
     }
 
     fun saveColorTheme(value: AerixColorTheme) {
