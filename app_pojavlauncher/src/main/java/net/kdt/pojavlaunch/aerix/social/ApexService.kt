@@ -26,6 +26,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 /**
@@ -217,6 +218,43 @@ object ApexService {
         return match.groupValues[1].toDoubleOrNull() ?: 0.0
     }
 
+    /** One POST to one model. Returns the HTTP status and, on success, the answer text. */
+    private fun postGenerate(
+        model: String,
+        viaHeader: Boolean,
+        key: String,
+        body: String
+    ): Pair<Int, String?> {
+        val url = if (viaHeader) {
+            "$ENDPOINT/models/$model:generateContent"
+        } else {
+            "$ENDPOINT/models/$model:generateContent?key=$key"
+        }
+        val conn = runCatching {
+            (URL(url).openConnection() as HttpURLConnection)
+        }.getOrNull() ?: return 0 to null
+        return try {
+            conn.requestMethod = "POST"
+            conn.connectTimeout = 12_000
+            conn.readTimeout = 25_000
+            conn.doOutput = true
+            conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
+            if (viaHeader) conn.setRequestProperty("x-goog-api-key", key)
+            conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+            val code = conn.responseCode
+            if (code in 200..299) {
+                val raw = conn.inputStream.bufferedReader().use { it.readText() }
+                code to extractText(raw)
+            } else {
+                code to null
+            }
+        } catch (_: Exception) {
+            0 to null
+        } finally {
+            conn.disconnect()
+        }
+    }
+
     private suspend fun askGemini(key: String, prompt: String, context: List<String>): String? =
         withContext(Dispatchers.IO) {
             // Soft client-side throttle; free API keys have their own quota.
@@ -237,9 +275,9 @@ object ApexService {
                 put("generationConfig", JSONObject().apply {
                     put("temperature", 0.7)
                     put("maxOutputTokens", 900)
-                    // 3.x models "think" before answering and the thinking tokens share the output
-                    // budget, so keep the level low: chat answers do not need deep reasoning, and a
-                    // high level can spend the whole budget before writing a single visible word.
+                    // 3.x models think before answering and thinking tokens share the output
+                    // budget, so keep the level low: a chat answer needs no deep reasoning, and a
+                    // high level can spend the whole budget before a visible word is written.
                     put("thinkingConfig", JSONObject().put("thinkingLevel", "low"))
                 })
             }.toString()
@@ -247,53 +285,44 @@ object ApexService {
             val discovered = modelCache ?: discoverModels(key).also {
                 if (it.isNotEmpty()) modelCache = it
             }
-            val models = discovered.ifEmpty { FALLBACK_MODELS }
+            val models = (discovered.ifEmpty { FALLBACK_MODELS }).take(4)
 
-            for (model in models.take(4)) {
-                // Older AIza keys and the newer AQ. keys both accept the header; the query form is
-                // the second chance if a key is rejected that way.
-                for (viaHeader in listOf(true, false)) {
-                    val url = if (viaHeader) {
-                        "$ENDPOINT/models/$model:generateContent"
-                    } else {
-                        "$ENDPOINT/models/$model:generateContent?key=$key"
-                    }
-                    val conn = runCatching {
-                        (URL(url).openConnection() as HttpURLConnection)
-                    }.getOrNull() ?: continue
-                    try {
-                        conn.requestMethod = "POST"
-                        conn.connectTimeout = 12_000
-                        conn.readTimeout = 25_000
-                        conn.doOutput = true
-                        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
-                        if (viaHeader) conn.setRequestProperty("x-goog-api-key", key)
-                        conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
-
-                        val code = conn.responseCode
-                        if (code in 200..299) {
-                            val text = conn.inputStream.bufferedReader().use { it.readText() }
-                            val answer = extractText(text)
-                            if (answer != null) return@withContext answer
-                            lastError = "AI ne khali jawab diya"
-                        } else {
-                            lastError = when (code) {
-                                400, 401, 403 -> "AI key reject ho gayi — nayi key banao"
-                                404 -> "AI model nahi mila"
-                                429 -> "AI quota khatam, thodi der baad try karo"
-                                else -> "AI server error ($code)"
-                            }
-                            // 400/401/403 will fail the same way for every model; a 404 means this
-                            // model name is gone, so move on to the next one.
-                            if (code in 400..403) break
+            // Two rounds: Google answers 503 when a model is briefly overloaded, and that clears up
+            // in seconds, so one quick retry is worth more than dropping to the offline answers.
+            repeat(2) { round ->
+                if (round > 0) delay(1_200L)
+                for (model in models) {
+                    var modelGone = false
+                    for (viaHeader in listOf(true, false)) {
+                        // Older AIza keys and newer AQ. keys both accept the header; the query form
+                        // is the second chance if a key is rejected that way.
+                        val (code, text) = postGenerate(model, viaHeader, key, body)
+                        if (code in 200..299 && text != null) {
+                            lastError = null
+                            return@withContext text
                         }
-                    } catch (_: Exception) {
-                        lastError = "AI se connect nahi hua"
-                    } finally {
-                        conn.disconnect()
+                        if (code in 200..299 && text == null) {
+                            lastError = "AI ne khali jawab diya"
+                            continue
+                        }
+                        lastError = when {
+                            code == 0 -> "AI se connect nahi hua"
+                            code == 404 -> "AI model nahi mila"
+                            code == 429 -> "AI quota khatam, thodi der baad try karo"
+                            code in 400..403 -> "AI key reject ho gayi — nayi key banao"
+                            code >= 500 -> "AI server busy hai ($code)"
+                            else -> "AI server error ($code)"
+                        }
+                        // A retired model name 404s and the next name may work; a key problem fails
+                        // the same way everywhere, so stop early instead of burning the quota.
+                        if (code == 404) {
+                            modelGone = true
+                            break
+                        }
+                        if (code in 400..403) return@withContext null
                     }
+                    if (modelGone) continue
                 }
-                if (lastError?.contains("key reject") == true) break
             }
             null
         }

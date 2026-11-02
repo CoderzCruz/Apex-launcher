@@ -249,9 +249,11 @@ jobs:
                       0 if "lite" in name else 1,
                   )
               ranked = sorted(models, key=rank, reverse=True)
-              pick = (ranked or [""])[0]
               summary = f"models={status}/{len(models)}"
-              if pick:
+              # Ask the top few names the app would try, so the release notes show which ones
+              # actually answer on this key.
+              tried = []
+              for pick in ranked[:4]:
                   code, body = call(f"{base}/models/{pick}:generateContent", {
                       "contents": [{"parts": [{"text": "Reply with OK only."}]}],
                       "generationConfig": {"thinkingConfig": {"thinkingLevel": "low"},
@@ -262,7 +264,9 @@ jobs:
                       text = body["candidates"][0]["content"]["parts"][0]["text"].strip()
                   except Exception:
                       text = ""
-                  summary += f" test={code}:{'OK' if text else 'EMPTY'}:{pick}"
+                  tried.append(f"{pick}:{code}" + (":OK" if text else ""))
+              if tried:
+                  summary += " " + ",".join(tried)
 
           print("::notice title=apex-probe::" + summary.replace(":", " "))
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
