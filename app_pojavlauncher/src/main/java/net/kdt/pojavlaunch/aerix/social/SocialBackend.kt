@@ -3143,6 +3143,58 @@ object SocialBackend {
         room
     }
 
+    /**
+     * Uploads a recorded voice note and posts it into the shared room.
+     * The clip is stored in the same media bucket the image attachments use.
+     */
+    suspend fun sendPublicChatVoice(bytes: ByteArray): Boolean {
+        if (bytes.size < 512) {
+            lastError = "Recording was too short"
+            return false
+        }
+        val url = uploadVoice(bytes) ?: return false
+        val partyId = publicChatPartyId ?: openPublicChat()?.id ?: return false
+        return sendPartyMessage(partyId, VOICE_MESSAGE_LABEL, attachmentUri = Uri.parse(url))
+    }
+
+    /** Audio upload with its own MIME type; [uploadImage] only knows image formats. */
+    suspend fun uploadVoice(bytes: ByteArray): String? = withContext(Dispatchers.IO) {
+        lastError = null
+        ensureToken()
+        val me = userId ?: myProfile?.id
+        val token = accessToken
+        if (me == null || token == null) {
+            if (lastError == null) lastError = "Sign in first"
+            return@withContext null
+        }
+        val path = "$me/voice-${System.currentTimeMillis()}.m4a"
+        try {
+            val req = Request.Builder()
+                .url("$PROJECT_URL/storage/v1/object/social-media/$path")
+                .post(bytes.toRequestBody("audio/mp4".toMediaType()))
+                .header("apikey", PUBLISHABLE_KEY)
+                .header("Authorization", "Bearer $token")
+                .header("x-upsert", "true")
+                .build()
+            SocialRealtime.restClient.newCall(req).execute().use { resp ->
+                if (resp.code !in 200..299) {
+                    lastError = serverMessage(resp.body?.string() ?: "")
+                        ?: "Voice upload failed (HTTP ${resp.code})"
+                    return@withContext null
+                }
+            }
+            lastError = null
+            "$PROJECT_URL/storage/v1/object/public/social-media/$path"
+        } catch (error: Throwable) {
+            Log.w(TAG, "Voice upload failed", error)
+            lastError = error.message ?: "Voice upload failed"
+            null
+        }
+    }
+
+    /** Body the player sees for a clip; the sound itself is the attachment. */
+    const val VOICE_MESSAGE_LABEL = "\uD83C\uDFA4 Voice message"
+
     /** Messages of the shared room, oldest first; empty when the room is not open yet. */
     suspend fun loadPublicChatMessages(): List<SocialMessage> {
         val partyId = publicChatPartyId ?: openPublicChat()?.id ?: return emptyList()

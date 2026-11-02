@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -46,11 +47,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.media.MediaPlayer
+import android.media.MediaRecorder
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
+import net.kdt.pojavlaunch.aerix.social.ApexBadges
+import java.io.File
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.kdt.pojavlaunch.aerix.components.AerixGhostButton
@@ -76,6 +84,22 @@ fun PublicChatScreen(onOpenSocials: () -> Unit) {
     var status by remember { mutableStateOf("Opening the room…") }
     var sending by remember { mutableStateOf(false) }
     var joined by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    var recorder by remember { mutableStateOf<MediaRecorder?>(null) }
+    var recording by remember { mutableStateOf(false) }
+    var player by remember { mutableStateOf<MediaPlayer?>(null) }
+    var playingUrl by remember { mutableStateOf<String?>(null) }
+
+    val voiceFile = remember(context) { File(context.cacheDir, "apex-voice.m4a") }
+
+    fun stopRecorder(): File? {
+        val active = recorder ?: return null
+        recorder = null
+        recording = false
+        runCatching { active.stop() }
+        runCatching { active.release() }
+        return voiceFile.takeIf { it.isFile && it.length() > 512 }
+    }
 
     LaunchedEffect(SocialBackend.signedIn) {
         if (!SocialBackend.signedIn) {
@@ -151,7 +175,33 @@ fun PublicChatScreen(onOpenSocials: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
             ) {
                 items(messages, key = { it.id }) { message ->
-                    PublicChatRow(message)
+                    PublicChatRow(
+                        message = message,
+                        playingUrl = playingUrl,
+                        onPlayVoice = { url ->
+                            player?.let { runCatching { it.stop(); it.release() } }
+                            player = null
+                            if (playingUrl == url) {
+                                playingUrl = null
+                            } else {
+                                playingUrl = url
+                                runCatching {
+                                    val mp = MediaPlayer()
+                                    mp.setDataSource(url)
+                                    mp.setOnCompletionListener {
+                                        playingUrl = null
+                                        runCatching { it.release() }
+                                    }
+                                    mp.prepareAsync()
+                                    mp.setOnPreparedListener { it.start() }
+                                    player = mp
+                                }.onFailure {
+                                    playingUrl = null
+                                    status = "Could not play that clip"
+                                }
+                            }
+                        }
+                    )
                 }
             }
 
@@ -182,6 +232,42 @@ fun PublicChatScreen(onOpenSocials: () -> Unit) {
                     })
                 )
                 AerixGhostButton(
+                    text = if (recording) "⏹" else "🎤",
+                    iconRes = null,
+                    onClick = {
+                        if (recording) {
+                            val file = stopRecorder() ?: return@AerixGhostButton
+                            val bytes = runCatching { file.readBytes() }.getOrNull() ?: return@AerixGhostButton
+                            scope.launch {
+                                sending = true
+                                SocialBackend.sendPublicChatVoice(bytes)
+                                sending = false
+                                runCatching { file.delete() }
+                            }
+                        } else {
+                            val out = voiceFile
+                            runCatching {
+                                @Suppress("DEPRECATION")
+                                val rec = MediaRecorder()
+                                rec.setAudioSource(MediaRecorder.AudioSource.MIC)
+                                rec.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                                rec.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                                rec.setAudioEncodingBitRate(64_000)
+                                rec.setAudioSamplingRate(44_100)
+                                rec.setOutputFile(out.absolutePath)
+                                rec.prepare()
+                                rec.start()
+                                recorder = rec
+                                recording = true
+                            }.onFailure {
+                                recorder = null
+                                recording = false
+                                status = "Microphone unavailable: ${it.message}"
+                            }
+                        }
+                    }
+                )
+                AerixGhostButton(
                     text = if (sending) "…" else "Send",
                     iconRes = null,
                     onClick = {
@@ -200,9 +286,13 @@ fun PublicChatScreen(onOpenSocials: () -> Unit) {
     }
 }
 
-/** One message: the in-game name above the text, own messages tinted with the accent. */
+/** One message: the in-game name (with a staff badge) above the text or the voice clip. */
 @Composable
-private fun PublicChatRow(message: SocialMessage) {
+private fun PublicChatRow(
+    message: SocialMessage,
+    playingUrl: String? = null,
+    onPlayVoice: (String) -> Unit = {}
+) {
     val mine = message.sender == SocialBackend.myUserId()
     Box(
         modifier = Modifier
@@ -214,18 +304,64 @@ private fun PublicChatRow(message: SocialMessage) {
             .padding(horizontal = 12.dp, vertical = 9.dp)
     ) {
         Column {
-            Text(
-                text = if (mine) "You" else SocialBackend.publicChatAuthorName(message),
-                color = AerixSurface.accent,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = if (mine) "You" else SocialBackend.publicChatAuthorName(message),
+                    color = AerixSurface.accent,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                val badge = ApexBadges.forName(
+                    if (mine) SocialBackend.myEffectiveDisplayName()
+                    else SocialBackend.publicChatAuthorName(message)
+                )
+                if (badge != null) {
+                    Spacer(Modifier.width(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .background(Color(badge.colorArgb).copy(alpha = 0.22f), RoundedCornerShape(6.dp))
+                            .padding(horizontal = 5.dp, vertical = 1.dp)
+                    ) {
+                        Text(
+                            text = badge.chip,
+                            color = Color(badge.colorArgb),
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                }
+            }
             Spacer(Modifier.height(2.dp))
-            Text(
-                text = message.body,
-                color = Color.White.copy(alpha = 0.94f),
-                fontSize = 13.sp
-            )
+            val audioUrl = message.attachmentUrl?.takeIf {
+                it.startsWith("http") && (it.contains(".m4a") || it.contains("voice-"))
+            }
+            if (audioUrl != null) {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { onPlayVoice(audioUrl) }
+                        .padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (playingUrl == audioUrl) "\u23F8" else "\u25B6\uFE0F",
+                        fontSize = 15.sp
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Voice message",
+                        color = Color.White.copy(alpha = 0.94f),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            } else {
+                Text(
+                    text = message.body,
+                    color = Color.White.copy(alpha = 0.94f),
+                    fontSize = 13.sp
+                )
+            }
         }
     }
 }
