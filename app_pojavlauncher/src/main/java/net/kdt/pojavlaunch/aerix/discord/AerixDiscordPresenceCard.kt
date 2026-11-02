@@ -191,6 +191,15 @@ fun DiscordPresenceSettingsCard() {
                         color = AerixSurface.textMuted,
                         fontSize = 10.sp
                     )
+                    // What the card says right now, so a card that did not follow the game is visible.
+                    Text(
+                        text = "live: " + AerixDiscordPresence.publishedSummary()
+                            .ifBlank { "nothing published yet" },
+                        color = AerixSurface.textMuted,
+                        fontSize = 10.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     // Prints what Discord complained about, so a rejected field can be fixed
                     // instead of guessed at.
                     if (rpcError.isNotBlank()) {

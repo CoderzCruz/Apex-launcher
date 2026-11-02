@@ -69,6 +69,7 @@ object AerixDiscordPresence {
     private const val HANDLER_PID = 1
     private const val CLOSE_INVALID_CLIENT_ID = 4000
     private const val MAX_ASSET_URL_LEN = 256
+    private const val WATCHDOG_INTERVAL_MS = 5_000L
 
     /** Official clickable destinations & artwork for Aerix Rich Presence cards. */
     const val AERIX_WEBSITE_URL = "https://entitybrian69-bit.github.io/Aerix-launcher/"
@@ -165,6 +166,68 @@ object AerixDiscordPresence {
     /** The last activity error Discord reported, for the settings status card. */
     fun lastError(): String = lastRpcError
 
+    /** What the card currently says, e.g. "In the launcher · In settings". */
+    fun publishedSummary(): String = publishedSummary
+
+    /**
+     * Re-aligns the in-memory card with the shared state file. Called by the watchdog so the card
+     * follows the game even when the start broadcast is missed or arrives late.
+     */
+    fun syncFromDisk(context: Context?) {
+        val app = context?.applicationContext ?: appContext ?: return
+        appContext = app
+        AerixPreferences.init(app)
+        if (!AerixPreferences.discordPresenceEnabled) return
+        val disk = readDiskState(app) ?: return
+        when (disk.owner) {
+            "game" -> {
+                if (!inGameMode || details != disk.details || state != disk.state) {
+                    inGameMode = true
+                    activeModpackIconUrl = disk.modpackIconUrl
+                    details = disk.details
+                    state = disk.state
+                    if (disk.startedAt > 0L) startedAt = disk.startedAt
+                    main.post { switchConnectionIfNeededOrSend() }
+                }
+            }
+            "launcher" -> {
+                if (inGameMode) {
+                    inGameMode = false
+                    activeModpackIconUrl = null
+                    details = disk.details
+                    state = disk.state
+                    if (disk.startedAt > 0L) startedAt = disk.startedAt
+                    main.post { switchConnectionIfNeededOrSend() }
+                }
+            }
+        }
+    }
+
+    private fun startWatchdog(app: Context) {
+        if (watchdog != null) return
+        val runnable = object : Runnable {
+            private var tick = 0
+            override fun run() {
+                runCatching { syncFromDisk(appContext ?: app) }
+                // Every third tick also refreshes the card, rebuilding a dropped connection and
+                // keeping the elapsed timer alive for whoever is looking at the profile.
+                if (++tick % 3 == 0) {
+                    runCatching {
+                        if (AerixPreferences.discordPresenceEnabled) switchConnectionIfNeededOrSend()
+                    }
+                }
+                main.postDelayed(this, WATCHDOG_INTERVAL_MS)
+            }
+        }
+        watchdog = runnable
+        main.postDelayed(runnable, WATCHDOG_INTERVAL_MS)
+    }
+
+    private fun stopWatchdog() {
+        watchdog?.let { main.removeCallbacks(it) }
+        watchdog = null
+    }
+
     fun connectionStatus(): String {
         if (!AerixPreferences.discordPresenceEnabled) return "Presence off"
         val appId = DiscordAppId.effective()
@@ -225,7 +288,17 @@ object AerixDiscordPresence {
     private var gameStartedAtCache: Long = 0L
 
     /** Current state published to Discord. */
-    private var inGameMode: Boolean = false
+    @Volatile private var inGameMode: Boolean = false
+
+    /** What the last published card said, for the settings status card. */
+    @Volatile private var publishedSummary: String = ""
+
+    /**
+     * `:game` owns the screen while a game runs, and the launcher process can be reclaimed while it
+     * is in the background. A watchdog keeps the card in step with the shared state file, so a
+     * missed or late handoff is corrected within a few seconds instead of leaving a stale card.
+     */
+    private var watchdog: Runnable? = null
     private var activeModpackIconUrl: String? = null
     private var details: String = InLauncher.DETAILS
     private var state: String = InLauncher.HOME
@@ -687,6 +760,11 @@ object AerixDiscordPresence {
         if (gameInstanceCache != null || gameVersionCache != null || gameStartedAtCache != 0L) {
             onGameStarted(context, gameInstanceCache, gameVersionCache, gameModpackIconCache)
         }
+        // Coming back from Discord: republish instead of waiting for the watchdog.
+        if (context != null) {
+            captureApplicationContext(context)
+            playing(gameInstanceCache, gameVersionCache, gameModpackIconCache)
+        }
     }
 
     /** Called from GameActivity.onStop() / onDestroy() in `:game`. */
@@ -699,12 +777,9 @@ object AerixDiscordPresence {
 
         if (disk?.owner != "game") return
         writeDiskState(app, disk.copy(owner = "none", exitedAtElapsedMs = SystemClock.elapsedRealtime()))
-        // One-shot game lifecycle message; unlike the former alarm this does not schedule a wakeup.
-        runCatching {
-            app.sendBroadcast(Intent(app, SocialNotificationReceiver::class.java).apply {
-                action = ACTION_DISCORD_SCHEDULE_CLEAR
-            })
-        }
+        // Opening Discord mid-game stops the game activity: keep the card for the same grace window
+        // as the launcher instead of wiping it the moment the player looks at their profile.
+        scheduleExitClear(app)
     }
 
     /**
@@ -834,6 +909,7 @@ object AerixDiscordPresence {
         }
         bound = bindRpcService(appContext!!, intent)
         if (!bound) Log.w(TAG, "Could not bind to Discord's RPC service: $bindingNote")
+        else startWatchdog(appContext!!)
     }
 
     /** Drop the connection immediately (internal helper; use [clearAndDetach] to clear profile first). */
@@ -843,6 +919,7 @@ object AerixDiscordPresence {
         connection = null
         connectedAppId = 0L
         service = null
+        stopWatchdog()
         unbind()
     }
 
@@ -987,7 +1064,14 @@ object AerixDiscordPresence {
         activeModpackIconUrl = modpackIconUrl?.takeIf { it.isNotBlank() }
         details = "Playing Minecraft${if (minecraftVersion.isNullOrBlank()) "" else " $minecraftVersion"}"
         state = instance?.takeIf { it.isNotBlank() } ?: "In game"
-        startedAt = System.currentTimeMillis()
+        // Keep the session's own start time so the elapsed timer never jumps back to zero.
+        val diskStarted = appContext?.let { readDiskState(it) }
+            ?.takeIf { it.owner == "game" }?.startedAt ?: 0L
+        startedAt = if (diskStarted > 0L) diskStarted else System.currentTimeMillis()
+        appContext?.let { app ->
+            cancelClearAlarm(app)
+            cancelPendingExitClear()
+        }
         main.post { switchConnectionIfNeededOrSend() }
     }
 
@@ -1109,6 +1193,7 @@ object AerixDiscordPresence {
             .put("pid", HANDLER_PID)
             .put("activity", activity)
 
+        publishedSummary = "$details · $state"
         send(
             JSONObject()
                 .put("cmd", "SET_ACTIVITY")

@@ -354,6 +354,14 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
                     version,
                     instance != null ? instance.modpackIconUrl : null
             );
+            // The launcher process is usually reclaimed while a game runs, so the game publishes the
+            // card itself instead of relying on a handoff that may never arrive.
+            net.kdt.pojavlaunch.aerix.discord.AerixDiscordPresence.attach(this);
+            net.kdt.pojavlaunch.aerix.discord.AerixDiscordPresence.playing(
+                    instance != null ? instance.name : null,
+                    version,
+                    instance != null ? instance.modpackIconUrl : null
+            );
 
             setTitle("MojoLauncher (" + version + ")");
 
