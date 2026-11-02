@@ -176,34 +176,47 @@ object ApexService {
                 })
             }.toString()
 
+            // Google shipped two key styles: older AIza keys and the newer auth keys. The header
+            // form is documented for both, the "?key=" query form still works everywhere else,
+            // so a key is tried both ways before the assistant gives up on it.
             for (model in MODELS) {
-                val conn = runCatching {
-                    (URL("$ENDPOINT/$model:generateContent").openConnection() as HttpURLConnection)
-                }.getOrNull() ?: continue
-                try {
-                    conn.requestMethod = "POST"
-                    conn.connectTimeout = 12_000
-                    conn.readTimeout = 20_000
-                    conn.doOutput = true
-                    conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
-                    conn.setRequestProperty("x-goog-api-key", key)
-                    conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
-                    val code = conn.responseCode
-                    if (code !in 200..299) {
-                        lastError = when (code) {
-                            400, 403 -> "AI key rejected — Settings me Apex Service key check karo"
-                            429 -> "AI quota khatam, thodi der baad try karo"
-                            else -> "AI server error ($code)"
-                        }
-                        continue
+                for (viaHeader in listOf(true, false)) {
+                    val url = if (viaHeader) {
+                        "$ENDPOINT/$model:generateContent"
+                    } else {
+                        "$ENDPOINT/$model:generateContent?key=$key"
                     }
-                    val text = conn.inputStream.bufferedReader().use { it.readText() }
-                    val parsed = extractText(text)
-                    if (parsed != null) return@withContext parsed
-                } catch (_: Exception) {
-                    lastError = "AI se connect nahi hua"
-                } finally {
-                    conn.disconnect()
+                    val conn = runCatching {
+                        (URL(url).openConnection() as HttpURLConnection)
+                    }.getOrNull() ?: continue
+                    try {
+                        conn.requestMethod = "POST"
+                        conn.connectTimeout = 12_000
+                        conn.readTimeout = 20_000
+                        conn.doOutput = true
+                        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
+                        if (viaHeader) conn.setRequestProperty("x-goog-api-key", key)
+                        conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+
+                        val code = conn.responseCode
+                        if (code in 200..299) {
+                            val text = conn.inputStream.bufferedReader().use { it.readText() }
+                            extractText(text)?.let { return@withContext it }
+                        } else {
+                            lastError = when (code) {
+                                400, 401, 403 -> "AI key reject ho gayi — nayi key banao (Gemini API allowed)"
+                                429 -> "AI quota khatam, thodi der baad try karo"
+                                else -> "AI server error ($code)"
+                            }
+                            // A key problem shows up the same way for every model; a model problem
+                            // (404) means try the next model instead.
+                            if (code != 404) break
+                        }
+                    } catch (_: Exception) {
+                        lastError = "AI se connect nahi hua"
+                    } finally {
+                        conn.disconnect()
+                    }
                 }
             }
             null
