@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.prefs.LauncherPreferences
 
 /** Color theme types kept from Zalith/Aerix. Only AERIX and CUSTOM are reachable from the port. */
@@ -168,6 +169,13 @@ object AerixPreferences {
     var googleAiKey by mutableStateOf("")
         private set
 
+    /**
+     * Key that ships with this build (CI secret, never in the repository). Players then get real
+     * AI answers without pasting anything; their own key in Settings still wins.
+     */
+    var bakedAiKey by mutableStateOf("")
+        private set
+
     /** Favorite projects as a JSON array of {platform,id,title,description,author,iconUrl,downloads,type}. */
     var favoritesJson by mutableStateOf("[]")
         private set
@@ -200,6 +208,8 @@ object AerixPreferences {
     fun init(context: Context) {
         val p = context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
         prefs = p
+        bakedAiKey = runCatching { context.getString(R.string.apex_service_ai_key).trim() }
+            .getOrDefault("")
         colorTheme = runCatching {
             AerixColorTheme.valueOf(p.getString(KEY_COLOR_THEME, AerixColorTheme.AERIX.name)!!)
         }.getOrDefault(AerixColorTheme.AERIX)
@@ -308,6 +318,9 @@ object AerixPreferences {
         curseForgeApiKey = value.trim()
         edit { putString(KEY_CURSEFORGE_API_KEY, curseForgeApiKey) }
     }
+
+    /** The key Apex Service should actually use: the player's own if set, else the built-in one. */
+    fun effectiveAiKey(): String = googleAiKey.ifBlank { bakedAiKey }
 
     fun saveGoogleAiKey(value: String) {
         googleAiKey = value.trim()

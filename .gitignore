@@ -9,6 +9,7 @@ local.properties
 app_pojavlauncher/.cxx/
 .vs/
 /curseforge_key.txt
+/apex_service_key.txt
 /app_pojavlauncher/libs/ltw-release.aar
 site-preview/
 apk/

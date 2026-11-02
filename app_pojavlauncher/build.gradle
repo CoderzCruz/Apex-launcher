@@ -46,6 +46,17 @@ def getVersionName = {
     }
 }
 
+def getServiceAiKey = {
+    String key = System.getenv("APEX_SERVICE_AI_KEY")
+    if(key != null && !key.trim().isEmpty()) return key.trim()
+    File keyFile = new File("./apex_service_key.txt")
+    if(keyFile.canRead() && keyFile.isFile()) {
+        return keyFile.text.trim()
+    }
+    // No key: Apex Service still runs, it just answers from its built-in knowledge base.
+    return ""
+}
+
 def getCFApiKey = {
     String key = System.getenv("CURSEFORGE_API_KEY")
     if(key != null && !key.trim().isEmpty()) return key.trim()
@@ -135,6 +146,7 @@ android {
         versionName AERIX_VERSION_NAME
         multiDexEnabled false //important
         resValue 'string', 'curseforge_api_key', getCFApiKey()
+        resValue 'string', 'apex_service_ai_key', getServiceAiKey()
         resValue 'string', 'group_id', 'net.kdt'
     }
 

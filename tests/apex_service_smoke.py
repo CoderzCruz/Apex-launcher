@@ -66,4 +66,22 @@ assert "ApexService.reply(" in chats and "ApexService.ask(" in chats
 assert 'items(botReplies, key = { "apex-service-" + it.first })' in chats
 assert "ApexService.NAME" in chats and "ApexBadge.SERVICE" in chats
 
+# Ship-with-build brain: the CI secret is baked in as a resource, never committed.
+gradle = (ROOT / "app_pojavlauncher/build.gradle").read_text()
+assert "def getServiceAiKey = {" in gradle
+assert "resValue 'string', 'apex_service_ai_key', getServiceAiKey()" in gradle
+assert "System.getenv(\"APEX_SERVICE_AI_KEY\")" in gradle
+workflow = (ROOT / ".github/workflows/aerix-debug.yml").read_text()
+assert "APEX_SERVICE_AI_KEY: ${{ secrets.APEX_SERVICE_AI_KEY }}" in workflow
+assert "fun effectiveAiKey()" in prefs and "googleAiKey.ifBlank { bakedAiKey }" in prefs
+assert "AerixPreferences.effectiveAiKey()" in service
+# The secret itself must never appear in the tree.
+# The prefix is assembled here so this guard file never contains the secret itself.
+key_prefix = "AQ.Ab" + "8RN6"
+for path in ROOT.rglob("*"):
+    if path == Path(__file__) or not path.is_file():
+        continue
+    if path.suffix in {".kt", ".gradle", ".yml", ".py", ".xml", ".txt", ".properties"}:
+        assert key_prefix not in path.read_text(errors="ignore"), f"AI key leaked into {path}"
+
 print("Apex Service wiring passed")

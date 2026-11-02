@@ -74,7 +74,7 @@ object ApexService {
     private var lastCallMs = 0L
 
     /** True when the player can get real AI answers instead of the built-in knowledge base. */
-    val hasBrain: Boolean get() = AerixPreferences.googleAiKey.isNotBlank()
+    val hasBrain: Boolean get() = AerixPreferences.effectiveAiKey().isNotBlank()
 
     /** Does this room message call the assistant? */
     fun mentionsUs(text: String): Boolean {
@@ -120,7 +120,7 @@ object ApexService {
     suspend fun reply(question: String, roomContext: List<String> = emptyList()): String {
         val prompt = stripMention(question)
         if (prompt.isBlank()) return "Bolo, kya jaanna hai? Apex Launcher, chat, themes — kuch bhi."
-        val key = AerixPreferences.googleAiKey
+        val key = AerixPreferences.effectiveAiKey()
         if (key.isNotBlank()) {
             val remote = askGemini(key, prompt, roomContext)
             if (remote != null) {
