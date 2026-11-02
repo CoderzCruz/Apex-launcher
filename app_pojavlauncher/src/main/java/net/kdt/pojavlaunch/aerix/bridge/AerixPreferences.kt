@@ -82,7 +82,7 @@ object AerixPreferences {
     const val KEY_DISCORD_ASSET_NAME = "aerixDiscordAssetName"
     /** Discord account that owns the branding; empty means "this build's owner". */
     const val KEY_DISCORD_OWNER_ID = "aerixDiscordOwnerId"
-    /** Set once the owner proves it by typing their Discord id, so the fields stay editable. */
+    /** Branding (card image, invite, website) is editable unless the owner locks it again. */
     const val KEY_DISCORD_BRANDING_UNLOCKED = "aerixDiscordBrandingUnlocked"
     const val KEY_DISCORD_INVITE_URL = "aerixDiscordInviteUrl"
     const val KEY_DISCORD_WEBSITE_URL = "aerixDiscordWebsiteUrl"
@@ -228,7 +228,7 @@ object AerixPreferences {
         discordClickableLinks = p.getBoolean(KEY_DISCORD_CLICKABLE_LINKS, true)
         discordAssetName = p.getString(KEY_DISCORD_ASSET_NAME, "") ?: ""
         discordOwnerId = p.getString(KEY_DISCORD_OWNER_ID, "") ?: ""
-        discordBrandingUnlocked = p.getBoolean(KEY_DISCORD_BRANDING_UNLOCKED, false)
+        discordBrandingUnlocked = p.getBoolean(KEY_DISCORD_BRANDING_UNLOCKED, true)
         discordInviteUrl = p.getString(KEY_DISCORD_INVITE_URL, "") ?: ""
         discordWebsiteUrl = p.getString(KEY_DISCORD_WEBSITE_URL, "") ?: ""
     }

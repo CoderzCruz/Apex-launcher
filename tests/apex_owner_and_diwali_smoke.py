@@ -27,8 +27,11 @@ assert "if (foreignAccount) return" not in send, "the card must not be suppresse
 card = CARD.read_text()
 assert "brandingUnlocked" in card and "Branding locked" in card
 assert "Owner unlock" in card and "OWNER_DISCORD_ID" in card
+assert "Lock branding to the owner" in card, "the owner needs a lock switch"
 assert "KEY_DISCORD_BRANDING_UNLOCKED" in prefs
 assert "discordBrandingUnlocked" in prefs
+# Branding starts unlocked, so the owner can edit the card straight away.
+assert 'getBoolean(KEY_DISCORD_BRANDING_UNLOCKED, true)' in prefs
 
 # ── Diwali page ─────────────────────────────────────────────────────────────
 diwali = DIWALI.read_text()

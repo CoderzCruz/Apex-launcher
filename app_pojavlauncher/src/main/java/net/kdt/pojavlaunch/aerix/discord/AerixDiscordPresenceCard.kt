@@ -46,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -273,9 +274,11 @@ fun DiscordPresenceSettingsCard() {
             )
         }
 
-        // ── branding: editable by the owner only ────────────────────────────
-        val brandingUnlocked = AerixPreferences.discordBrandingUnlocked ||
-            AerixDiscordPresence.isOwnerAccount()
+        // ── branding: editable unless the owner locked it ───────────────────
+        var brandingTick by remember { mutableIntStateOf(0) }
+        val brandingUnlocked = remember(brandingTick) {
+            AerixPreferences.discordBrandingUnlocked || AerixDiscordPresence.isOwnerAccount()
+        }
         if (brandingUnlocked) {
             MiraiTextInputSettingsCard(
                 value = AerixPreferences.discordAssetName,
@@ -369,6 +372,7 @@ fun DiscordPresenceSettingsCard() {
                     if (id.length in 17..20) {
                         if (id == AerixDiscordPresence.OWNER_DISCORD_ID) {
                             AerixPreferences.saveDiscordBrandingUnlocked(true)
+                            brandingTick++
                             Toast.makeText(activityContext, "Branding unlocked", Toast.LENGTH_SHORT).show()
                         } else {
                             Toast.makeText(activityContext, "That is not the owner account", Toast.LENGTH_SHORT).show()
@@ -377,6 +381,26 @@ fun DiscordPresenceSettingsCard() {
                 }
             )
         }
+
+        // The owner controls the branding from here, without touching any field above.
+        MiraiSwitchSettingsCard(
+            position = CardPosition.Middle,
+            title = "Lock branding to the owner",
+            summary = "Off: the card image, invite and website can be edited on this device. On: they " +
+                "sit behind the owner Discord id, so anyone else using this build still gets the " +
+                "card but cannot change where it points.",
+            checked = !brandingUnlocked,
+            enabled = enabled,
+            onCheckedChange = { locked ->
+                AerixPreferences.saveDiscordBrandingUnlocked(!locked)
+                brandingTick++
+                Toast.makeText(
+                    activityContext,
+                    if (locked) "Branding locked to the owner" else "Branding unlocked",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        )
 
         MiraiTextInputSettingsCard(
             value = appId,
