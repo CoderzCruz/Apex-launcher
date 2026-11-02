@@ -215,7 +215,7 @@ jobs:
         continue-on-error: true
         run: |
           python3 - <<'PY'
-          import json, os, urllib.error, urllib.request
+          import json, os, re, urllib.error, urllib.request
 
           key = os.environ.get("APEX_SERVICE_AI_KEY", "").strip()
           base = "https://generativelanguage.googleapis.com/v1beta"
@@ -238,8 +238,18 @@ jobs:
               status, listing = call(f"{base}/models?pageSize=200")
               models = [m.get("name", "").split("/")[-1] for m in listing.get("models", [])
                         if "generateContent" in m.get("supportedGenerationMethods", [])]
-              flash = [m for m in models if "flash" in m]
-              pick = (flash or models or [""])[0]
+              # Same ranking the app uses: newest version first, flash before others, stable
+              # before preview and lite.
+              def rank(name):
+                  version = re.search(r"gemini-(\d+(?:\.\d+)?)", name)
+                  return (
+                      1 if "flash" in name else 0,
+                      float(version.group(1)) if version else 0.0,
+                      0 if "preview" in name else 1,
+                      0 if "lite" in name else 1,
+                  )
+              ranked = sorted(models, key=rank, reverse=True)
+              pick = (ranked or [""])[0]
               summary = f"models={status}/{len(models)}"
               if pick:
                   code, body = call(f"{base}/models/{pick}:generateContent", {

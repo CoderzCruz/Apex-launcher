@@ -195,14 +195,26 @@ object ApexService {
                     .any { methods.optString(it) == "generateContent" }
                 if (generates) usable.add(name)
             }
-            // Flash models are fast and covered by the free tier; keep the API's own order inside
-            // each group (newest first) with a stable sort.
-            usable.sortedBy { if (it.contains("flash")) 0 else 1 }
+            // The API lists models alphabetically, so "gemini-2.5-flash" comes before every 3.x
+            // name even though 2.5 is retired and 404s. Rank by version number instead: newest
+            // flash first, previews and lite variants after the stable ones.
+            usable.sortedWith(
+                compareByDescending<String> { if (it.contains("flash")) 1 else 0 }
+                    .thenByDescending { versionOf(it) }
+                    .thenByDescending { if (it.contains("preview")) 0 else 1 }
+                    .thenByDescending { if (it.contains("lite")) 0 else 1 }
+            )
         } catch (_: Exception) {
             emptyList()
         } finally {
             conn.disconnect()
         }
+    }
+
+    /** "gemini-3.8-flash" -> 3.8, "gemini-flash-latest" -> 0.0. */
+    private fun versionOf(name: String): Double {
+        val match = Regex("gemini-(\\d+(?:\\.\\d+)?)").find(name) ?: return 0.0
+        return match.groupValues[1].toDoubleOrNull() ?: 0.0
     }
 
     private suspend fun askGemini(key: String, prompt: String, context: List<String>): String? =
@@ -237,7 +249,7 @@ object ApexService {
             }
             val models = discovered.ifEmpty { FALLBACK_MODELS }
 
-            for (model in models) {
+            for (model in models.take(4)) {
                 // Older AIza keys and the newer AQ. keys both accept the header; the query form is
                 // the second chance if a key is rejected that way.
                 for (viaHeader in listOf(true, false)) {
