@@ -6,7 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 APP = ROOT / "app_pojavlauncher/src/main"
 BACKEND = APP / "java/net/kdt/pojavlaunch/aerix/social/SocialBackend.kt"
 BADGE = APP / "java/net/kdt/pojavlaunch/aerix/social/ApexBadge.kt"
-SCREEN = APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/PublicChatScreen.kt"
+SCREEN = APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/ChatsScreen.kt"
 MANIFEST = APP / "AndroidManifest.xml"
 
 backend = BACKEND.read_text()
@@ -31,7 +31,10 @@ assert "sendPublicChatVoice(bytes)" in screen
 # Playback of the clip.
 assert "MediaPlayer" in screen and "prepareAsync()" in screen
 # Badges next to names.
-assert "ApexBadges.forName(" in screen and "badge.chip" in screen
+assert "ApexBadges.forName(" in screen
+# Tailed bubbles: the message shape is a custom outline with a corner tail.
+assert "TailBubbleShape" in screen and "quadraticBezierTo" in screen
+assert "onRight = mine" in screen
 
 assert "android.permission.RECORD_AUDIO" in MANIFEST.read_text()
 

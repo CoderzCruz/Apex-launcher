@@ -99,8 +99,8 @@ enum class LauncherSection {
     WALLPAPERS,
     LOGS,
     SETTINGS,
-    /** The shared room every Apex Launcher player can read and post in. */
-    PUBLIC_CHAT,
+    /** Direct messages, group rooms and the shared public room. */
+    CHATS,
     /** The Diwali Special announcement, its own destination in the rail. */
     DIWALI,
     /** The team page, between Settings and the account entry. */
@@ -205,8 +205,8 @@ fun AerixNavigationRail(
                 // sidebar, so it is not listed next to the launcher's own sections.
                 RailIconItem(R.drawable.aerix_ic_public, stringResource(R.string.aerix_nav_discover),
                     discoverSelected(selectedSection), activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.DISCOVER) }
-                RailIconItem(R.drawable.aerix_ic_chat, "Public Chat",
-                    selectedSection == LauncherSection.PUBLIC_CHAT, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.PUBLIC_CHAT) }
+                RailIconItem(R.drawable.aerix_ic_chats, "Chats",
+                    selectedSection == LauncherSection.CHATS, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.CHATS) }
                 RailIconItem(R.drawable.aerix_ic_diwali, "Diwali Special",
                     selectedSection == LauncherSection.DIWALI, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.DIWALI) }
                 RailIconItem(R.drawable.aerix_ic_rocket_launch_filled, "Our other new releases",

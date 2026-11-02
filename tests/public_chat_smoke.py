@@ -5,7 +5,7 @@ import pathlib
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 APP = ROOT / "app_pojavlauncher/src/main"
 BACKEND = APP / "java/net/kdt/pojavlaunch/aerix/social/SocialBackend.kt"
-SCREEN = APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/PublicChatScreen.kt"
+SCREEN = APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/ChatsScreen.kt"
 RAIL = APP / "java/net/kdt/pojavlaunch/aerix/ui/AerixNavigationRail.kt"
 HOST = APP / "java/net/kdt/pojavlaunch/aerix/ui/AerixLauncherScreen.kt"
 
@@ -23,15 +23,18 @@ assert "createParty(" in join and "PUBLIC_CHAT_TITLE" in join
 assert "mcUsername" in backend.split("fun publicChatAuthorName(", 1)[1][:400]
 
 screen = SCREEN.read_text()
-assert "fun PublicChatScreen(" in screen
+assert "fun ChatsScreen(" in screen
+# One screen, three conversations, exactly like a chat client.
+assert "ChatTarget.Dm" in screen and "ChatTarget.Group" in screen and "ChatTarget.Public" in screen
 assert "SocialBackend.openPublicChat()" in screen
-assert "SocialBackend.sendPublicChatMessage(" in screen
-assert "publicChatAuthorName(" in screen
+assert "SocialBackend.loadMessages(" in screen, "DMs must load their own thread"
+assert "SocialBackend.loadPartyMessages(" in screen, "groups must load their own thread"
+assert "SocialBackend.sendMessage(" in screen and "SocialBackend.sendPartyMessage(" in screen
 assert "signedIn" in screen, "the screen must ask for a sign-in instead of failing"
 
 rail = RAIL.read_text()
-assert "PUBLIC_CHAT" in rail and "Public Chat" in rail
+assert "CHATS" in rail and "aerix_ic_chats" in rail
 host = HOST.read_text()
-assert "LauncherSection.PUBLIC_CHAT ->" in host
+assert "LauncherSection.CHATS ->" in host
 
 print("Public chat wiring passed")
