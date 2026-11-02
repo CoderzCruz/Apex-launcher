@@ -173,7 +173,11 @@ object AerixDiscordPresence {
     /** The last activity error Discord reported, for the settings status card. */
     fun lastError(): String = lastRpcError
 
-    /** True when the signed-in Discord account is not this build's owner. */
+    /** True when the connected Discord account is this build's owner, i.e. may edit the branding. */
+    fun isOwnerAccount(): Boolean =
+        reportedUserId.isNotBlank() && reportedUserId == ownerId()
+
+    /** True when the connected Discord account is somebody else's. */
     fun isForeignAccount(): Boolean = foreignAccount
 
     /** The owner id the card is locked to: the setting, else the built-in owner. */
@@ -191,7 +195,8 @@ object AerixDiscordPresence {
         val owner = ownerId()
         foreignAccount = owner.isNotBlank() && id != owner
         if (foreignAccount) {
-            Log.i(TAG, "Signed-in Discord account does not own this card; staying silent")
+            // The card still publishes; only the branding fields stay locked for this account.
+            Log.i(TAG, "Signed-in Discord account is not the owner; branding stays locked")
         }
     }
 
@@ -262,7 +267,6 @@ object AerixDiscordPresence {
         val appId = DiscordAppId.effective()
         if (appId.isBlank()) return "No application id"
         return when {
-            foreignAccount -> "Hidden: this Discord account is not the owner"
             !bound -> bindingNote.ifBlank { "Discord app not reachable" }
             !ready -> "Connecting to Discord…"
             connectedAppId > 0L -> "Connected · app $connectedAppId"
@@ -401,12 +405,6 @@ object AerixDiscordPresence {
                 readAccountFromFrame(frame)
                 main.post {
                     ready = true
-                    if (foreignAccount) {
-                        // Someone else's Discord account: publish nothing at all, and make sure a
-                        // card left over from an earlier account does not stay on the profile.
-                        sendClearFrameImmediate()
-                        return@post
-                    }
                     if (staleAppIdToClearFirst > 0L && connectedAppId == staleAppIdToClearFirst && !clearOnlyMode) {
                         // Flush clear on the previous app ID before connecting the new app ID!
                         sendClearFrameImmediate()
@@ -1152,7 +1150,6 @@ object AerixDiscordPresence {
     }
 
     private fun sendActivity() {
-        if (foreignAccount) return
         if (clearOnlyMode || !ready || connection == null) return
         if (appContext?.let { readDiskState(it)?.owner } == "none") return
         val usingMinecraftProfile = isMinecraftCatalogId(connectedAppId)
@@ -1398,6 +1395,7 @@ object AerixDiscordPresence {
             "ACCOUNTS", "ADD_ACCOUNT", "OFFLINE_ACCOUNT" -> ACCOUNTS
             "FILES" -> FILES
             "SOCIALS" -> SOCIALS
+            "DIWALI" -> "Reading the Diwali surprise"
             "ABOUT", "OTHER_RELEASES" -> ABOUT
             else -> GENERIC
         }

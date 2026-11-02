@@ -80,8 +80,10 @@ object AerixPreferences {
     const val KEY_DISCORD_CLICKABLE_LINKS = "aerixDiscordClickableLinks"
     /** Rich Presence art asset name uploaded to the Discord application. */
     const val KEY_DISCORD_ASSET_NAME = "aerixDiscordAssetName"
-    /** Discord account that is allowed to publish the card; empty means "this build's owner". */
+    /** Discord account that owns the branding; empty means "this build's owner". */
     const val KEY_DISCORD_OWNER_ID = "aerixDiscordOwnerId"
+    /** Set once the owner proves it by typing their Discord id, so the fields stay editable. */
+    const val KEY_DISCORD_BRANDING_UNLOCKED = "aerixDiscordBrandingUnlocked"
     const val KEY_DISCORD_INVITE_URL = "aerixDiscordInviteUrl"
     const val KEY_DISCORD_WEBSITE_URL = "aerixDiscordWebsiteUrl"
 
@@ -176,6 +178,7 @@ object AerixPreferences {
     var discordAppId by mutableStateOf("")
     var discordAssetName by mutableStateOf("")
     var discordOwnerId by mutableStateOf("")
+    var discordBrandingUnlocked by mutableStateOf(false)
     var discordInviteUrl by mutableStateOf("")
     var discordWebsiteUrl by mutableStateOf("")
         private set
@@ -225,6 +228,7 @@ object AerixPreferences {
         discordClickableLinks = p.getBoolean(KEY_DISCORD_CLICKABLE_LINKS, true)
         discordAssetName = p.getString(KEY_DISCORD_ASSET_NAME, "") ?: ""
         discordOwnerId = p.getString(KEY_DISCORD_OWNER_ID, "") ?: ""
+        discordBrandingUnlocked = p.getBoolean(KEY_DISCORD_BRANDING_UNLOCKED, false)
         discordInviteUrl = p.getString(KEY_DISCORD_INVITE_URL, "") ?: ""
         discordWebsiteUrl = p.getString(KEY_DISCORD_WEBSITE_URL, "") ?: ""
     }
@@ -247,6 +251,11 @@ object AerixPreferences {
     fun saveDiscordWebsiteUrl(value: String) {
         discordWebsiteUrl = value.trim().take(200)
         edit { putString(KEY_DISCORD_WEBSITE_URL, discordWebsiteUrl) }
+    }
+
+    fun saveDiscordBrandingUnlocked(value: Boolean) {
+        discordBrandingUnlocked = value
+        edit { putBoolean(KEY_DISCORD_BRANDING_UNLOCKED, value) }
     }
 
     fun saveDiscordOwnerId(value: String) {

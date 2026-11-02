@@ -21,12 +21,14 @@ assert 'const val OWNER_DISCORD_ID = "1385646460774907914"' in discord
 assert "fun readAccountFromFrame(" in discord
 assert 'optJSONObject("user")' in discord
 assert "foreignAccount" in discord
-# A foreign account must never publish, and status must say so.
-send = discord.split("private fun sendActivity()", 1)[1]
-assert "if (foreignAccount) return" in send.split("val usingMinecraftProfile", 1)[0]
-assert "not the owner" in discord
-assert "KEY_DISCORD_OWNER_ID" in prefs and "discordOwnerId" in prefs
-assert "Owner Discord account" in CARD.read_text()
+# The card publishes for every account; only the branding fields are owner-locked.
+send = discord.split("private fun sendActivity()", 1)[1].split("val usingMinecraftProfile", 1)[0]
+assert "if (foreignAccount) return" not in send, "the card must not be suppressed"
+card = CARD.read_text()
+assert "brandingUnlocked" in card and "Branding locked" in card
+assert "Owner unlock" in card and "OWNER_DISCORD_ID" in card
+assert "KEY_DISCORD_BRANDING_UNLOCKED" in prefs
+assert "discordBrandingUnlocked" in prefs
 
 # ── Diwali page ─────────────────────────────────────────────────────────────
 diwali = DIWALI.read_text()
@@ -35,9 +37,14 @@ for phrase in ("A NEW BEGINNING IS COMING", "APEX LAUNCHER 2.0 IS COMING SOON",
     assert phrase in diwali, phrase
 assert "fun DiwaliSpecialScreen(" in diwali
 
+# Diwali has its own rail destination and is gone from the Apex Client screen.
+rail = (APP / "java/net/kdt/pojavlaunch/aerix/ui/AerixNavigationRail.kt").read_text()
+assert "DIWALI" in rail and "aerix_ic_diwali" in rail
+screen = (APP / "java/net/kdt/pojavlaunch/aerix/ui/AerixLauncherScreen.kt").read_text()
+assert "LauncherSection.DIWALI ->" in screen
 client = CLIENT.read_text()
-assert "showDiwali" in client and "DiwaliSpecialScreen(onClose" in client
-assert 'text = ApexDiwali.TITLE' in client
+assert "showDiwali" not in client and "DiwaliSpecialScreen" not in client, "Diwali must leave Apex Client"
+assert 'text = ApexDiwali.TITLE' not in client
 
 # ── CEO entry ───────────────────────────────────────────────────────────────
 contrib = CONTRIB.read_text()

@@ -193,8 +193,9 @@ fun DiscordPresenceSettingsCard() {
                     )
                     // What the card says right now, so a card that did not follow the game is visible.
                     Text(
-                        text = "account: " + if (AerixDiscordPresence.isForeignAccount())
-                            "not the owner, card hidden" else "owner, card visible",
+                        text = "branding: " + if (AerixPreferences.discordBrandingUnlocked ||
+                            AerixDiscordPresence.isOwnerAccount()
+                        ) "editable by you" else "locked to the owner",
                         color = AerixSurface.textMuted,
                         fontSize = 10.sp
                     )
@@ -272,61 +273,110 @@ fun DiscordPresenceSettingsCard() {
             )
         }
 
-        MiraiTextInputSettingsCard(
-            value = AerixPreferences.discordAssetName,
-            title = "Card image",
-            summary = "The image shown on your Discord card. Keep it as \u201Capex_logo\u201D \u2014 the " +
-                "name of the art asset uploaded under Discord Developer Portal \u2192 Rich Presence " +
-                "\u2192 Art Assets. Blank also means apex_logo. If an uploaded asset never appears, " +
-                "paste a direct https:// image link here instead and it is used as-is.",
-            label = "apex_logo",
-            position = CardPosition.Middle,
-            onValueChange = { value ->
-                AerixPreferences.saveDiscordAssetName(value)
-                AerixDiscordPresence.syncSettingsChanged(appContext)
-            }
-        )
+        // ── branding: editable by the owner only ────────────────────────────
+        val brandingUnlocked = AerixPreferences.discordBrandingUnlocked ||
+            AerixDiscordPresence.isOwnerAccount()
+        if (brandingUnlocked) {
+            MiraiTextInputSettingsCard(
+                value = AerixPreferences.discordAssetName,
+                title = "Card image",
+                summary = "The image shown on the Discord card. Keep it as \u201Capex_logo\u201D \u2014 the " +
+                    "name of the art asset uploaded under Discord Developer Portal \u2192 Rich Presence " +
+                    "\u2192 Art Assets. Blank also means apex_logo. If an uploaded asset never appears, " +
+                    "paste a direct https:// image link here instead and it is used as-is.",
+                label = "apex_logo",
+                position = CardPosition.Middle,
+                onValueChange = { value ->
+                    AerixPreferences.saveDiscordAssetName(value)
+                    AerixDiscordPresence.syncSettingsChanged(appContext)
+                }
+            )
 
-        MiraiTextInputSettingsCard(
-            value = AerixPreferences.discordOwnerId,
-            title = "Owner Discord account",
-            summary = "The card is published only for this Discord account. Any other account that " +
-                "signs in on this device stays hidden. Leave blank to use the built-in owner " +
-                "account; paste a Discord user ID to hand the card to someone else.",
-            label = "Built in owner: " + AerixDiscordPresence.OWNER_DISCORD_ID,
-            position = CardPosition.Middle,
-            onValueChange = { id ->
-                AerixPreferences.saveDiscordOwnerId(id)
-                AerixDiscordPresence.refresh(appContext)
-            }
-        )
+            MiraiTextInputSettingsCard(
+                value = AerixPreferences.discordInviteUrl,
+                title = "Discord invite link",
+                summary = "Paste the server invite (discord.gg/\u2026). It becomes the \u201CJoin Apex " +
+                    "Discord\u201D button and the clickable status line. Blank falls back to the " +
+                    "built-in invite.",
+                label = "discord.gg/\u2026",
+                position = CardPosition.Middle,
+                onValueChange = { url ->
+                    AerixPreferences.saveDiscordInviteUrl(url)
+                    AerixDiscordPresence.syncSettingsChanged(appContext)
+                }
+            )
 
-        MiraiTextInputSettingsCard(
-            value = AerixPreferences.discordInviteUrl,
-            title = "Discord invite link",
-            summary = "Paste your server invite (discord.gg/\u2026). This turns the card into a " +
-                "\u201CJoin Apex Discord\u201D button that friends can tap, and makes the status line " +
-                "clickable. Leave blank for none.",
-            label = "discord.gg/\u2026",
-            position = CardPosition.Middle,
-            onValueChange = { url ->
-                AerixPreferences.saveDiscordInviteUrl(url)
-                AerixDiscordPresence.syncSettingsChanged(appContext)
+            MiraiTextInputSettingsCard(
+                value = AerixPreferences.discordWebsiteUrl,
+                title = "Website link",
+                summary = "Shown as the \u201CAbout Apex\u201D button and makes the first card line " +
+                    "clickable. Blank falls back to the built-in link.",
+                label = "https://\u2026",
+                position = CardPosition.Middle,
+                onValueChange = { url ->
+                    AerixPreferences.saveDiscordWebsiteUrl(url)
+                    AerixDiscordPresence.syncSettingsChanged(appContext)
+                }
+            )
+        } else {
+            // Read-only summary: anyone else can see what the card carries, but not change it.
+            MiraiSettingsCard(
+                position = CardPosition.Middle,
+                innerPadding = PaddingValues(16.dp)
+            ) {
+                Text(
+                    text = "\uD83D\uDD12  Branding locked",
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = "Card image: " + AerixDiscordPresence.logoImageValue(),
+                    color = AerixSurface.textSecondary,
+                    fontSize = 11.sp
+                )
+                Text(
+                    text = "Invite: " + AerixDiscordPresence.inviteUrl(),
+                    color = AerixSurface.textSecondary,
+                    fontSize = 11.sp
+                )
+                Text(
+                    text = "Website: " + AerixDiscordPresence.websiteUrl(),
+                    color = AerixSurface.textSecondary,
+                    fontSize = 11.sp
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = "Only the Apex owner can change these. The card itself still shows up " +
+                        "on your profile.",
+                    color = AerixSurface.textMuted,
+                    fontSize = 10.sp
+                )
             }
-        )
+        }
 
-        MiraiTextInputSettingsCard(
-            value = AerixPreferences.discordWebsiteUrl,
-            title = "Website link (optional)",
-            summary = "Shown as an \u201CAbout Apex\u201D button and makes the first card line " +
-                "clickable. Any http(s) page works.",
-            label = "https://\u2026",
-            position = CardPosition.Middle,
-            onValueChange = { url ->
-                AerixPreferences.saveDiscordWebsiteUrl(url)
-                AerixDiscordPresence.syncSettingsChanged(appContext)
-            }
-        )
+        if (!brandingUnlocked) {
+            MiraiTextInputSettingsCard(
+                value = "",
+                title = "Owner unlock",
+                summary = "Owner of Apex Launcher: enter your Discord user ID once to edit the card " +
+                    "image, invite and website. Everyone else can keep using the card as it is.",
+                label = "Discord user ID",
+                position = CardPosition.Middle,
+                onValueChange = { typed ->
+                    val id = typed.trim().filter { it.isDigit() }
+                    if (id.length in 17..20) {
+                        if (id == AerixDiscordPresence.OWNER_DISCORD_ID) {
+                            AerixPreferences.saveDiscordBrandingUnlocked(true)
+                            Toast.makeText(activityContext, "Branding unlocked", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(activityContext, "That is not the owner account", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            )
+        }
 
         MiraiTextInputSettingsCard(
             value = appId,
