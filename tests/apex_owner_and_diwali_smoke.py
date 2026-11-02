@@ -40,6 +40,18 @@ for phrase in ("A NEW BEGINNING IS COMING", "APEX LAUNCHER 2.0 IS COMING SOON",
     assert phrase in diwali, phrase
 assert "fun DiwaliSpecialScreen(" in diwali
 
+# The page is alive: a real countdown to the launch, not a static date string.
+assert "fun millisUntilRelease(" in diwali
+assert "mutableLongStateOf" in diwali and "delay(1_000L)" in diwali
+assert "CountdownCell(" in diwali
+assert "JourneyCard(" in diwali and "FeatureGrid(" in diwali
+# Drawn celebration instead of plain background.
+assert "BoxScope.DiwaliNightSky(" in diwali and "drawCircle(" in diwali
+# Real actions: a calendar reminder and a share sheet.
+assert "CalendarContract.EXTRA_EVENT_BEGIN_TIME" in diwali
+assert "Intent.ACTION_SEND" in diwali and "fun shareText()" in diwali
+assert "fun addToCalendar(" in diwali and "fun shareAnnouncement(" in diwali
+
 # Diwali has its own rail destination and is gone from the Apex Client screen.
 rail = (APP / "java/net/kdt/pojavlaunch/aerix/ui/AerixNavigationRail.kt").read_text()
 assert "DIWALI" in rail and "aerix_ic_diwali" in rail
