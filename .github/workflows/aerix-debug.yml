@@ -187,22 +187,25 @@ jobs:
           echo "::notice title=apk-verified::$BADGING"
 
       - name: Check the Apex Service key made it into the APK
+        id: apexkey
         shell: bash
         # Never prints the key: only whether the build carries one. With no secret configured the
         # assistant still runs on its knowledge base, so this must not fail the build.
         run: |
-          python3 - <<'PY'
-          import os, sys, zipfile
+          STATUS="$(python3 - <<'PY'
+          import os, zipfile
           key = os.environ.get("APEX_SERVICE_AI_KEY", "").strip()
           if not key:
-              print("::notice title=apex-service::no key configured, knowledge base answers only")
-              sys.exit(0)
-          with zipfile.ZipFile(os.environ["APK_PATH"]) as apk:
-              res = apk.read("resources.arsc")
-          baked = key.encode() in res or key.encode("utf-16-le") in res
-          print("::notice title=apex-service::" + ("key EMBEDDED" if baked else "key MISSING"))
-          sys.exit(0 if baked else 1)
+              print("NOT-CONFIGURED")
+              raise SystemExit
+          res = zipfile.ZipFile(os.environ["APK_PATH"]).read("resources.arsc")
+          print("EMBEDDED" if (key.encode() in res or key.encode("utf-16-le") in res) else "MISSING")
           PY
+          )"
+          STATUS="$(printf '%s' "$STATUS" | tr -d '[:space:]')"
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          echo "::notice title=apex-service::key $STATUS"
+          test "$STATUS" != "MISSING"
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -215,6 +218,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION_CODE: ${{ steps.verify.outputs.version_code }}
+          AI_STATUS: ${{ steps.apexkey.outputs.status }}
         shell: bash
         run: |
           set -euo pipefail
@@ -238,6 +242,7 @@ jobs:
             echo "built: $BUILT_AT"
             echo "sha256: $SHA256"
             echo "package: net.kdt.pojavlaunch.debug"
+            echo "apex-service: $AI_STATUS"
             echo "note: side-by-side testing build; public stable releases live under v* tags"
           } > "$STAGE/DEBUG_BUILD.txt"
           {
@@ -250,6 +255,7 @@ jobs:
             echo "- **versionCode:** \`$VERSION_CODE\`"
             echo "- **Built:** \`$BUILT_AT\`"
             echo "- **SHA-256:** \`$SHA256\`"
+            echo "- **Apex Service brain:** \`$AI_STATUS\`"
           } > "$STAGE/RELEASE_NOTES.md"
 
           # Anchor the tag ref to the root 2020 keystore commit so GitHub's /releases list
