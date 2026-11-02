@@ -236,8 +236,11 @@ jobs:
                       return 0, {}
 
               status, listing = call(f"{base}/models?pageSize=200")
+              junk = ("tts", "image", "audio", "embedding", "aqa", "live", "native",
+                      "video", "veo", "imagen", "learnlm", "robotics", "computer")
               models = [m.get("name", "").split("/")[-1] for m in listing.get("models", [])
-                        if "generateContent" in m.get("supportedGenerationMethods", [])]
+                        if "generateContent" in m.get("supportedGenerationMethods", [])
+                        and not any(j in m.get("name", "") for j in junk)]
               # Same ranking the app uses: newest version first, flash before others, stable
               # before preview and lite.
               def rank(name):
@@ -253,7 +256,7 @@ jobs:
               # Ask the top few names the app would try, so the release notes show which ones
               # actually answer on this key.
               tried = []
-              for pick in ranked[:4]:
+              for pick in ranked[:6]:
                   code, body = call(f"{base}/models/{pick}:generateContent", {
                       "contents": [{"parts": [{"text": "Reply with OK only."}]}],
                       "generationConfig": {"thinkingConfig": {"thinkingLevel": "low"},
@@ -264,7 +267,15 @@ jobs:
                       text = body["candidates"][0]["content"]["parts"][0]["text"].strip()
                   except Exception:
                       text = ""
-                  tried.append(f"{pick}:{code}" + (":OK" if text else ""))
+                  if text:
+                      tried.append(f"{pick}:{code}:OK")
+                  else:
+                      err = ""
+                      try:
+                          err = str(body["error"]["message"])[:90].replace(" ", "_")
+                      except Exception:
+                          err = ""
+                      tried.append(f"{pick}:{code}" + (f":{err}" if err else ""))
               if tried:
                   summary += " " + ",".join(tried)
 

@@ -72,6 +72,11 @@ object ApexService {
         "gemini-2.5-flash"
     )
 
+    private val NON_CHAT_MARKERS = listOf(
+        "tts", "image", "audio", "embedding", "aqa", "live", "native",
+        "video", "veo", "imagen", "learnlm", "robotics", "computer"
+    )
+
     /** Models this key can actually call, filled in on first use. */
     private var modelCache: List<String>? = null
 
@@ -194,7 +199,10 @@ object ApexService {
                 val methods = model.optJSONArray("supportedGenerationMethods") ?: continue
                 val generates = (0 until methods.length())
                     .any { methods.optString(it) == "generateContent" }
-                if (generates) usable.add(name)
+                // Image, speech, audio and embedding models also advertise generateContent, but
+                // they cannot hold a conversation.
+                val conversational = NON_CHAT_MARKERS.none { name.contains(it) }
+                if (generates && conversational) usable.add(name)
             }
             // The API lists models alphabetically, so "gemini-2.5-flash" comes before every 3.x
             // name even though 2.5 is retired and 404s. Rank by version number instead: newest
@@ -285,7 +293,7 @@ object ApexService {
             val discovered = modelCache ?: discoverModels(key).also {
                 if (it.isNotEmpty()) modelCache = it
             }
-            val models = (discovered.ifEmpty { FALLBACK_MODELS }).take(4)
+            val models = (discovered.ifEmpty { FALLBACK_MODELS }).take(6)
 
             // Two rounds: Google answers 503 when a model is briefly overloaded, and that clears up
             // in seconds, so one quick retry is worth more than dropping to the offline answers.
