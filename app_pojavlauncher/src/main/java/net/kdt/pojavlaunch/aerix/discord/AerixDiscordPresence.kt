@@ -71,6 +71,13 @@ object AerixDiscordPresence {
     private const val MAX_ASSET_URL_LEN = 256
     private const val WATCHDOG_INTERVAL_MS = 5_000L
 
+    /**
+     * The card belongs to this build's owner. Discord reports the signed-in account in the READY
+     * frame; if it is a different account the card is never published, so anyone installing this
+     * APK still sees nothing on their own profile.
+     */
+    const val OWNER_DISCORD_ID = "1385646460774907914"
+
     /** Official clickable destinations & artwork for Aerix Rich Presence cards. */
     const val AERIX_WEBSITE_URL = "https://entitybrian69-bit.github.io/Aerix-launcher/"
     const val AERIX_DISCORD_URL = "https://discord.gg/RS7q9KaCm6"
@@ -166,6 +173,28 @@ object AerixDiscordPresence {
     /** The last activity error Discord reported, for the settings status card. */
     fun lastError(): String = lastRpcError
 
+    /** True when the signed-in Discord account is not this build's owner. */
+    fun isForeignAccount(): Boolean = foreignAccount
+
+    /** The owner id the card is locked to: the setting, else the built-in owner. */
+    private fun ownerId(): String =
+        AerixPreferences.discordOwnerId.trim().ifBlank { OWNER_DISCORD_ID }
+
+    /** Pulls `data.user.id` out of a READY frame, so the card can stay with its owner. */
+    private fun readAccountFromFrame(frame: String) {
+        val id = runCatching {
+            val user = JSONObject(frame).optJSONObject("data")?.optJSONObject("user")
+            user?.optString("id", "")?.filter { it.isDigit() }
+        }.getOrNull().orEmpty()
+        if (id.isBlank()) return
+        reportedUserId = id
+        val owner = ownerId()
+        foreignAccount = owner.isNotBlank() && id != owner
+        if (foreignAccount) {
+            Log.i(TAG, "Signed-in Discord account does not own this card; staying silent")
+        }
+    }
+
     /** What the card currently says, e.g. "In the launcher · In settings". */
     fun publishedSummary(): String = publishedSummary
 
@@ -233,6 +262,7 @@ object AerixDiscordPresence {
         val appId = DiscordAppId.effective()
         if (appId.isBlank()) return "No application id"
         return when {
+            foreignAccount -> "Hidden: this Discord account is not the owner"
             !bound -> bindingNote.ifBlank { "Discord app not reachable" }
             !ready -> "Connecting to Discord…"
             connectedAppId > 0L -> "Connected · app $connectedAppId"
@@ -292,6 +322,12 @@ object AerixDiscordPresence {
 
     /** What the last published card said, for the settings status card. */
     @Volatile private var publishedSummary: String = ""
+
+    /** The Discord account reported by the client, empty until the READY frame arrives. */
+    @Volatile private var reportedUserId: String = ""
+
+    /** True when the signed-in Discord account is not the one this card belongs to. */
+    @Volatile private var foreignAccount: Boolean = false
 
     /**
      * `:game` owns the screen while a game runs, and the launcher process can be reclaimed while it
@@ -362,8 +398,15 @@ object AerixDiscordPresence {
         override fun onFrame(frame: String?) {
             if (frame == null) return
             if (frame.contains("\"READY\"")) {
+                readAccountFromFrame(frame)
                 main.post {
                     ready = true
+                    if (foreignAccount) {
+                        // Someone else's Discord account: publish nothing at all, and make sure a
+                        // card left over from an earlier account does not stay on the profile.
+                        sendClearFrameImmediate()
+                        return@post
+                    }
                     if (staleAppIdToClearFirst > 0L && connectedAppId == staleAppIdToClearFirst && !clearOnlyMode) {
                         // Flush clear on the previous app ID before connecting the new app ID!
                         sendClearFrameImmediate()
@@ -1109,6 +1152,7 @@ object AerixDiscordPresence {
     }
 
     private fun sendActivity() {
+        if (foreignAccount) return
         if (clearOnlyMode || !ready || connection == null) return
         if (appContext?.let { readDiskState(it)?.owner } == "none") return
         val usingMinecraftProfile = isMinecraftCatalogId(connectedAppId)

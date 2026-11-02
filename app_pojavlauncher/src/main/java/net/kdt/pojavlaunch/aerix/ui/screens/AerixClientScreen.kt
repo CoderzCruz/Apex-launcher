@@ -1,6 +1,7 @@
 package net.kdt.pojavlaunch.aerix.ui.screens
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
@@ -52,6 +54,9 @@ import net.kdt.pojavlaunch.instances.Instances
  * Transparent backdrop over the launcher's live wallpaper, showing ONLY `Aerix Client`
  * and Liquid Glass client version download / launch cards below it.
  */
+/** Diwali gold, shared with the announcement page the entry below opens. */
+private val festivalGold = Color(0xFFFFB020)
+
 @Composable
 fun AerixClientScreen(activity: FragmentActivity) {
     LaunchedEffect(Unit) {
@@ -59,6 +64,7 @@ fun AerixClientScreen(activity: FragmentActivity) {
     }
 
     var refreshTick by remember { mutableIntStateOf(0) }
+    var showDiwali by remember { mutableStateOf(false) }
     var preparingLaunchVer by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val accent = AerixSurface.accent
@@ -331,6 +337,69 @@ fun AerixClientScreen(activity: FragmentActivity) {
                     }
                 }
             }
+
+            Spacer(Modifier.height(AerixSpacing.md))
+
+            // Diwali Special: the Apex Launcher 2.0 announcement, opened from here.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            listOf(Color(0xFF6B0F1A), Color(0xFF2A0A10), AerixSurface.panelRaised)
+                        ),
+                        shape = RoundedCornerShape(AerixRadii.card)
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = festivalGold.copy(alpha = 0.55f),
+                        shape = RoundedCornerShape(AerixRadii.card)
+                    )
+                    .clickable { showDiwali = true }
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(festivalGold.copy(alpha = 0.18f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "\uD83E\uDE94", fontSize = 18.sp)
+                    }
+                    Column {
+                        Text(
+                            text = ApexDiwali.TITLE,
+                            color = festivalGold,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                        Text(
+                            text = "Apex Launcher 2.0 arrives 20 November 2026",
+                            color = Color.White.copy(alpha = 0.85f),
+                            fontSize = 11.sp
+                        )
+                    }
+                }
+                Text(
+                    text = "\u203A",
+                    color = festivalGold,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(Modifier.height(AerixSpacing.md))
         }
+    }
+
+    if (showDiwali) {
+        BackHandler { showDiwali = false }
+        DiwaliSpecialScreen(onClose = { showDiwali = false })
     }
 }

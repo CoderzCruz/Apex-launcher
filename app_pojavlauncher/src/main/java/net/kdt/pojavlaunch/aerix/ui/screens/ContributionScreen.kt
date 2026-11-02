@@ -99,6 +99,19 @@ object AerixContribution {
             )
         ),
         ContributionMember(
+            id = "yadavboy",
+            name = "YadavBoy",
+            role = "CEO",
+            title = "Apex Launcher",
+            roleColor = Color(0xFFFFB020),
+            logoRes = R.drawable.apex_contrib_yadavboy,
+            duties = listOf(
+                "Leads Apex Launcher and sets where the project goes next.",
+                "Decides what ships in each release and signs off on the look.",
+                "Keeps the community and the roadmap in step with the builds."
+            )
+        ),
+        ContributionMember(
             id = "entitybrian",
             name = "Entitybrian",
             role = "Original author",

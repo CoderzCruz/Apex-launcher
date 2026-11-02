@@ -80,6 +80,8 @@ object AerixPreferences {
     const val KEY_DISCORD_CLICKABLE_LINKS = "aerixDiscordClickableLinks"
     /** Rich Presence art asset name uploaded to the Discord application. */
     const val KEY_DISCORD_ASSET_NAME = "aerixDiscordAssetName"
+    /** Discord account that is allowed to publish the card; empty means "this build's owner". */
+    const val KEY_DISCORD_OWNER_ID = "aerixDiscordOwnerId"
     const val KEY_DISCORD_INVITE_URL = "aerixDiscordInviteUrl"
     const val KEY_DISCORD_WEBSITE_URL = "aerixDiscordWebsiteUrl"
 
@@ -173,6 +175,7 @@ object AerixPreferences {
     /** Aerix "aerixDiscordAppId": the Discord application the presence is shown under. */
     var discordAppId by mutableStateOf("")
     var discordAssetName by mutableStateOf("")
+    var discordOwnerId by mutableStateOf("")
     var discordInviteUrl by mutableStateOf("")
     var discordWebsiteUrl by mutableStateOf("")
         private set
@@ -221,6 +224,7 @@ object AerixPreferences {
         discordGameProfileMode = p.getBoolean(KEY_DISCORD_GAME_PROFILE_MODE, true)
         discordClickableLinks = p.getBoolean(KEY_DISCORD_CLICKABLE_LINKS, true)
         discordAssetName = p.getString(KEY_DISCORD_ASSET_NAME, "") ?: ""
+        discordOwnerId = p.getString(KEY_DISCORD_OWNER_ID, "") ?: ""
         discordInviteUrl = p.getString(KEY_DISCORD_INVITE_URL, "") ?: ""
         discordWebsiteUrl = p.getString(KEY_DISCORD_WEBSITE_URL, "") ?: ""
     }
@@ -243,6 +247,11 @@ object AerixPreferences {
     fun saveDiscordWebsiteUrl(value: String) {
         discordWebsiteUrl = value.trim().take(200)
         edit { putString(KEY_DISCORD_WEBSITE_URL, discordWebsiteUrl) }
+    }
+
+    fun saveDiscordOwnerId(value: String) {
+        discordOwnerId = value.trim().filter { it.isDigit() }.take(20)
+        edit { putString(KEY_DISCORD_OWNER_ID, discordOwnerId) }
     }
 
     fun saveDiscordAssetName(value: String) {

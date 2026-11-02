@@ -193,6 +193,12 @@ fun DiscordPresenceSettingsCard() {
                     )
                     // What the card says right now, so a card that did not follow the game is visible.
                     Text(
+                        text = "account: " + if (AerixDiscordPresence.isForeignAccount())
+                            "not the owner, card hidden" else "owner, card visible",
+                        color = AerixSurface.textMuted,
+                        fontSize = 10.sp
+                    )
+                    Text(
                         text = "live: " + AerixDiscordPresence.publishedSummary()
                             .ifBlank { "nothing published yet" },
                         color = AerixSurface.textMuted,
@@ -278,6 +284,20 @@ fun DiscordPresenceSettingsCard() {
             onValueChange = { value ->
                 AerixPreferences.saveDiscordAssetName(value)
                 AerixDiscordPresence.syncSettingsChanged(appContext)
+            }
+        )
+
+        MiraiTextInputSettingsCard(
+            value = AerixPreferences.discordOwnerId,
+            title = "Owner Discord account",
+            summary = "The card is published only for this Discord account. Any other account that " +
+                "signs in on this device stays hidden. Leave blank to use the built-in owner " +
+                "account; paste a Discord user ID to hand the card to someone else.",
+            label = "Built in owner: " + AerixDiscordPresence.OWNER_DISCORD_ID,
+            position = CardPosition.Middle,
+            onValueChange = { id ->
+                AerixPreferences.saveDiscordOwnerId(id)
+                AerixDiscordPresence.refresh(appContext)
             }
         )
 
