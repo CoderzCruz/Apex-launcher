@@ -335,9 +335,11 @@ object ApexService {
                             code >= 500 -> "AI server busy hai ($code)"
                             else -> "AI server error ($code)"
                         }
-                        // A retired model name 404s and the next name may work; a key problem fails
-                        // the same way everywhere, so stop early instead of burning the quota.
-                        if (code == 404) {
+                        // A retired name 404s, a busy one 503s and a throttled one 429s: all three
+                        // mean "ask a different model", and the other auth style cannot help. A key
+                        // problem fails the same way everywhere, so stop early instead of burning
+                        // the free quota on requests that cannot succeed.
+                        if (code == 404 || code == 429 || code >= 500) {
                             modelGone = true
                             break
                         }
