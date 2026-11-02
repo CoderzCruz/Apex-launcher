@@ -12,6 +12,10 @@ game = GAME.read_text()
 # The game publishes its own card instead of only hoping for a handoff.
 assert "AerixDiscordPresence.attach(this)" in game, "game must bind Discord itself"
 assert "AerixDiscordPresence.playing(" in game, "game must publish the in-game card"
+# Java can only reach these through static accessors.
+for member in ("fun attach(", "fun playing("):
+    idx = presence.index(member)
+    assert "@JvmStatic" in presence[max(0, idx - 60):idx], f"{member} needs @JvmStatic"
 
 # A watchdog reconciles the shared state file with what is on the card.
 assert "fun syncFromDisk(" in presence

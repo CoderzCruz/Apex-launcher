@@ -886,6 +886,7 @@ object AerixDiscordPresence {
     /* ── core RPC lifecycle ────────────────────────────────────────────────── */
 
     /** Bind once, when the launcher becomes visible. Safe to call repeatedly. */
+    @JvmStatic
     fun attach(context: Context?) {
         if (context == null) return
         appContext = context.applicationContext
@@ -1058,6 +1059,8 @@ object AerixDiscordPresence {
     }
 
     /** A game is starting or running: the instance takes over the card. */
+    @JvmStatic
+    @JvmOverloads
     fun playing(instance: String?, minecraftVersion: String?, modpackIconUrl: String? = null) {
         clearOnlyMode = false
         inGameMode = true
