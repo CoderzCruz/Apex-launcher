@@ -71,6 +71,19 @@ assert "ApexService.reply(" in chats and "ApexService.ask(" in chats
 assert 'items(botReplies, key = { "apex-service-" + it.first })' in chats
 assert "ApexService.NAME" in chats and "ApexBadge.SERVICE" in chats
 
+# The assistant's own page has its own look, not the player chat bubbles.
+assert "private val serviceViolet" in chats, "Apex Service must keep its violet identity"
+assert "private fun ServiceHero(" in chats and "private fun ServiceTurn(" in chats
+assert "private fun UserTurn(" in chats
+assert "private fun ServiceTyping(" in chats and "rememberInfiniteTransition" in chats
+assert "private fun ServiceComposer(" in chats and "BasicTextField(" in chats
+assert "SERVICE_PROMPTS" in chats, "quick prompts keep the first message easy"
+assert "private fun ServicePromptStrip(" in chats
+assert "ApexService.resetConversation()" in chats, "New chat must clear the thread"
+# Service answers are cards, players keep the tailed bubble.
+turn = chats.split("private fun ServiceTurn(", 1)[1].split("private fun ServiceTyping(", 1)[0]
+assert "TailBubbleShape" not in turn, "an answer must not look like a chat bubble"
+
 # Ship-with-build brain: the CI secret is baked in as a resource, never committed.
 gradle = (ROOT / "app_pojavlauncher/build.gradle").read_text()
 assert "def getServiceAiKey = {" in gradle
