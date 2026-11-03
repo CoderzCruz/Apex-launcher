@@ -271,9 +271,10 @@ private fun ChatListRow(
     name: String,
     subtitle: String,
     badge: ApexBadge?,
-    onClick: () -> Unit,
     avatarText: String? = null,
-    avatarBrush: Brush? = null
+    avatarBrush: Brush? = null,
+    // Kept last: every caller passes the row body as a trailing lambda.
+    onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
