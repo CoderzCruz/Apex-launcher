@@ -65,8 +65,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.Shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -331,8 +329,7 @@ private fun DiwaliHero(
                 color = headlineColor,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center,
-                style = TextStyle(shadow = Shadow(festivalAmber.copy(alpha = 0.55f), blurRadius = 12f))
+                textAlign = TextAlign.Center
             )
             Text(
                 text = ApexDiwali.SUBHEAD,
@@ -509,8 +506,7 @@ private fun CountdownCell(value: String, label: String, modifier: Modifier = Mod
             text = value,
             color = festivalGold,
             fontSize = 20.sp,
-            fontWeight = FontWeight.ExtraBold,
-            style = TextStyle(shadow = Shadow(festivalAmber.copy(alpha = 0.65f), blurRadius = 10f))
+            fontWeight = FontWeight.ExtraBold
         )
         Text(
             text = label,
@@ -702,7 +698,7 @@ private fun DiwaliDivider() {
         val gap = 30f * density
 
         drawLine(
-            brush = Brush.horizontalGradient(
+            brush = Brush.linearGradient(
                 listOf(Color.Transparent, festivalGold.copy(alpha = 0.75f)),
                 start = Offset(0f, cy),
                 end = Offset(cx - gap, cy)
@@ -712,7 +708,7 @@ private fun DiwaliDivider() {
             strokeWidth = 1.4f * density
         )
         drawLine(
-            brush = Brush.horizontalGradient(
+            brush = Brush.linearGradient(
                 listOf(festivalGold.copy(alpha = 0.75f), Color.Transparent),
                 start = Offset(cx + gap, cy),
                 end = Offset(size.width, cy)
