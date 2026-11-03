@@ -787,7 +787,7 @@ private fun ServiceThread(onBack: () -> Unit) {
             ) {
                 if (turns.isEmpty()) {
                     item(key = "welcome") {
-                        ServiceWelcomeCard(prompts = SERVICE_PROMPTS, onPick = ::send)
+                        ServiceWelcomeCard(prompts = SERVICE_PROMPTS, onPick = { prompt -> send(prompt) })
                     }
                 }
                 items(turns, key = { it.id }) { turn ->
@@ -806,7 +806,7 @@ private fun ServiceThread(onBack: () -> Unit) {
             ServicePromptStrip(
                 prompts = SERVICE_PROMPTS.take(4),
                 enabled = !thinking,
-                onPick = ::send
+                onPick = { prompt -> send(prompt) }
             )
             Spacer(Modifier.height(AerixSpacing.xs))
             ServiceComposer(
@@ -1139,7 +1139,7 @@ private fun ServiceComposer(
             textStyle = TextStyle(color = Color.White, fontSize = 13.sp),
             cursorBrush = androidx.compose.ui.graphics.SolidColor(serviceViolet),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-            keyboardActions = KeyboardActions(onSend = onSend),
+            keyboardActions = KeyboardActions(onSend = { onSend() }),
             decorationBox = { inner ->
                 if (value.isEmpty()) {
                     Text(
