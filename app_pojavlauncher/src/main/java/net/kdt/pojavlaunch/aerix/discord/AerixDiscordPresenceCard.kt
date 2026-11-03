@@ -282,7 +282,7 @@ fun DiscordPresenceSettingsCard() {
         // with). Editing those three, plus the two API keys further down in Settings, is reserved
         // for the owner account.
         var ownerTick by remember { mutableIntStateOf(0) }
-        val owner = remember(ownerTick, AerixOwner.revision) { ApexOwner.isOwner() }
+        val owner = remember(ownerTick, ApexOwner.revision) { ApexOwner.isOwner() }
 
         MiraiTextInputSettingsCard(
             value = AerixPreferences.discordAssetName,
