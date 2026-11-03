@@ -3980,6 +3980,41 @@ object SocialBackend {
         ensureToken()
         val body = JsonObject().apply { addProperty("p_username", username.trim()) }
         parseProfile(call("POST", "$PROJECT_URL/rest/v1/rpc/profile_card", body.toString()))
+            ?.let { withMedia(it) }
+    }
+
+    /**
+     * Fills in the media fields the profile RPCs leave out.
+     *
+     * `profile_card` returns whatever the database function was written to return, and deployments
+     * of it that predate the cosmetics work omit avatar_url/banner_url. That made a friend look
+     * like they never uploaded a logo, while their own profile (a direct table read) showed it.
+     * Reading the row directly and patching the gaps fixes it without a database change.
+     */
+    private suspend fun withMedia(profile: SocialProfile): SocialProfile {
+        if (profile.avatarUrl != null && profile.bannerUrl != null) return profile
+        // Deliberately not attempt{}: a miss here is cosmetic, and it must not overwrite the
+        // error message of a profile load that actually succeeded.
+        val row = withContext(Dispatchers.IO) {
+            runCatching {
+                val resp = callRaw(
+                    "GET",
+                    "$PROJECT_URL/rest/v1/profiles?select=avatar_url,banner_url,skin_url,cape_url" +
+                        "&id=eq.${profile.id}&limit=1"
+                )
+                if (resp.code !in 200..299) {
+                    null
+                } else {
+                    resp.json?.takeIf { it.isJsonArray }?.asJsonArray?.firstOrNull() as? JsonObject
+                }
+            }.getOrNull()
+        } ?: return profile
+        return profile.copy(
+            avatarUrl = profile.avatarUrl ?: row.stringOrNull("avatar_url"),
+            bannerUrl = profile.bannerUrl ?: row.stringOrNull("banner_url"),
+            skinUrl = profile.skinUrl ?: row.stringOrNull("skin_url"),
+            capeUrl = profile.capeUrl ?: row.stringOrNull("cape_url")
+        )
     }
 
     suspend fun findPlayer(username: String): SocialProfile? {
@@ -4012,7 +4047,7 @@ object SocialBackend {
             )
         }
         if (found == null && lastError == null) lastError = "No one is called @$clean"
-        return found
+        return found?.let { withMedia(it) }
     }
 
     fun inviteCode(): String? = myUserId()?.replace("-", "")?.take(8)?.uppercase()
@@ -4031,28 +4066,32 @@ object SocialBackend {
         return code
     }
 
-    suspend fun findByCode(code: String): SocialProfile? = attempt {
-        ensureToken()
-        val body = JsonObject().apply { addProperty("p_code", code.trim()) }
-        val json = call("POST", "$PROJECT_URL/rest/v1/rpc/find_by_code", body.toString())
-        val row = json as? JsonObject ?: return@attempt null
-        val id = row.stringOrNull("id") ?: return@attempt null
-        val rawName = row.stringOrNull("name") ?: row.stringOrNull("display_name")
-        val (cleanName, detectedRole) = SocialRole.extract(
-            rawName,
-            row.stringOrNull("role_badge"),
-            if (id == userId) email else null
-        )
-        SocialProfile(
-            id = id,
-            username = row.stringOrNull("username"),
-            name = cleanName,
-            mcUsername = row.stringOrNull("mc_username"),
-            avatarUrl = row.stringOrNull("avatar_url"),
-            country = row.stringOrNull("country"),
-            lastSeenMs = row.longOr("last_seen_ms", 0L),
-            role = detectedRole
-        )
+    suspend fun findByCode(code: String): SocialProfile? {
+        val found = attempt {
+            ensureToken()
+            val body = JsonObject().apply { addProperty("p_code", code.trim()) }
+            val json = call("POST", "$PROJECT_URL/rest/v1/rpc/find_by_code", body.toString())
+            val row = json as? JsonObject ?: return@attempt null
+            val id = row.stringOrNull("id") ?: return@attempt null
+            val rawName = row.stringOrNull("name") ?: row.stringOrNull("display_name")
+            val (cleanName, detectedRole) = SocialRole.extract(
+                rawName,
+                row.stringOrNull("role_badge"),
+                if (id == userId) email else null
+            )
+            SocialProfile(
+                id = id,
+                username = row.stringOrNull("username"),
+                name = cleanName,
+                mcUsername = row.stringOrNull("mc_username"),
+                avatarUrl = row.stringOrNull("avatar_url"),
+                country = row.stringOrNull("country"),
+                lastSeenMs = row.longOr("last_seen_ms", 0L),
+                role = detectedRole
+            )
+        }
+        // RPCs may leave the media columns out; the row itself always has them.
+        return found?.let { withMedia(it) }
     }
 
     suspend fun claimUsername(username: String): String? {

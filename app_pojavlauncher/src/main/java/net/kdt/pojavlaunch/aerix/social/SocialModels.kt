@@ -26,6 +26,13 @@ data class SocialFriend(
     val role: SocialRole? = null,
     val presenceMode: SocialPresenceMode = SocialPresenceMode.ONLINE
 ) {
+    /**
+     * Logo to draw for this friend: the avatar they uploaded, else their Minecraft head.
+     * A player who never uploaded anything used to show a generic person icon everywhere.
+     */
+    val displayAvatarUrl: String?
+        get() = avatarUrl?.takeIf { it.isNotBlank() } ?: minecraftHeadUrl(mcUsername)
+
     /** Online when a heartbeat arrived in the last two minutes and not appearing offline. */
     val online: Boolean
         get() = isOnlineAt(System.currentTimeMillis())

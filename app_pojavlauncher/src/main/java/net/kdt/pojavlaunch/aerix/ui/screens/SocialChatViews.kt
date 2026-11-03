@@ -437,7 +437,7 @@ fun SocialConversationPanel(
                 } else if (liveFriend != null) {
                     Box(contentAlignment = Alignment.BottomEnd) {
                         SocialRemoteImage(
-                            url = liveFriend.avatarUrl,
+                            url = liveFriend.displayAvatarUrl,
                             fallbackIcon = R.drawable.aerix_ic_person_outlined,
                             modifier = Modifier
                                 .size(if (compact) 32.dp else 38.dp)
@@ -736,7 +736,7 @@ fun SocialConversationPanel(
                                         color = accent
                                     )
                                     SocialRemoteImage(
-                                        url = liveFriend.avatarUrl,
+                                        url = liveFriend.displayAvatarUrl,
                                         fallbackIcon = R.drawable.aerix_ic_person_outlined,
                                         modifier = Modifier.size(13.dp),
                                         shape = CircleShape

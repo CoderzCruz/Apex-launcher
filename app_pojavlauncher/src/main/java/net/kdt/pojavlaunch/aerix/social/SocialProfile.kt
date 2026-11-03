@@ -252,6 +252,13 @@ data class SocialProfile(
     val role: SocialRole? = null,
     val presenceMode: SocialPresenceMode = SocialPresenceMode.ONLINE
 ) {
+    /**
+     * Logo to draw for this profile: the uploaded avatar, else the player's Minecraft head.
+     * See [SocialFriend.displayAvatarUrl] for why the fallback exists.
+     */
+    val displayAvatarUrl: String?
+        get() = avatarUrl?.takeIf { it.isNotBlank() } ?: minecraftHeadUrl(mcUsername)
+
     val online: Boolean
         get() = presenceMode != SocialPresenceMode.INVISIBLE &&
             lastSeenMs > 0 &&
@@ -344,4 +351,10 @@ object SocialCountries {
             .sortedBy { if (it.startsWith(q, ignoreCase = true)) 0 else 1 }
             .take(limit)
     }
+}
+
+/** The picture a player's logo falls back to: their Minecraft head, sized for a list row. */
+internal fun minecraftHeadUrl(name: String?): String? {
+    val clean = name?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+    return "https://mc-heads.net/avatar/" + clean + "/128"
 }

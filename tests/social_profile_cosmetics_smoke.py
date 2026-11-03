@@ -44,6 +44,36 @@ class SocialCosmeticsSmoke(unittest.TestCase):
         self.assertIn("PojavAccountBridge.resolveCapeBytes(account, includeOfficial = showOfficialCape)", view)
         self.assertIn("AerixClientCosmetics.resolveInGameCapeBytes(context)", view)
 
+    def test_profiles_carry_their_logo_to_other_players(self):
+        """A friend's profile must show the logo they uploaded, whatever the RPC returns."""
+        backend = (ROOT / "social/SocialBackend.kt").read_text()
+        # profile_card / find_player / find_by_code can omit the media columns.
+        card = backend.split("suspend fun loadProfileCard(", 1)[1].split("suspend fun findPlayer(", 1)[0]
+        self.assertIn("withMedia(it)", card)
+        find = backend.split("suspend fun findPlayer(", 1)[1].split("fun inviteCode(", 1)[0]
+        self.assertIn("withMedia(it)", find, "findPlayer must enrich too")
+        by_code = backend.split("suspend fun findByCode(", 1)[1]
+        self.assertIn("withMedia(it)", by_code.split("suspend fun claimUsername(", 1)[0])
+        media = backend.split("private suspend fun withMedia(", 1)[1].split("suspend fun findPlayer(", 1)[0]
+        for column in ("avatar_url", "banner_url", "skin_url", "cape_url"):
+            self.assertIn(column, media)
+        self.assertIn("profile.copy(", media)
+
+        # Every avatar falls back to the player's Minecraft head instead of a generic icon.
+        models = (ROOT / "social/SocialModels.kt").read_text()
+        self.assertIn("val displayAvatarUrl: String?", models)
+        profile = (ROOT / "social/SocialProfile.kt").read_text()
+        self.assertIn("val displayAvatarUrl: String?", profile)
+        self.assertIn("internal fun minecraftHeadUrl(", profile)
+        self.assertIn("mc-heads.net/avatar/", profile)
+
+        screen = (ROOT / "ui/screens/SocialProfileScreen.kt").read_text()
+        self.assertIn("url = profile?.displayAvatarUrl", screen)
+        self.assertIn("avatarUrl = friend.displayAvatarUrl", screen)
+        self.assertIn("avatarUrl = person.displayAvatarUrl", screen)
+        chat = (ROOT / "ui/screens/SocialChatViews.kt").read_text()
+        self.assertIn("url = liveFriend.displayAvatarUrl", chat)
+
 
 if __name__ == "__main__":
     unittest.main()

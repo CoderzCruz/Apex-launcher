@@ -326,7 +326,7 @@ private fun ProfileCard(
                     .size(72.dp)
             ) {
                 SocialRemoteImage(
-                    url = profile.avatarUrl,
+                    url = profile?.displayAvatarUrl,
                     fallbackIcon = R.drawable.aerix_ic_person_outlined,
                     modifier = Modifier.fillMaxSize(),
                     shape = CircleShape
@@ -825,7 +825,7 @@ private fun SocialPeoplePage(
                     username = friend.username ?: friend.mcUsername,
                     name = friend.effectiveName,
                     mcUsername = friend.mcUsername,
-                    avatarUrl = friend.avatarUrl,
+                    avatarUrl = friend.displayAvatarUrl,
                     lastSeenMs = friend.lastSeenMs,
                     role = friend.effectiveRole,
                     presenceMode = friend.presenceMode
@@ -861,7 +861,7 @@ private fun SocialPeoplePage(
         LazyColumn(verticalArrangement = Arrangement.spacedBy(AerixSpacing.xs)) {
             itemsIndexed(people) { _, person ->
                 SocialPersonRow(
-                    avatarUrl = person.avatarUrl,
+                    avatarUrl = person.displayAvatarUrl,
                     title = person.displayName,
                     subtitle = person.handle.ifBlank { person.mcUsername },
                     badge = if (person.online) person.presenceMode.label else null,
