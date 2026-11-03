@@ -2017,9 +2017,7 @@ private fun GamepadTabContent(activity: FragmentActivity) {
 
 @Composable
 private fun AboutInfoTabContent(activity: FragmentActivity) {
-    var showUpdateDialog by remember { mutableStateOf(false) }
-    if (showUpdateDialog) LauncherUpdateDialog(activity) { showUpdateDialog = false }
-
+    // The update dialog and every link are paused until 2.0 ships; see underConstruction().
     val accent = AerixThemeManager.currentAccent()
 
     LazyColumn(
@@ -2044,19 +2042,23 @@ private fun AboutInfoTabContent(activity: FragmentActivity) {
                     verticalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
                 ) {
                     AboutRowCard(
-                        iconRes = R.drawable.ic_aerix_mark,
+                        // The Apex mark, the same one the rail and the Discord card use; the old
+                        // Aerix file stayed behind from before the rebrand.
+                        iconRes = R.drawable.ic_apex_mark,
                         iconTint = Color.Unspecified,
                         title = "Apex Launcher",
                         subtitle = "Launcher Version: ${BuildConfig.VERSION_NAME}",
                         actions = {
-                            AboutPillButton("Check for Updates", accent) {
-                                showUpdateDialog = true
+                            // Everything here is paused while 2.0 is being finished: the buttons
+                            // still respond, but only to say so.
+                            AboutPillButton("Check for Updates", accent, enabled = false) {
+                                underConstruction(activity)
                             }
-                            AboutPillButton("Project Link", accent) {
-                                PojavNavigator.openUrl(activity, "https://github.com/entitybrian69-bit/Aerix-launcher")
+                            AboutPillButton("Project Link", accent, enabled = false) {
+                                underConstruction(activity)
                             }
-                            AboutPillButton("Discord", accent) {
-                                PojavNavigator.openDiscord(activity)
+                            AboutPillButton("Discord", accent, enabled = false) {
+                                underConstruction(activity)
                             }
                         }
                     )
@@ -2067,8 +2069,8 @@ private fun AboutInfoTabContent(activity: FragmentActivity) {
                         title = "entitybrian",
                         subtitle = "Owner and maintainer of Apex Launcher.",
                         actions = {
-                            AboutPillButton("GitHub profile", accent) {
-                                PojavNavigator.openUrl(activity, "https://github.com/entitybrian69-bit")
+                            AboutPillButton("GitHub profile", accent, enabled = false) {
+                                underConstruction(activity)
                             }
                         }
                     )
@@ -2076,7 +2078,70 @@ private fun AboutInfoTabContent(activity: FragmentActivity) {
             }
         }
 
+        // Owner card: the person this build belongs to, with the Discord mark on the left.
+        item {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(AerixRadii.card),
+                color = AerixSurface.panelRaised.copy(alpha = 0.36f),
+                border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = AerixSpacing.mdPlus, vertical = AerixSpacing.smPlus),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(AerixSpacing.md)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(Color(0x1F5865F2)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_discord),
+                            contentDescription = "Discord",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Cruz",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "Owner \u00B7 Apex Launcher",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = AerixSurface.textSecondary
+                        )
+                    }
+                    Image(
+                        painter = painterResource(R.drawable.apex_contrib_cruz),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clip(CircleShape)
+                    )
+                }
+            }
+        }
+
     }
+}
+
+/** Every paused About action answers with the same message instead of doing nothing. */
+private fun underConstruction(context: android.content.Context) {
+    Toast.makeText(
+        context,
+        "\uD83D\uDEA7 Under Construction \u2014 jald aa raha hai",
+        Toast.LENGTH_SHORT
+    ).show()
 }
 
 @Composable
@@ -2141,12 +2206,17 @@ private fun AboutRowCard(
 }
 
 @Composable
-private fun AboutPillButton(text: String, accent: Color, onClick: () -> Unit) {
+private fun AboutPillButton(
+    text: String,
+    accent: Color,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
     Button(
         onClick = onClick,
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(
-            containerColor = accent,
+            containerColor = if (enabled) accent else accent.copy(alpha = 0.35f),
             contentColor = AerixSurface.onAccent
         ),
         contentPadding = PaddingValues(horizontal = AerixSpacing.lg, vertical = AerixSpacing.smCompact)
