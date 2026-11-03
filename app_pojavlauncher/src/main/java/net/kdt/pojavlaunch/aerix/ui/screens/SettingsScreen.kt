@@ -114,6 +114,7 @@ import net.kdt.pojavlaunch.PojavApplication
 import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.Tools
 import net.kdt.pojavlaunch.aerix.bridge.AerixColorTheme
+import net.kdt.pojavlaunch.aerix.bridge.ApexOwner
 import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
 import net.kdt.pojavlaunch.aerix.bridge.AerixRendererPlugin
 import net.kdt.pojavlaunch.aerix.bridge.AerixTransitionType
@@ -1574,12 +1575,21 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     suffix = " d",
                     onValueChange = { AerixPreferences.saveLogRetentionDays(it) }
                 )
+                // Both API keys belong to the owner: everyone else sees the card, with the key
+                // itself hidden, and cannot type into it.
+                val ownerAccess = ApexOwner.isOwner()
                 MiraiTextSettingsCard(
                     position = CardPosition.Middle,
                     title = stringResource(R.string.aerix_settings_curseforge_key),
                     summary = stringResource(R.string.aerix_settings_curseforge_key_sub),
-                    value = AerixPreferences.curseForgeApiKey,
-                    onValueChange = { AerixPreferences.saveCurseForgeApiKey(it) }
+                    value = if (ownerAccess) {
+                        AerixPreferences.curseForgeApiKey
+                    } else {
+                        maskKey(AerixPreferences.curseForgeApiKey)
+                    },
+                    onValueChange = { AerixPreferences.saveCurseForgeApiKey(it) },
+                    editable = ownerAccess,
+                    lockedHint = if (ownerAccess) null else ApexOwner.LOCK_HINT
                 )
                 // Optional brain for Apex Service. Blank is fine: the assistant then answers
                 // from the built-in knowledge base instead of the Gemini API.
@@ -1587,8 +1597,14 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Middle,
                     title = stringResource(R.string.aerix_settings_ai_key),
                     summary = stringResource(R.string.aerix_settings_ai_key_sub),
-                    value = AerixPreferences.googleAiKey,
-                    onValueChange = { AerixPreferences.saveGoogleAiKey(it) }
+                    value = if (ownerAccess) {
+                        AerixPreferences.effectiveAiKey()
+                    } else {
+                        maskKey(AerixPreferences.effectiveAiKey())
+                    },
+                    onValueChange = { AerixPreferences.saveGoogleAiKey(it) },
+                    editable = ownerAccess,
+                    lockedHint = if (ownerAccess) null else ApexOwner.LOCK_HINT
                 )
                 MiraiSwitchSettingsCard(
                     position = CardPosition.Middle,
@@ -2293,7 +2309,9 @@ private fun MiraiTextSettingsCard(
     title: String,
     summary: String?,
     value: String,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit,
+    editable: Boolean = true,
+    lockedHint: String? = null
 ) {
     val shape = rememberSettingsCardShape(position)
     var text by remember(value) { mutableStateOf(value) }
@@ -2327,9 +2345,17 @@ private fun MiraiTextSettingsCard(
                     color = AerixSurface.textSecondary
                 )
             }
+            if (!editable && lockedHint != null) {
+                Text(
+                    text = lockedHint,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = AerixSurface.textMuted
+                )
+            }
             OutlinedTextField(
                 value = text,
-                onValueChange = { text = it },
+                enabled = editable,
+                onValueChange = { if (editable) text = it },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -2337,10 +2363,12 @@ private fun MiraiTextSettingsCard(
                     unfocusedBorderColor = AerixSurface.borderSoft,
                     focusedTextColor = AerixSurface.textPrimary,
                     unfocusedTextColor = AerixSurface.textPrimary,
-                    cursorColor = accent
+                    cursorColor = accent,
+                    disabledTextColor = AerixSurface.textSecondary,
+                    disabledBorderColor = AerixSurface.borderSoft
                 ),
                 trailingIcon = {
-                    if (text != value) {
+                    if (editable && text != value) {
                         Text(
                             text = "SAVE",
                             color = accent,
@@ -2356,6 +2384,14 @@ private fun MiraiTextSettingsCard(
             )
         }
     }
+}
+
+/** "AQ.Ab8R...urA" for a key the user may not read in full; blank stays blank. */
+private fun maskKey(key: String): String {
+    val clean = key.trim()
+    if (clean.isEmpty()) return ""
+    if (clean.length <= 10) return "\u2022".repeat(clean.length)
+    return clean.take(4) + "\u2022".repeat(8) + clean.takeLast(4)
 }
 
 @Composable

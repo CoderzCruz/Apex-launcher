@@ -1018,7 +1018,11 @@ fun MiraiTextInputSettingsCard(
     summary: String? = null,
     label: String = "Follow global if left blank",
     onValueChange: (String) -> Unit = {},
-    singleLine: Boolean = true
+    singleLine: Boolean = true,
+    // Locked fields stay visible (the value is part of the experience) but cannot be edited:
+    // used for the branding and API-key fields that belong to the launcher owner.
+    editable: Boolean = true,
+    lockedHint: String? = null
 ) {
     val accent = AerixThemeManager.currentAccent()
     MiraiSettingsCard(
@@ -1036,13 +1040,23 @@ fun MiraiTextInputSettingsCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             MiraiTitleAndSummary(title = title, summary = summary)
+            if (!editable && lockedHint != null) {
+                Text(
+                    text = lockedHint,
+                    color = AerixSurface.textMuted,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
+                enabled = editable,
                 value = value,
                 textStyle = MaterialTheme.typography.labelMedium.copy(color = Color.White),
                 onValueChange = { raw ->
-                    val cleaned = if (singleLine) raw.replace("\n", "").replace("\r", "") else raw
-                    onValueChange(cleaned)
+                    if (editable) {
+                        val cleaned = if (singleLine) raw.replace("\n", "").replace("\r", "") else raw
+                        onValueChange(cleaned)
+                    }
                 },
                 label = {
                     Text(
@@ -1058,7 +1072,10 @@ fun MiraiTextInputSettingsCard(
                     unfocusedTextColor = Color.White,
                     focusedBorderColor = accent,
                     unfocusedBorderColor = AerixSurface.borderSoft,
-                    cursorColor = accent
+                    cursorColor = accent,
+                    disabledTextColor = Color.White.copy(alpha = 0.75f),
+                    disabledBorderColor = AerixSurface.borderSoft,
+                    disabledLabelColor = Color.White.copy(alpha = 0.45f)
                 )
             )
         }

@@ -25,13 +25,35 @@ assert "foreignAccount" in discord
 send = discord.split("private fun sendActivity()", 1)[1].split("val usingMinecraftProfile", 1)[0]
 assert "if (foreignAccount) return" not in send, "the card must not be suppressed"
 card = CARD.read_text()
-assert "brandingUnlocked" in card and "Branding locked" in card
-assert "Owner unlock" in card and "OWNER_DISCORD_ID" in card
-assert "Lock branding to the owner" in card, "the owner needs a lock switch"
-assert "KEY_DISCORD_BRANDING_UNLOCKED" in prefs
-assert "discordBrandingUnlocked" in prefs
-# Branding starts unlocked, so the owner can edit the card straight away.
-assert 'getBoolean(KEY_DISCORD_BRANDING_UNLOCKED, true)' in prefs
+owner = (APP / "java/net/kdt/pojavlaunch/aerix/bridge/ApexOwner.kt").read_text()
+settings = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.kt").read_text()
+
+# The card itself is public: image, invite and website are always shown.
+for field in ("Card image", "Discord invite link", "Website link"):
+    assert field in card, field
+# ...but each of them, and both API keys, is owner-only.
+assert card.count("editable = owner") == 3, "all three branding fields must be owner-locked"
+assert card.count("ApexOwner.LOCK_HINT") >= 3
+assert "ApexOwner.verify(" in card and "ApexOwner.forget()" in card
+# No global unlock switch left that anybody could flip.
+assert "Lock branding to the owner" not in card
+
+# Owner identity: remembered verification wins even without Discord running.
+assert "fun isOwner(): Boolean" in owner
+assert "AerixPreferences.ownerVerified || AerixDiscordPresence.isOwnerAccount()" in owner
+assert "fun verify(candidate: String): Boolean" in owner
+assert "ownerVerified" in prefs and "KEY_OWNER_VERIFIED" in prefs
+
+# Storage refuses the five fields unless the owner is verified, so a patched UI cannot help.
+guarded = prefs.split("if (!ownerVerified) return")
+assert len(guarded) == 6, "invite, website, card image, both keys and the AI key setter"
+for setter in ("saveDiscordAssetName", "saveDiscordInviteUrl", "saveDiscordWebsiteUrl",
+               "saveCurseForgeApiKey", "saveGoogleAiKey"):
+    assert setter in prefs
+
+# The two keys are hidden behind dots for everyone else.
+assert "maskKey(" in settings and "editable = ownerAccess" in settings
+assert 'ApexOwner.LOCK_HINT' in settings
 
 # ── Diwali page ─────────────────────────────────────────────────────────────
 diwali = DIWALI.read_text()

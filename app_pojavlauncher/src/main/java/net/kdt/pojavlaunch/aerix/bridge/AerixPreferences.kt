@@ -67,6 +67,8 @@ object AerixPreferences {
     const val KEY_ASSET_PLATFORM = "assetPlatformSource"
     const val KEY_LOG_RETENTION_DAYS = "launcherLogRetentionDays"
     const val KEY_CURSEFORGE_API_KEY = "curseForgeApiKey"
+    /** True once the owner proved themselves on this device with their Discord user id. */
+    const val KEY_OWNER_VERIFIED = "apexOwnerVerified"
     /** Free Google AI Studio key that turns Apex Service into a real AI assistant. */
     const val KEY_GOOGLE_AI_KEY = "apexServiceAiKey"
     /** JSON array of favorite Discover projects (mirai download/assets/favorites). */
@@ -165,6 +167,13 @@ object AerixPreferences {
     var curseForgeApiKey by mutableStateOf("")
         private set
 
+    /**
+     * Owns this build: may edit the card image, invite, website and the two API keys. Set by
+     * [ApexOwner.verify]; everybody else sees those fields as read-only.
+     */
+    var ownerVerified by mutableStateOf(false)
+        private set
+
     /** Google AI key for Apex Service; blank means the built-in knowledge base answers. */
     var googleAiKey by mutableStateOf("")
         private set
@@ -192,6 +201,8 @@ object AerixPreferences {
     var discordAppId by mutableStateOf("")
     var discordAssetName by mutableStateOf("")
     var discordOwnerId by mutableStateOf("")
+    // Legacy global switch, kept so older builds read the same file. Branding access is now
+    // decided per field by ApexOwner.
     var discordBrandingUnlocked by mutableStateOf(false)
     var discordInviteUrl by mutableStateOf("")
     var discordWebsiteUrl by mutableStateOf("")
@@ -236,6 +247,7 @@ object AerixPreferences {
         }.getOrDefault(AssetPlatform.MODRINTH)
         curseForgeApiKey = p.getString(KEY_CURSEFORGE_API_KEY, "") ?: ""
         googleAiKey = p.getString(KEY_GOOGLE_AI_KEY, "") ?: ""
+        ownerVerified = p.getBoolean(KEY_OWNER_VERIFIED, false)
         logRetentionDays = p.getInt(KEY_LOG_RETENTION_DAYS, 7).coerceIn(1, 14)
         favoritesJson = p.getString(KEY_FAVORITES, "[]") ?: "[]"
         pinnedJson = p.getString(KEY_PINNED_INSTANCES, "[]") ?: "[]"
@@ -261,11 +273,13 @@ object AerixPreferences {
     }
 
     fun saveDiscordInviteUrl(value: String) {
+        if (!ownerVerified) return
         discordInviteUrl = value.trim().take(120)
         edit { putString(KEY_DISCORD_INVITE_URL, discordInviteUrl) }
     }
 
     fun saveDiscordWebsiteUrl(value: String) {
+        if (!ownerVerified) return
         discordWebsiteUrl = value.trim().take(200)
         edit { putString(KEY_DISCORD_WEBSITE_URL, discordWebsiteUrl) }
     }
@@ -281,6 +295,7 @@ object AerixPreferences {
     }
 
     fun saveDiscordAssetName(value: String) {
+        if (!ownerVerified) return
         discordAssetName = value.trim().take(256)
         edit { putString(KEY_DISCORD_ASSET_NAME, discordAssetName) }
     }
@@ -315,6 +330,7 @@ object AerixPreferences {
     }
 
     fun saveCurseForgeApiKey(value: String) {
+        if (!ownerVerified) return
         curseForgeApiKey = value.trim()
         edit { putString(KEY_CURSEFORGE_API_KEY, curseForgeApiKey) }
     }
@@ -322,7 +338,14 @@ object AerixPreferences {
     /** The key Apex Service should actually use: the player's own if set, else the built-in one. */
     fun effectiveAiKey(): String = googleAiKey.ifBlank { bakedAiKey }
 
+    fun saveOwnerVerified(value: Boolean) {
+        if (ownerVerified == value) return
+        ownerVerified = value
+        edit { putBoolean(KEY_OWNER_VERIFIED, value) }
+    }
+
     fun saveGoogleAiKey(value: String) {
+        if (!ownerVerified) return
         googleAiKey = value.trim()
         edit { putString(KEY_GOOGLE_AI_KEY, googleAiKey) }
     }

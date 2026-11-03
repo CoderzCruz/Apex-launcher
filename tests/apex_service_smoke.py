@@ -49,8 +49,10 @@ assert 'const val KEY_GOOGLE_AI_KEY = "apexServiceAiKey"' in prefs
 assert "var googleAiKey by mutableStateOf(" in prefs
 assert "fun saveGoogleAiKey(" in prefs
 settings = SETTINGS.read_text()
-assert "AerixPreferences.googleAiKey" in settings
+# The key field is owner-only now, so the card reads the effective (baked or saved) key.
+assert "AerixPreferences.effectiveAiKey()" in settings
 assert "AerixPreferences.saveGoogleAiKey(it)" in settings
+assert "maskKey(" in settings, "a non-owner must never see the full key"
 strings = STRINGS.read_text()
 assert "aerix_settings_ai_key" in strings and "aerix_settings_ai_key_sub" in strings
 
