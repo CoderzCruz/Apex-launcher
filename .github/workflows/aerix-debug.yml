@@ -164,7 +164,9 @@ jobs:
           if [ "$code" -ne 0 ]; then
             grep -E "^e: |error: |CMake Error|CMake Generate step failed|FAILURE: |What went wrong|Caused by" -A5 build.log | sort -u | head -40 |
               while read -r l; do echo "::error title=gradle::$(printf '%s' "$l" | head -c 500)"; done
-            tail -20 build.log | while read -r l; do echo "::error title=tail::$(printf '%s' "$l" | head -c 500)"; done
+            # Kotlin diagnostics do not always match the patterns above, and the log endpoint is
+            # not readable from every client, so the last 80 lines are surfaced as annotations.
+            tail -80 build.log | while read -r l; do echo "::error title=log::$(printf '%s' "$l" | head -c 400)"; done
           fi
           exit "$code"
 
