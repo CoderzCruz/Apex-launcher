@@ -25,9 +25,12 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import android.provider.CalendarContract
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -53,15 +56,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -147,6 +153,34 @@ private fun millisUntilRelease(): Long {
     return (release - System.currentTimeMillis()).coerceAtLeast(0L)
 }
 
+/**
+ * Every block of the page drifts up into place after [delayMs], so the announcement assembles
+ * itself instead of popping in as one slab. Applied outermost so the card fades with its own
+ * background, not just its text.
+ */
+@Composable
+private fun Modifier.entrance(delayMs: Long): Modifier {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(delayMs)
+        visible = true
+    }
+    val fade by animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        animationSpec = tween(500),
+        label = "diwali-fade"
+    )
+    val rise by animateFloatAsState(
+        targetValue = if (visible) 0f else 34f,
+        animationSpec = tween(620),
+        label = "diwali-rise"
+    )
+    return this.graphicsLayer {
+        alpha = fade
+        translationY = rise * density
+    }
+}
+
 @Composable
 fun DiwaliSpecialScreen(onClose: () -> Unit) {
     val context = LocalContext.current
@@ -201,13 +235,13 @@ fun DiwaliSpecialScreen(onClose: () -> Unit) {
                     text = "\uD83D\uDD14 Remind me",
                     iconRes = null,
                     onClick = { addToCalendar(context) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.entrance(620).weight(1f)
                 )
                 AerixGhostButton(
                     text = "\uD83D\uDCE4 Share",
                     iconRes = null,
                     onClick = { shareAnnouncement(context) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.entrance(700).weight(1f)
                 )
             }
 
@@ -219,25 +253,38 @@ fun DiwaliSpecialScreen(onClose: () -> Unit) {
                     text = "\uD83D\uDCCB Copy text",
                     iconRes = null,
                     onClick = { copyAnnouncement(context) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.entrance(780).weight(1f)
                 )
                 AerixGhostButton(
                     text = "\uD83D\uDD17 GitHub",
                     iconRes = null,
                     onClick = { openGitHub(context) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.entrance(860).weight(1f)
                 )
             }
 
             // Closing card, on the plain panel so the gold hero keeps the emphasis.
+            val footerGlow = rememberInfiniteTransition(label = "diwali-footer")
+            val glow by footerGlow.animateFloat(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 1_900, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "diwali-footer-glow"
+            )
             Box(
-                modifier = Modifier
+                modifier = Modifier.entrance(940)
                     .fillMaxWidth()
                     .background(AerixSurface.panelRaised, RoundedCornerShape(AerixRadii.card))
                     .border(
                         width = 1.dp,
                         brush = Brush.verticalGradient(
-                            listOf(festivalGold.copy(alpha = 0.70f), festivalGold.copy(alpha = 0.18f))
+                            listOf(
+                                festivalGold.copy(alpha = 0.45f + 0.40f * glow),
+                                festivalGold.copy(alpha = 0.10f + 0.16f * glow)
+                            )
                         ),
                         shape = RoundedCornerShape(AerixRadii.card)
                     )
@@ -245,7 +292,14 @@ fun DiwaliSpecialScreen(onClose: () -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "\uD83E\uDE94", fontSize = 18.sp)
+                    Text(
+                        text = "\uD83E\uDE94",
+                        fontSize = 18.sp,
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = 0.92f + 0.14f * glow
+                            scaleY = 0.92f + 0.14f * glow
+                        }
+                    )
                     Spacer(Modifier.height(6.dp))
                     Text(
                         text = ApexDiwali.FOOTER,
@@ -268,7 +322,7 @@ fun DiwaliSpecialScreen(onClose: () -> Unit) {
                 text = "\u2039  Back to launcher",
                 iconRes = null,
                 onClick = onClose,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.entrance(1020).fillMaxWidth()
             )
             Spacer(Modifier.height(AerixSpacing.sm))
         }
@@ -286,7 +340,7 @@ private fun DiwaliHero(
     seconds: Long
 ) {
     Box(
-        modifier = Modifier
+        modifier = Modifier.entrance(0)
             .fillMaxWidth()
             .background(
                 brush = Brush.verticalGradient(
@@ -356,6 +410,13 @@ private fun DiwaliHero(
             // The date chip is the thing people read first, so it gets its own pill.
             Row(
                 modifier = Modifier
+                    .shadow(
+                        elevation = 7.dp + 9.dp * glow,
+                        shape = CircleShape,
+                        clip = false,
+                        ambientColor = festivalAmber,
+                        spotColor = festivalAmber
+                    )
                     .background(
                         brush = Brush.horizontalGradient(listOf(festivalGold, festivalAmber)),
                         shape = CircleShape
@@ -490,8 +551,18 @@ private fun BoxScope.DiwaliGoldSheen() {
 
 @Composable
 private fun CountdownCell(value: String, label: String, modifier: Modifier = Modifier) {
+    // Every tick lands with a small pop, so the countdown feels alive rather than printed.
+    val pop = remember { Animatable(1f) }
+    LaunchedEffect(value) {
+        pop.snapTo(1.16f)
+        pop.animateTo(1f, tween(380, easing = FastOutSlowInEasing))
+    }
     Column(
         modifier = modifier
+            .graphicsLayer {
+                scaleX = pop.value
+                scaleY = pop.value
+            }
             .background(
                 brush = Brush.verticalGradient(
                     listOf(Color.White.copy(alpha = 0.10f), Color.White.copy(alpha = 0.04f))
@@ -521,8 +592,13 @@ private fun CountdownCell(value: String, label: String, modifier: Modifier = Mod
 
 @Composable
 private fun JourneyCard(progress: Float, days: Long) {
+    // The bar sweeps from zero to today's mark the first time the card is seen.
+    val fill = remember { Animatable(0f) }
+    LaunchedEffect(progress) {
+        fill.animateTo(progress.coerceAtLeast(0.02f), tween(1_100, easing = FastOutSlowInEasing))
+    }
     Column(
-        modifier = Modifier
+        modifier = Modifier.entrance(140)
             .fillMaxWidth()
             .background(AerixSurface.panelRaised, RoundedCornerShape(AerixRadii.card))
             .padding(AerixSpacing.lg),
@@ -558,7 +634,7 @@ private fun JourneyCard(progress: Float, days: Long) {
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(progress.coerceAtLeast(0.02f))
+                    .fillMaxWidth(fill.value)
                     .height(8.dp)
                     .background(
                         brush = Brush.horizontalGradient(listOf(festivalDeepRed, festivalGold)),
@@ -588,17 +664,18 @@ private fun JourneyCard(progress: Float, days: Long) {
 private fun FeatureGrid() {
     val rows = ApexDiwali.features.chunked(2)
     Column(verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
-        rows.forEach { pair ->
+        rows.forEachIndexed { rowIndex, pair ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
             ) {
-                pair.forEach { (emoji, title, note) ->
+                pair.forEachIndexed { columnIndex, (emoji, title, note) ->
+                    val order = rowIndex * 2 + columnIndex
                     FeatureTile(
                         emoji = emoji,
                         title = title,
                         note = note,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.entrance(260L + order * 90L).weight(1f)
                     )
                 }
                 if (pair.size == 1) Spacer(Modifier.weight(1f))
@@ -657,14 +734,17 @@ private fun FeatureTile(
 @Composable
 private fun ApexBulletCard(lines: List<String>, accent: Color) {
     Column(
-        modifier = Modifier
+        modifier = Modifier.entrance(380)
             .fillMaxWidth()
             .background(AerixSurface.panelRaised, RoundedCornerShape(AerixRadii.card))
             .padding(AerixSpacing.lg),
         verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
     ) {
-        lines.forEach { line ->
-            Row(verticalAlignment = Alignment.Top) {
+        lines.forEachIndexed { index, line ->
+            Row(
+                modifier = Modifier.entrance(450L + index * 70L),
+                verticalAlignment = Alignment.Top
+            ) {
                 Box(
                     modifier = Modifier
                         .padding(top = 6.dp, end = 10.dp)
@@ -688,55 +768,77 @@ private fun ApexBulletCard(lines: List<String>, accent: Color) {
  */
 @Composable
 private fun DiwaliDivider() {
+    // The rule draws itself outward from the diamond once the page has settled.
+    val grow = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        delay(620L)
+        grow.animateTo(1f, tween(750, easing = FastOutSlowInEasing))
+    }
+
     Canvas(
         modifier = Modifier
             .fillMaxWidth()
             .height(24.dp)
     ) {
+        val g = grow.value
         val cy = size.height / 2f
         val cx = size.width / 2f
         val gap = 30f * density
 
-        drawLine(
-            brush = Brush.linearGradient(
-                listOf(Color.Transparent, festivalGold.copy(alpha = 0.75f)),
-                start = Offset(0f, cy),
-                end = Offset(cx - gap, cy)
-            ),
-            start = Offset(0f, cy),
-            end = Offset(cx - gap, cy),
-            strokeWidth = 1.4f * density
-        )
-        drawLine(
-            brush = Brush.linearGradient(
-                listOf(festivalGold.copy(alpha = 0.75f), Color.Transparent),
+        // The arms reach from the diamond outwards as g grows; skipped until they have length,
+        // so the shader never gets a zero-distance direction.
+        if (g > 0.02f) {
+            val leftOuter = (cx - gap) * (1f - g)
+            drawLine(
+                brush = Brush.linearGradient(
+                    listOf(Color.Transparent, festivalGold.copy(alpha = 0.75f)),
+                    start = Offset(leftOuter, cy),
+                    end = Offset(cx - gap, cy)
+                ),
+                start = Offset(leftOuter, cy),
+                end = Offset(cx - gap, cy),
+                strokeWidth = 1.4f * density
+            )
+            val rightOuter = (cx + gap) + (size.width - (cx + gap)) * g
+            drawLine(
+                brush = Brush.linearGradient(
+                    listOf(festivalGold.copy(alpha = 0.75f), Color.Transparent),
+                    start = Offset(cx + gap, cy),
+                    end = Offset(rightOuter, cy)
+                ),
                 start = Offset(cx + gap, cy),
-                end = Offset(size.width, cy)
-            ),
-            start = Offset(cx + gap, cy),
-            end = Offset(size.width, cy),
-            strokeWidth = 1.4f * density
-        )
+                end = Offset(rightOuter, cy),
+                strokeWidth = 1.4f * density
+            )
+        }
 
-        drawCircle(festivalGold.copy(alpha = 0.55f), radius = 2.4f * density, center = Offset(cx - gap - 8f * density, cy))
-        drawCircle(festivalGold.copy(alpha = 0.55f), radius = 2.4f * density, center = Offset(cx + gap + 8f * density, cy))
+        drawCircle(
+            festivalGold.copy(alpha = 0.55f * g),
+            radius = 2.4f * density,
+            center = Offset(cx - gap - 8f * density, cy)
+        )
+        drawCircle(
+            festivalGold.copy(alpha = 0.55f * g),
+            radius = 2.4f * density,
+            center = Offset(cx + gap + 8f * density, cy)
+        )
 
         val diamond = Path().apply {
-            moveTo(cx, cy - 7f * density)
-            lineTo(cx + 7f * density, cy)
-            lineTo(cx, cy + 7f * density)
-            lineTo(cx - 7f * density, cy)
+            moveTo(cx, cy - 7f * density * g)
+            lineTo(cx + 7f * density * g, cy)
+            lineTo(cx, cy + 7f * density * g)
+            lineTo(cx - 7f * density * g, cy)
             close()
         }
-        drawPath(diamond, festivalGold)
+        drawPath(diamond, festivalGold.copy(alpha = g))
         val inner = Path().apply {
-            moveTo(cx, cy - 3.2f * density)
-            lineTo(cx + 3.2f * density, cy)
-            lineTo(cx, cy + 3.2f * density)
-            lineTo(cx - 3.2f * density, cy)
+            moveTo(cx, cy - 3.2f * density * g)
+            lineTo(cx + 3.2f * density * g, cy)
+            lineTo(cx, cy + 3.2f * density * g)
+            lineTo(cx - 3.2f * density * g, cy)
             close()
         }
-        drawPath(inner, Color(0xFFFFF3C4))
+        drawPath(inner, Color(0xFFFFF3C4).copy(alpha = g))
     }
 }
 

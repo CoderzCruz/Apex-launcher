@@ -79,6 +79,15 @@ assert "fun DiwaliDivider(" in diwali and diwali.count("DiwaliDivider(") >= 2
 # Two more real options: copy the announcement, open the project page.
 assert "fun copyAnnouncement(" in diwali and "ClipData.newPlainText" in diwali
 assert "fun openGitHub(" in diwali and "Intent.ACTION_VIEW" in diwali
+# Everything on the page animates: staggered entrances, popping digits, a sweeping
+# journey bar, a rule that draws itself, a breathing footer and a halo on the date pill.
+assert "private fun Modifier.entrance(" in diwali
+assert diwali.count(".entrance(") >= 11, "every section staggered in"
+assert "pop.animateTo(" in diwali, "countdown digits pop on each tick"
+assert "fill.animateTo(" in diwali, "the journey bar sweeps from zero"
+assert "grow.animateTo(" in diwali, "the ornament rule draws itself"
+assert "animateFloatAsState(" in diwali and "graphicsLayer" in diwali
+assert "ambientColor = festivalAmber" in diwali, "the date pill breathes a halo"
 
 # Diwali has its own rail destination and is gone from the Apex Client screen.
 rail = (APP / "java/net/kdt/pojavlaunch/aerix/ui/AerixNavigationRail.kt").read_text()
