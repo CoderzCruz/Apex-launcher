@@ -86,6 +86,7 @@ import net.kdt.pojavlaunch.aerix.social.SocialBackend
 import net.kdt.pojavlaunch.aerix.social.SocialMessage
 import net.kdt.pojavlaunch.aerix.social.SocialParty
 import net.kdt.pojavlaunch.aerix.theme.AerixRadii
+import net.kdt.pojavlaunch.aerix.theme.AerixThemeManager
 import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
 import net.kdt.pojavlaunch.aerix.theme.AerixSurface
 import java.io.File
@@ -211,7 +212,7 @@ private fun DmList(onOpen: (ChatTarget.Dm) -> Unit, onOpenService: () -> Unit) {
                 badge = ApexBadge.SERVICE,
                 avatarText = "\u2728",
                 avatarBrush = Brush.linearGradient(
-                    listOf(serviceViolet, Color(0xFFB388FF))
+                    listOf(accentFor(), serviceAccentSoft(accentFor()))
                 ),
                 onClick = onOpenService
             )
@@ -699,10 +700,20 @@ private fun BotRow(text: String) {
 
 /* ── the assistant's own thread ────────────────────────────────────────── */
 
-/** Apex Service wears violet, so it never looks like one of the player's conversations. */
-private val serviceViolet = Color(0xFF7C5CFF)
-private val serviceVioletDeep = Color(0xFF2A1B5E)
-private val serviceInk = Color(0xFF120B2B)
+/**
+ * The assistant's own shade: the launcher's accent, so the page follows every theme instead of
+ * carrying a fixed colour of its own.
+ */
+@Composable
+private fun accentFor(): Color = AerixThemeManager.currentAccent()
+
+/** A softer partner for the accent, used in gradients and glows. */
+private fun serviceAccentSoft(accent: Color): Color = Color(
+    red = (accent.red * 0.62f + 0.34f),
+    green = (accent.green * 0.62f + 0.30f),
+    blue = (accent.blue * 0.62f + 0.46f),
+    alpha = 1f
+)
 
 private const val SERVICE_WELCOME =
     "Namaste! Main Apex Service hoon \u2014 Apex Launcher ka assistant.\n\n" +
@@ -740,14 +751,21 @@ private fun ServiceThread(onBack: () -> Unit) {
         if (count > 0) runCatching { listState.animateScrollToItem(count - 1) }
     }
 
-    // The whole page sits on a violet wash instead of the launcher's crimson.
+
+    // The page follows the launcher: a soft accent wash over the usual glass panel.
+    val accent = accentFor()
     Box(
         modifier = Modifier
             .fillMaxSize()
             .clip(RoundedCornerShape(AerixRadii.card))
+            .background(AerixSurface.panel)
             .background(
                 Brush.verticalGradient(
-                    listOf(serviceInk, serviceVioletDeep.copy(alpha = 0.55f), serviceInk)
+                    listOf(
+                        accent.copy(alpha = 0.16f),
+                        AerixSurface.panel.copy(alpha = 0.55f),
+                        accent.copy(alpha = 0.10f)
+                    )
                 )
             )
     ) {
@@ -783,7 +801,14 @@ private fun ServiceThread(onBack: () -> Unit) {
 
             LazyColumn(
                 state = listState,
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(RoundedCornerShape(AerixRadii.card)),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                    top = 2.dp,
+                    bottom = AerixSpacing.xs
+                ),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 if (turns.isEmpty()) {
@@ -803,13 +828,12 @@ private fun ServiceThread(onBack: () -> Unit) {
                 }
             }
 
-            Spacer(Modifier.height(AerixSpacing.sm))
             ServicePromptStrip(
                 prompts = SERVICE_PROMPTS.take(4),
                 enabled = !thinking,
                 onPick = { prompt -> send(prompt) }
             )
-            Spacer(Modifier.height(AerixSpacing.xs))
+            Spacer(Modifier.height(AerixSpacing.sm))
             ServiceComposer(
                 value = draft,
                 onValueChange = { draft = it.take(1000) },
@@ -852,7 +876,7 @@ private fun ServiceHero(
                 .size(44.dp)
                 .clip(CircleShape)
                 .background(
-                    Brush.linearGradient(listOf(serviceViolet, Color(0xFFB388FF)))
+                    Brush.linearGradient(listOf(accentFor(), serviceAccentSoft(accentFor())))
                 )
                 .border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape),
             contentAlignment = Alignment.Center
@@ -915,7 +939,7 @@ private fun ServiceWelcomeCard(prompts: List<String>, onPick: (String) -> Unit) 
             .fillMaxWidth()
             .clip(RoundedCornerShape(AerixRadii.card))
             .background(Color.White.copy(alpha = 0.06f))
-            .border(1.dp, serviceViolet.copy(alpha = 0.35f), RoundedCornerShape(AerixRadii.card))
+            .border(1.dp, accentFor().copy(alpha = 0.35f), RoundedCornerShape(AerixRadii.card))
             .padding(AerixSpacing.md),
         verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
     ) {
@@ -938,7 +962,7 @@ private fun ServiceWelcomeCard(prompts: List<String>, onPick: (String) -> Unit) 
         )
         Text(
             text = "Try one of these:",
-            color = serviceViolet.copy(alpha = 0.9f),
+            color = accentFor().copy(alpha = 0.9f),
             fontSize = 9.5.sp,
             fontWeight = FontWeight.Bold
         )
@@ -954,15 +978,15 @@ private fun ServiceSuggestionChip(text: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(AerixRadii.control))
-            .background(serviceViolet.copy(alpha = 0.16f))
-            .border(1.dp, serviceViolet.copy(alpha = 0.30f), RoundedCornerShape(AerixRadii.control))
+            .background(accentFor().copy(alpha = 0.16f))
+            .border(1.dp, accentFor().copy(alpha = 0.30f), RoundedCornerShape(AerixRadii.control))
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = text, color = Color.White.copy(alpha = 0.92f), fontSize = 11.5.sp)
         Spacer(Modifier.weight(1f))
-        Text(text = "\u2192", color = serviceViolet, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text(text = "\u2192", color = accentFor(), fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -1005,7 +1029,7 @@ private fun ServiceTurn(text: String) {
             modifier = Modifier
                 .size(28.dp)
                 .clip(CircleShape)
-                .background(Brush.linearGradient(listOf(serviceViolet, Color(0xFFB388FF)))),
+                .background(Brush.linearGradient(listOf(accentFor(), serviceAccentSoft(accentFor())))),
             contentAlignment = Alignment.Center
         ) {
             Text(text = "\u2728", fontSize = 13.sp)
@@ -1019,7 +1043,7 @@ private fun ServiceTurn(text: String) {
                 .border(
                     width = 1.dp,
                     brush = Brush.verticalGradient(
-                        listOf(serviceViolet.copy(alpha = 0.45f), Color.Transparent)
+                        listOf(accentFor().copy(alpha = 0.45f), Color.Transparent)
                     ),
                     shape = RoundedCornerShape(AerixRadii.card)
                 )
@@ -1027,7 +1051,7 @@ private fun ServiceTurn(text: String) {
         ) {
             Text(
                 text = ApexService.NAME,
-                color = serviceViolet,
+                color = accentFor(),
                 fontSize = 9.5.sp,
                 fontWeight = FontWeight.ExtraBold
             )
@@ -1060,7 +1084,7 @@ private fun ServiceTyping() {
             modifier = Modifier
                 .size(28.dp)
                 .clip(CircleShape)
-                .background(Brush.linearGradient(listOf(serviceViolet, Color(0xFFB388FF)))),
+                .background(Brush.linearGradient(listOf(accentFor(), serviceAccentSoft(accentFor())))),
             contentAlignment = Alignment.Center
         ) {
             Text(text = "\u2728", fontSize = 13.sp)
@@ -1101,7 +1125,7 @@ private fun ServicePromptStrip(prompts: List<String>, enabled: Boolean, onPick: 
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = if (enabled) 0.08f else 0.03f))
-                    .border(1.dp, serviceViolet.copy(alpha = 0.30f), CircleShape)
+                    .border(1.dp, accentFor().copy(alpha = 0.30f), CircleShape)
                     .then(if (enabled) Modifier.clickable { onPick(prompt) } else Modifier)
                     .padding(horizontal = 11.dp, vertical = 7.dp)
             ) {
@@ -1128,7 +1152,7 @@ private fun ServiceComposer(
             .fillMaxWidth()
             .clip(CircleShape)
             .background(Color.White.copy(alpha = 0.09f))
-            .border(1.dp, serviceViolet.copy(alpha = 0.40f), CircleShape)
+            .border(1.dp, accentFor().copy(alpha = 0.40f), CircleShape)
             .padding(start = 14.dp, end = 5.dp, top = 4.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1138,7 +1162,7 @@ private fun ServiceComposer(
             modifier = Modifier.weight(1f),
             singleLine = true,
             textStyle = TextStyle(color = Color.White, fontSize = 13.sp),
-            cursorBrush = androidx.compose.ui.graphics.SolidColor(serviceViolet),
+            cursorBrush = androidx.compose.ui.graphics.SolidColor(accentFor()),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
             keyboardActions = KeyboardActions(onSend = { onSend() }),
             decorationBox = { inner ->
@@ -1160,7 +1184,7 @@ private fun ServiceComposer(
                     if (busy) {
                         Brush.linearGradient(listOf(Color.White.copy(alpha = 0.10f), Color.White.copy(alpha = 0.10f)))
                     } else {
-                        Brush.linearGradient(listOf(serviceViolet, Color(0xFF9D7BFF)))
+                        Brush.linearGradient(listOf(accentFor(), serviceAccentSoft(accentFor())))
                     }
                 )
                 .clickable(enabled = !busy, onClick = onSend),

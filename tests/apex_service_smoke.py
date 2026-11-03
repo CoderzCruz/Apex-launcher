@@ -72,7 +72,9 @@ assert 'items(botReplies, key = { "apex-service-" + it.first })' in chats
 assert "ApexService.NAME" in chats and "ApexBadge.SERVICE" in chats
 
 # The assistant's own page has its own look, not the player chat bubbles.
-assert "private val serviceViolet" in chats, "Apex Service must keep its violet identity"
+# The page follows the launcher accent, not a fixed colour of its own.
+assert "private fun accentFor(): Color = AerixThemeManager.currentAccent()" in chats
+assert "0xFF7C5CFF" not in chats and "serviceViolet" not in chats, "no hard-coded violet"
 assert "private fun ServiceHero(" in chats and "private fun ServiceTurn(" in chats
 assert "private fun UserTurn(" in chats
 assert "private fun ServiceTyping(" in chats and "rememberInfiniteTransition" in chats
