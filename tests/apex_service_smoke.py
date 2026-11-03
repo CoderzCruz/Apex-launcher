@@ -75,6 +75,17 @@ assert "ApexService.NAME" in chats and "ApexBadge.SERVICE" in chats
 # The page follows the launcher accent, not a fixed colour of its own.
 assert "private fun accentFor(): Color = AerixThemeManager.currentAccent()" in chats
 assert "0xFF7C5CFF" not in chats and "serviceViolet" not in chats, "no hard-coded violet"
+
+# The assistant wears its own emblem: header, pinned row, welcome card and every answer card.
+import struct
+assert "private fun ServiceLogo(" in chats
+assert "R.drawable.apex_service_logo" in chats, "the pinned row must show the emblem"
+assert chats.count("ServiceLogo(") >= 5, "header, welcome, answers and typing all wear it"
+logo_path = ROOT / "app_pojavlauncher/src/main/res/drawable-nodpi/apex_service_logo.png"
+assert logo_path.exists(), "the Apex Service emblem must ship with the app"
+logo_bytes = logo_path.read_bytes()
+assert logo_bytes[:8] == b"\x89PNG\r\n\x1a\n"
+assert struct.unpack(">II", logo_bytes[16:24]) == (512, 512)
 assert "private fun ServiceHero(" in chats and "private fun ServiceTurn(" in chats
 assert "private fun UserTurn(" in chats
 assert "private fun ServiceTyping(" in chats and "rememberInfiniteTransition" in chats

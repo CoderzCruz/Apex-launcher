@@ -73,6 +73,12 @@ assert "BoxScope.DiwaliNightSky(" in diwali and "drawCircle(" in diwali
 assert "CalendarContract.EXTRA_EVENT_BEGIN_TIME" in diwali
 assert "Intent.ACTION_SEND" in diwali and "fun shareText()" in diwali
 assert "fun addToCalendar(" in diwali and "fun shareAnnouncement(" in diwali
+# Premium pass: foil sheen over the hero, an ornament rule, candle-glow numerals.
+assert "BoxScope.DiwaliGoldSheen(" in diwali and diwali.count("DiwaliGoldSheen(") >= 2
+assert "fun DiwaliDivider(" in diwali and diwali.count("DiwaliDivider(") >= 2
+# Two more real options: copy the announcement, open the project page.
+assert "fun copyAnnouncement(" in diwali and "ClipData.newPlainText" in diwali
+assert "fun openGitHub(" in diwali and "Intent.ACTION_VIEW" in diwali
 
 # Diwali has its own rail destination and is gone from the Apex Client screen.
 rail = (APP / "java/net/kdt/pojavlaunch/aerix/ui/AerixNavigationRail.kt").read_text()

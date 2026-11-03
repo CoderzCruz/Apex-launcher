@@ -18,8 +18,12 @@
 
 package net.kdt.pojavlaunch.aerix.ui.screens
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import android.provider.CalendarContract
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -53,11 +57,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.Shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -184,6 +193,8 @@ fun DiwaliSpecialScreen(onClose: () -> Unit) {
 
             ApexBulletCard(ApexDiwali.lines, festivalGold)
 
+            DiwaliDivider()
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
@@ -202,6 +213,24 @@ fun DiwaliSpecialScreen(onClose: () -> Unit) {
                 )
             }
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+            ) {
+                AerixGhostButton(
+                    text = "\uD83D\uDCCB Copy text",
+                    iconRes = null,
+                    onClick = { copyAnnouncement(context) },
+                    modifier = Modifier.weight(1f)
+                )
+                AerixGhostButton(
+                    text = "\uD83D\uDD17 GitHub",
+                    iconRes = null,
+                    onClick = { openGitHub(context) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
             // Closing card, on the plain panel so the gold hero keeps the emphasis.
             Box(
                 modifier = Modifier
@@ -209,13 +238,17 @@ fun DiwaliSpecialScreen(onClose: () -> Unit) {
                     .background(AerixSurface.panelRaised, RoundedCornerShape(AerixRadii.card))
                     .border(
                         width = 1.dp,
-                        color = festivalGold.copy(alpha = 0.35f),
+                        brush = Brush.verticalGradient(
+                            listOf(festivalGold.copy(alpha = 0.70f), festivalGold.copy(alpha = 0.18f))
+                        ),
                         shape = RoundedCornerShape(AerixRadii.card)
                     )
                     .padding(AerixSpacing.lg),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = "\uD83E\uDE94", fontSize = 18.sp)
+                    Spacer(Modifier.height(6.dp))
                     Text(
                         text = ApexDiwali.FOOTER,
                         color = festivalGold,
@@ -270,8 +303,23 @@ private fun DiwaliHero(
                 ),
                 shape = RoundedCornerShape(AerixRadii.card)
             )
+            .clip(RoundedCornerShape(AerixRadii.card))
     ) {
         DiwaliNightSky()
+        DiwaliGoldSheen()
+
+        // The headline breathes between deep gold and candle-light.
+        val sheen = rememberInfiniteTransition(label = "diwali-headline")
+        val glow by sheen.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 2_600, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "diwali-headline-glow"
+        )
+        val headlineColor = lerp(festivalGold, Color(0xFFFFF3C4), glow)
 
         Column(
             modifier = Modifier.padding(AerixSpacing.lg),
@@ -280,10 +328,11 @@ private fun DiwaliHero(
         ) {
             Text(
                 text = ApexDiwali.HEADLINE,
-                color = festivalGold,
+                color = headlineColor,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                style = TextStyle(shadow = Shadow(festivalAmber.copy(alpha = 0.55f), blurRadius = 12f))
             )
             Text(
                 text = ApexDiwali.SUBHEAD,
@@ -407,12 +456,52 @@ private fun BoxScope.DiwaliNightSky() {
     }
 }
 
+/**
+ * A soft gold band that sweeps across the hero once in a while, the way light runs over foil.
+ * Drawn on a Canvas over the night sky, so it costs no extra layer.
+ */
+@Composable
+private fun BoxScope.DiwaliGoldSheen() {
+    val transition = rememberInfiniteTransition(label = "diwali-sheen")
+    val phase by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 4_200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "diwali-sheen-phase"
+    )
+
+    Canvas(modifier = Modifier.matchParentSize()) {
+        val band = size.width * 0.30f
+        val travel = size.width + band * 2f
+        val left = -band + travel * phase
+        drawRect(
+            brush = Brush.linearGradient(
+                listOf(
+                    Color.Transparent,
+                    festivalGold.copy(alpha = 0.16f),
+                    Color.Transparent
+                ),
+                start = Offset(left, 0f),
+                end = Offset(left + band, size.height)
+            )
+        )
+    }
+}
+
 @Composable
 private fun CountdownCell(value: String, label: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
-            .background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(AerixRadii.control))
-            .border(1.dp, festivalGold.copy(alpha = 0.28f), RoundedCornerShape(AerixRadii.control))
+            .background(
+                brush = Brush.verticalGradient(
+                    listOf(Color.White.copy(alpha = 0.10f), Color.White.copy(alpha = 0.04f))
+                ),
+                shape = RoundedCornerShape(AerixRadii.control)
+            )
+            .border(1.dp, festivalGold.copy(alpha = 0.42f), RoundedCornerShape(AerixRadii.control))
             .padding(vertical = 9.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -420,7 +509,8 @@ private fun CountdownCell(value: String, label: String, modifier: Modifier = Mod
             text = value,
             color = festivalGold,
             fontSize = 20.sp,
-            fontWeight = FontWeight.ExtraBold
+            fontWeight = FontWeight.ExtraBold,
+            style = TextStyle(shadow = Shadow(festivalAmber.copy(alpha = 0.65f), blurRadius = 10f))
         )
         Text(
             text = label,
@@ -478,7 +568,17 @@ private fun JourneyCard(progress: Float, days: Long) {
                         brush = Brush.horizontalGradient(listOf(festivalDeepRed, festivalGold)),
                         shape = CircleShape
                     )
-            )
+            ) {
+                // The lit tip of the bar: a small lamp burning at today's mark.
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .size(10.dp)
+                        .clip(CircleShape)
+                        .background(festivalGold)
+                        .border(2.dp, Color(0xFFFFE9B0), CircleShape)
+                )
+            }
         }
         Text(
             text = "Jitna intezaar, utna hi bada surprise 🎁",
@@ -529,8 +629,17 @@ private fun FeatureTile(
             .border(1.dp, festivalGold.copy(alpha = 0.22f), RoundedCornerShape(AerixRadii.card))
             .padding(AerixSpacing.md)
     ) {
-        Text(text = emoji, fontSize = 20.sp)
-        Spacer(Modifier.height(6.dp))
+        Box(
+            modifier = Modifier
+                .size(34.dp)
+                .clip(CircleShape)
+                .background(festivalGold.copy(alpha = 0.14f))
+                .border(1.dp, festivalGold.copy(alpha = 0.38f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = emoji, fontSize = 16.sp)
+        }
+        Spacer(Modifier.height(7.dp))
         Text(
             text = title,
             color = Color.White,
@@ -577,6 +686,64 @@ private fun ApexBulletCard(lines: List<String>, accent: Color) {
     }
 }
 
+/**
+ * A foil ornament: two gold lines fading outwards from a small diamond, with a lit dot on
+ * either side — the sort of rule a premium invitation card carries.
+ */
+@Composable
+private fun DiwaliDivider() {
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(24.dp)
+    ) {
+        val cy = size.height / 2f
+        val cx = size.width / 2f
+        val gap = 30f * density
+
+        drawLine(
+            brush = Brush.horizontalGradient(
+                listOf(Color.Transparent, festivalGold.copy(alpha = 0.75f)),
+                start = Offset(0f, cy),
+                end = Offset(cx - gap, cy)
+            ),
+            start = Offset(0f, cy),
+            end = Offset(cx - gap, cy),
+            strokeWidth = 1.4f * density
+        )
+        drawLine(
+            brush = Brush.horizontalGradient(
+                listOf(festivalGold.copy(alpha = 0.75f), Color.Transparent),
+                start = Offset(cx + gap, cy),
+                end = Offset(size.width, cy)
+            ),
+            start = Offset(cx + gap, cy),
+            end = Offset(size.width, cy),
+            strokeWidth = 1.4f * density
+        )
+
+        drawCircle(festivalGold.copy(alpha = 0.55f), radius = 2.4f * density, center = Offset(cx - gap - 8f * density, cy))
+        drawCircle(festivalGold.copy(alpha = 0.55f), radius = 2.4f * density, center = Offset(cx + gap + 8f * density, cy))
+
+        val diamond = Path().apply {
+            moveTo(cx, cy - 7f * density)
+            lineTo(cx + 7f * density, cy)
+            lineTo(cx, cy + 7f * density)
+            lineTo(cx - 7f * density, cy)
+            close()
+        }
+        drawPath(diamond, festivalGold)
+        val inner = Path().apply {
+            moveTo(cx, cy - 3.2f * density)
+            lineTo(cx + 3.2f * density, cy)
+            lineTo(cx, cy + 3.2f * density)
+            lineTo(cx - 3.2f * density, cy)
+            close()
+        }
+        drawPath(inner, Color(0xFFFFF3C4))
+    }
+}
+
 /* ── actions ───────────────────────────────────────────────────────────── */
 
 /** Prefills a calendar event on the release day. No permission, no background work. */
@@ -599,6 +766,20 @@ private fun addToCalendar(context: Context) {
         putExtra(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY)
     }
     runCatching { context.startActivity(intent) }
+}
+
+/** Puts the whole announcement on the clipboard, ready to paste anywhere. */
+private fun copyAnnouncement(context: Context) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
+    clipboard.setPrimaryClip(ClipData.newPlainText("Apex Diwali Special", ApexDiwali.shareText()))
+    Toast.makeText(context, "\u2705 Announcement copied", Toast.LENGTH_SHORT).show()
+}
+
+/** Opens the project page where every build and release lives. */
+private fun openGitHub(context: Context) {
+    val page = Uri.parse("https://github.com/CoderzCruz/Apex-launcher")
+    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, page)) }
+        .onFailure { Toast.makeText(context, "No browser found", Toast.LENGTH_SHORT).show() }
 }
 
 private fun shareAnnouncement(context: Context) {

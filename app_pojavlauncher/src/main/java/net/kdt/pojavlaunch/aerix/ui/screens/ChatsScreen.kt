@@ -28,6 +28,7 @@ import androidx.compose.foundation.border
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,6 +70,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -78,6 +81,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.aerix.components.AerixGhostButton
 import net.kdt.pojavlaunch.aerix.social.ApexBadge
 import net.kdt.pojavlaunch.aerix.social.ApexBadges
@@ -210,10 +214,7 @@ private fun DmList(onOpen: (ChatTarget.Dm) -> Unit, onOpenService: () -> Unit) {
                     "Knowledge base \u00B7 offline answers"
                 },
                 badge = ApexBadge.SERVICE,
-                avatarText = "\u2728",
-                avatarBrush = Brush.linearGradient(
-                    listOf(accentFor(), serviceAccentSoft(accentFor()))
-                ),
+                avatarRes = R.drawable.apex_service_logo,
                 onClick = onOpenService
             )
         }
@@ -274,6 +275,7 @@ private fun ChatListRow(
     badge: ApexBadge?,
     avatarText: String? = null,
     avatarBrush: Brush? = null,
+    avatarRes: Int? = null,
     // Kept last: every caller passes the row body as a trailing lambda.
     onClick: () -> Unit
 ) {
@@ -292,20 +294,33 @@ private fun ChatListRow(
                 .clip(CircleShape)
                 .background(
                     avatarBrush ?: Brush.linearGradient(
-                        listOf(
-                            AerixSurface.accent.copy(alpha = 0.25f),
-                            AerixSurface.accent.copy(alpha = 0.25f)
-                        )
+                        if (avatarRes != null) {
+                            listOf(Color(0xFF0C0C10), Color(0xFF0C0C10))
+                        } else {
+                            listOf(
+                                AerixSurface.accent.copy(alpha = 0.25f),
+                                AerixSurface.accent.copy(alpha = 0.25f)
+                            )
+                        }
                     )
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = avatarText ?: name.trim().take(1).uppercase().ifBlank { "?" },
-                color = Color.White,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
+            if (avatarRes != null) {
+                Image(
+                    painter = painterResource(avatarRes),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Text(
+                    text = avatarText ?: name.trim().take(1).uppercase().ifBlank { "?" },
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
         }
         Spacer(Modifier.width(11.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -844,6 +859,30 @@ private fun ServiceThread(onBack: () -> Unit) {
     }
 }
 
+/* ── the assistant's own badge ─────────────────────────────────────────── */
+
+/**
+ * The Apex Service emblem, on every surface that represents the assistant: the header, the
+ * pinned row, each answer card. Dark disc behind it so the badge reads on any theme.
+ */
+@Composable
+private fun ServiceLogo(size: androidx.compose.ui.unit.Dp, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(CircleShape)
+            .background(Color(0xFF0C0C10)),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(R.drawable.apex_service_logo),
+            contentDescription = ApexService.NAME,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
 /* ── header ────────────────────────────────────────────────────────────── */
 
 @Composable
@@ -871,18 +910,10 @@ private fun ServiceHero(
         }
         Spacer(Modifier.width(AerixSpacing.sm))
 
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(
-                    Brush.linearGradient(listOf(accentFor(), serviceAccentSoft(accentFor())))
-                )
-                .border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = "\u2728", fontSize = 20.sp)
-        }
+        ServiceLogo(
+            size = 44.dp,
+            modifier = Modifier.border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape)
+        )
         Spacer(Modifier.width(AerixSpacing.sm))
 
         Column(modifier = Modifier.weight(1f)) {
@@ -944,7 +975,7 @@ private fun ServiceWelcomeCard(prompts: List<String>, onPick: (String) -> Unit) 
         verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "\uD83E\uDD16", fontSize = 15.sp)
+            ServiceLogo(size = 18.dp)
             Spacer(Modifier.width(7.dp))
             Text(
                 text = "Apex Service",
@@ -1025,15 +1056,7 @@ private fun UserTurn(text: String) {
 @Composable
 private fun ServiceTurn(text: String) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-        Box(
-            modifier = Modifier
-                .size(28.dp)
-                .clip(CircleShape)
-                .background(Brush.linearGradient(listOf(accentFor(), serviceAccentSoft(accentFor())))),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = "\u2728", fontSize = 13.sp)
-        }
+        ServiceLogo(size = 28.dp)
         Spacer(Modifier.width(AerixSpacing.sm))
         Column(
             modifier = Modifier
@@ -1080,15 +1103,7 @@ private fun ServiceTyping() {
         label = "service-typing-phase"
     )
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-        Box(
-            modifier = Modifier
-                .size(28.dp)
-                .clip(CircleShape)
-                .background(Brush.linearGradient(listOf(accentFor(), serviceAccentSoft(accentFor())))),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = "\u2728", fontSize = 13.sp)
-        }
+        ServiceLogo(size = 28.dp)
         Spacer(Modifier.width(AerixSpacing.sm))
         Row(
             modifier = Modifier
