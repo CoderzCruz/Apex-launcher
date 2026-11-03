@@ -162,13 +162,24 @@ jobs:
           ./gradlew :app_pojavlauncher:assembleNoruntimeDebug --console=plain > build.log 2>&1
           code=$?
           if [ "$code" -ne 0 ]; then
-            grep -E "^e: |error: |CMake Error|CMake Generate step failed|FAILURE: |What went wrong|Caused by" -A5 build.log | sort -u | head -40 |
+            # Any Kotlin diagnostic, anywhere in the line, plus the usual Gradle failure block.
+            grep -aE "e: |error: |CMake Error|CMake Generate step failed|FAILURE: |What went wrong|Caused by|Exception" build.log |
+              sort -u | head -60 |
               while read -r l; do echo "::error title=gradle::$(printf '%s' "$l" | head -c 500)"; done
-            # Kotlin diagnostics do not always match the patterns above, and the log endpoint is
-            # not readable from every client, so the last 80 lines are surfaced as annotations.
-            tail -80 build.log | while read -r l; do echo "::error title=log::$(printf '%s' "$l" | head -c 400)"; done
+            grep -aE "\.kt:[0-9]+" build.log | sort -u | head -40 |
+              while read -r l; do echo "::error title=kt::$(printf '%s' "$l" | head -c 500)"; done
           fi
           exit "$code"
+
+      # The log endpoint is not readable from every client, so the raw build log is kept as an
+      # artifact and can be pulled down when a failure needs a closer look.
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          retention-days: 5
 
       - name: Check it is really the debug build
         id: verify
