@@ -598,7 +598,7 @@ private val launchDeepRed = Color(0xFF6B0F1A)
 private val launchNight = Color(0xFF2A0A10)
 
 /**
- * Countdown strip for the 2.0 launch: the days left until 20 November, flipping to a LIVE banner
+ * Countdown strip for the 2.0 launch: the days left until launch day, flipping to a LIVE banner
  * the moment the day arrives. Tapping it opens the Diwali Special announcement page.
  */
 @Composable

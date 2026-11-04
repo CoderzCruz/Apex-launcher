@@ -110,7 +110,7 @@ fun WhatsNewScreen(onClose: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
         ) {
-            // The release card: LIVE from the first moment of 20 November, countdown until then.
+            // The release card: LIVE from the first moment of launch day, countdown until then.
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -178,7 +178,7 @@ fun WhatsNewScreen(onClose: () -> Unit) {
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "SAVE THE DATE \u2013 20.11.2026",
+                    text = "LAUNCHED \u2013 04.11.2026",
                     color = whatsGold,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.ExtraBold

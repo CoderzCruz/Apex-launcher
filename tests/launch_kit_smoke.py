@@ -62,7 +62,7 @@ assert "days to go" in home
 # ── launch day: real fireworks through the festival system ─────────────────
 festival = FESTIVAL.read_text()
 assert "APEX_LAUNCH(" in festival
-assert "checkDateRange(11, 20..22)" in festival, "launch day plus two"
+assert "checkDateRange(11, 4..6)" in festival, "launch day plus two"
 assert "isInternational = true" in festival, "every locale celebrates"
 effects = EFFECTS.read_text()
 assert "Festival.APEX_LAUNCH to listOf(FIREWORKS)" in effects

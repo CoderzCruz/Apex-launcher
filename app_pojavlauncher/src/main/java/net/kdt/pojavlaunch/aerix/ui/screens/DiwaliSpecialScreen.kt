@@ -87,17 +87,17 @@ import kotlin.math.sin
 /** The announcement shown by the Diwali Special entry on the launcher rail. */
 object ApexDiwali {
     const val TITLE = "Diwali Special"
-    const val HEADLINE = "\uD83C\uDF87 A NEW BEGINNING IS COMING! \uD83C\uDF87"
-    const val SUBHEAD = "\uD83E\uDE94 This Diwali, Apex Launcher has a special surprise for everyone!"
-    const val VERSION = "\uD83D\uDE80 APEX LAUNCHER 2.0 IS COMING SOON!"
+    const val HEADLINE = "\uD83C\uDF87 APEX LAUNCHER 2.0 IS HERE! \uD83C\uDF87"
+    const val SUBHEAD = "\uD83E\uDE94 The wait is over \u2014 thank you for being part of our journey!"
+    const val VERSION = "\uD83D\uDE80 APEX LAUNCHER 2.0 IS NOW LIVE!"
     const val TAGLINE = "Something bigger. Something better. Something completely NEW! \uD83D\uDD25"
-    const val DATE_LABEL = "RELEASE DATE"
-    const val DATE_VALUE = "20 NOVEMBER 2026"
+    const val DATE_LABEL = "RELEASED ON"
+    const val DATE_VALUE = "4 NOVEMBER 2026"
 
     /** The launch moment, in the timezone the announcement is written for. */
     const val RELEASE_YEAR = 2026
     val RELEASE_MONTH = Calendar.NOVEMBER
-    const val RELEASE_DAY = 20
+    const val RELEASE_DAY = 4
 
     /** Where the "journey to 2.0" progress bar starts counting from. */
     const val BUILD_UP_YEAR = 2026
@@ -110,14 +110,14 @@ object ApexDiwali {
         "\u26A1 Next-level improvements.",
         "\uD83C\uDFA8 A fresh premium look.",
         "\uD83D\uDC51 A whole new Apex experience.",
-        "\u23F3 The wait is almost over!",
+        "\uD83C\uDF89 The wait is over \u2014 2.0 is live for everyone!",
         "\u2764\uFE0F Thank you for being part of our journey. Your support makes Apex Launcher stronger!",
-        "\uD83D\uDD25 SAVE THE DATE \u2013 20.11.2026"
+        "\uD83D\uDD25 LAUNCHED ON \u2013 04.11.2026"
     )
 
     /** The four cards under the countdown: what 2.0 actually brings. */
     val features = listOf(
-        Triple("\uD83C\uDF86", "Grand launch", "20 November, for everyone"),
+        Triple("\uD83C\uDF86", "Grand launch", "4 November, for everyone"),
         Triple("\u26A1", "Faster launcher", "Quicker start, smoother screens"),
         Triple("\uD83C\uDFA8", "New look", "A premium crimson-and-gold face"),
         Triple("\uD83D\uDC51", "Founder perks", "Early access for our testers")
@@ -129,7 +129,7 @@ object ApexDiwali {
     /** Midnight of the release day, in the announcement's timezone. */
     fun releaseMoment(): Long = momentOf(RELEASE_YEAR, RELEASE_MONTH, RELEASE_DAY)
 
-    /** Milliseconds left until launch; zero from the first moment of 20 November 2026. */
+    /** Milliseconds left until launch; zero from the first moment of 4 November 2026. */
     fun millisUntilRelease(): Long = (releaseMoment() - System.currentTimeMillis()).coerceAtLeast(0L)
 
     /** Text used by the share sheet. */
@@ -661,7 +661,7 @@ private fun JourneyCard(progress: Float, days: Long) {
             }
         }
         Text(
-            text = "Jitna intezaar, utna hi bada surprise 🎁",
+            text = "Surprise aa gaya — shukriya intezaar ka! 🎁",
             color = AerixSurface.textMuted,
             fontSize = 10.sp
         )

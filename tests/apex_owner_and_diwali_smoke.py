@@ -57,8 +57,8 @@ assert 'ApexOwner.LOCK_HINT' in settings
 
 # ── Diwali page ─────────────────────────────────────────────────────────────
 diwali = DIWALI.read_text()
-for phrase in ("A NEW BEGINNING IS COMING", "APEX LAUNCHER 2.0 IS COMING SOON",
-               "20 NOVEMBER 2026", "SAVE THE DATE", "The Next Generation Begins"):
+for phrase in ("APEX LAUNCHER 2.0 IS HERE", "APEX LAUNCHER 2.0 IS NOW LIVE",
+               "4 NOVEMBER 2026", "LAUNCHED ON", "The Next Generation Begins"):
     assert phrase in diwali, phrase
 assert "fun DiwaliSpecialScreen(" in diwali
 
