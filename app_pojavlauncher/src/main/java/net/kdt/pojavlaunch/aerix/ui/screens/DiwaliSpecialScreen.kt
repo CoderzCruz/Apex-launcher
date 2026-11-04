@@ -24,7 +24,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import android.provider.CalendarContract
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -160,7 +159,7 @@ private fun momentOf(year: Int, month: Int, day: Int): Long =
  * background, not just its text.
  */
 @Composable
-private fun Modifier.entrance(delayMs: Long): Modifier {
+internal fun Modifier.entrance(delayMs: Long): Modifier {
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         delay(delayMs)
@@ -211,7 +210,7 @@ fun DiwaliSpecialScreen(onClose: () -> Unit, onOpenWhatsNew: () -> Unit) {
         ((System.currentTimeMillis() - start).toFloat() / span).coerceIn(0f, 1f)
     }
 
-    AerixPage(title = ApexDiwali.TITLE, subtitle = "Apex Launcher 2.0 announcement") {
+    AerixPage(title = ApexDiwali.TITLE, subtitle = "Apex Launcher 2.0 · launched 4 November 2026") {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -233,9 +232,9 @@ fun DiwaliSpecialScreen(onClose: () -> Unit, onOpenWhatsNew: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
             ) {
                 AerixGhostButton(
-                    text = "\uD83D\uDD14 Remind me",
+                    text = "\u2B07\uFE0F Get the APK",
                     iconRes = null,
-                    onClick = { addToCalendar(context) },
+                    onClick = { openReleases(context) },
                     modifier = Modifier.entrance(620).weight(1f)
                 )
                 AerixGhostButton(
@@ -852,26 +851,11 @@ private fun DiwaliDivider() {
 
 /* ── actions ───────────────────────────────────────────────────────────── */
 
-/** Prefills a calendar event on the release day. No permission, no background work. */
-private fun addToCalendar(context: Context) {
-    val begin = momentOf(
-        ApexDiwali.RELEASE_YEAR,
-        ApexDiwali.RELEASE_MONTH,
-        ApexDiwali.RELEASE_DAY
-    )
-    val intent = Intent(Intent.ACTION_INSERT).apply {
-        data = CalendarContract.Events.CONTENT_URI
-        putExtra(CalendarContract.Events.TITLE, "\uD83C\uDF86 Apex Launcher 2.0 launch")
-        putExtra(
-            CalendarContract.Events.DESCRIPTION,
-            ApexDiwali.SUBHEAD + "\n\n" + ApexDiwali.TAGLINE
-        )
-        putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, begin)
-        putExtra(CalendarContract.EXTRA_EVENT_END_TIME, begin + 3_600_000L)
-        putExtra(CalendarContract.Events.ALL_DAY, true)
-        putExtra(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY)
-    }
-    runCatching { context.startActivity(intent) }
+/** Opens the published release page, where every 2.0 APK and its checksums live. */
+private fun openReleases(context: Context) {
+    val page = Uri.parse("https://github.com/CoderzCruz/Apex-launcher/releases/latest")
+    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, page)) }
+        .onFailure { Toast.makeText(context, "No browser found", Toast.LENGTH_SHORT).show() }
 }
 
 /** Puts the whole announcement on the clipboard, ready to paste anywhere. */

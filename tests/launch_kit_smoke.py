@@ -55,9 +55,16 @@ home = HOME.read_text()
 assert "private fun ApexLaunchBanner(" in home
 assert home.count("ApexLaunchBanner()") >= 2, "both dashboards must show the banner"
 assert "ApexDiwali.millisUntilRelease()" in home
-assert "LauncherSection.DIWALI" in home, "the banner opens the announcement page"
+assert "LauncherSection.WHATS_NEW" in home, "once live the banner opens the changelog"
+assert ".entrance(" in whats, "the changelog staggers in like the announcement"
 assert "is LIVE" in home, "the banner flips on launch day"
 assert "days to go" in home
+
+# ── once per version the changelog opens itself, never over the first-run tour ──
+prefs = (APP / "java/net/kdt/pojavlaunch/aerix/bridge/AerixPreferences.kt").read_text()
+assert "KEY_WHATS_NEW_VERSION" in prefs and "whatsNewVersionShown" in prefs
+assert "saveWhatsNewVersion(BuildConfig.VERSION_NAME)" in screen
+assert "AerixPreferences.guidePlayed" in screen, "the tour always comes first"
 
 # ── launch day: real fireworks through the festival system ─────────────────
 festival = FESTIVAL.read_text()

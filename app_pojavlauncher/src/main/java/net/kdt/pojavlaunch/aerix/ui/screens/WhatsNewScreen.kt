@@ -112,7 +112,7 @@ fun WhatsNewScreen(onClose: () -> Unit) {
         ) {
             // The release card: LIVE from the first moment of launch day, countdown until then.
             Column(
-                modifier = Modifier
+                modifier = Modifier.entrance(0)
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(AerixRadii.card))
                     .background(
@@ -155,13 +155,13 @@ fun WhatsNewScreen(onClose: () -> Unit) {
                 )
             }
 
-            WHATS_ENTRIES.forEach { entry ->
-                FeatureRow(entry)
+            WHATS_ENTRIES.forEachIndexed { index, entry ->
+                FeatureRow(entry, Modifier.entrance(90L + index * 70L))
             }
 
             // Closing note, echoing the announcement so the two pages feel like one story.
             Column(
-                modifier = Modifier
+                modifier = Modifier.entrance(510)
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(AerixRadii.card))
                     .background(AerixSurface.panelRaised)
@@ -189,7 +189,7 @@ fun WhatsNewScreen(onClose: () -> Unit) {
                 text = "\u2039  Back to announcement",
                 iconRes = null,
                 onClick = onClose,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.entrance(580).fillMaxWidth()
             )
             Spacer(Modifier.height(AerixSpacing.sm))
         }
@@ -198,9 +198,9 @@ fun WhatsNewScreen(onClose: () -> Unit) {
 
 /** One feature: emoji medallion, title, and the honest description of what shipped. */
 @Composable
-private fun FeatureRow(entry: WhatsEntry) {
+private fun FeatureRow(entry: WhatsEntry, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(AerixRadii.card))
             .background(AerixSurface.panelRaised)

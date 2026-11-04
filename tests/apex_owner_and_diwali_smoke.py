@@ -69,10 +69,10 @@ assert "CountdownCell(" in diwali
 assert "JourneyCard(" in diwali and "FeatureGrid(" in diwali
 # Drawn celebration instead of plain background.
 assert "BoxScope.DiwaliNightSky(" in diwali and "drawCircle(" in diwali
-# Real actions: a calendar reminder and a share sheet.
-assert "CalendarContract.EXTRA_EVENT_BEGIN_TIME" in diwali
+# Real actions: the published release page and a share sheet.
+assert "/releases/latest" in diwali, "Get the APK opens the published release"
 assert "Intent.ACTION_SEND" in diwali and "fun shareText()" in diwali
-assert "fun addToCalendar(" in diwali and "fun shareAnnouncement(" in diwali
+assert "fun openReleases(" in diwali and "fun shareAnnouncement(" in diwali
 # Premium pass: foil sheen over the hero, an ornament rule, candle-glow numerals.
 assert "BoxScope.DiwaliGoldSheen(" in diwali and diwali.count("DiwaliGoldSheen(") >= 2
 assert "fun DiwaliDivider(" in diwali and diwali.count("DiwaliDivider(") >= 2
@@ -81,7 +81,7 @@ assert "fun copyAnnouncement(" in diwali and "ClipData.newPlainText" in diwali
 assert "fun openGitHub(" in diwali and "Intent.ACTION_VIEW" in diwali
 # Everything on the page animates: staggered entrances, popping digits, a sweeping
 # journey bar, a rule that draws itself, a breathing footer and a halo on the date pill.
-assert "private fun Modifier.entrance(" in diwali
+assert "fun Modifier.entrance(" in diwali, "shared with the changelog"
 assert diwali.count(".entrance(") >= 11, "every section staggered in"
 assert "pop.animateTo(" in diwali, "countdown digits pop on each tick"
 assert "fill.animateTo(" in diwali, "the journey bar sweeps from zero"

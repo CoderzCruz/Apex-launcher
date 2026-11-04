@@ -56,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.fragment.app.FragmentActivity
+import net.kdt.pojavlaunch.BuildConfig
 import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
 import net.kdt.pojavlaunch.aerix.bridge.AerixTransitionType
 import net.kdt.pojavlaunch.aerix.bridge.AerixWindowInsets
@@ -144,6 +145,16 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
         if (AerixGuideState.running && AerixNav.section != LauncherSection.HOME) {
             AerixNav.navigate(LauncherSection.HOME)
         }
+    }
+
+    // Once per version the What's New changelog opens itself, so a returning player sees what
+    // shipped. Never over the first-run tour: on a fresh install the guide comes first and the
+    // changelog waits for the next open.
+    LaunchedEffect(Unit) {
+        if (!AerixPreferences.guidePlayed) return@LaunchedEffect
+        if (AerixPreferences.whatsNewVersionShown == BuildConfig.VERSION_NAME) return@LaunchedEffect
+        AerixPreferences.saveWhatsNewVersion(BuildConfig.VERSION_NAME)
+        AerixNav.navigate(LauncherSection.WHATS_NEW)
     }
 
     // Discord Rich Presence: the launcher is on screen, and it says which page you are on.

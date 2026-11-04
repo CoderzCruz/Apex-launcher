@@ -60,6 +60,8 @@ object AerixPreferences {
     const val KEY_GUIDE_PLAYED = "launcherGuidePlayed"
     /** True once the first-run Notification ON/OFF popup window has been answered. */
     const val KEY_NOTIFICATION_PROMPT_SHOWN = "aerixFirstRunNotificationPromptShown"
+    /** The version whose What's New changelog has already been opened on this device. */
+    const val KEY_WHATS_NEW_VERSION = "aerixWhatsNewVersionShown"
     /** True when the launcher's wallpaper is drawn behind the controls while the game starts. */
     const val KEY_LOADING_WALLPAPER = "loadingScreenWallpaper"
     const val KEY_LOG_TEXT_SIZE = "logTextSize"
@@ -142,6 +144,9 @@ object AerixPreferences {
         private set
     /** Set once the first-time app open Notification ON/OFF popup has been answered. */
     var notificationPromptShown by mutableStateOf(false)
+        private set
+    /** The version whose What's New changelog has already been opened on this device. */
+    var whatsNewVersionShown by mutableStateOf("")
         private set
 
     /** Draw the launcher's wallpaper behind the controls while the game starts. */
@@ -239,6 +244,7 @@ object AerixPreferences {
         themeMotion = p.getBoolean(KEY_THEME_MOTION, true)
         guidePlayed = p.getBoolean(KEY_GUIDE_PLAYED, false)
         notificationPromptShown = p.getBoolean(KEY_NOTIFICATION_PROMPT_SHOWN, false)
+        whatsNewVersionShown = p.getString(KEY_WHATS_NEW_VERSION, "") ?: ""
         loadingWallpaper = p.getBoolean(KEY_LOADING_WALLPAPER, false)
         logTextSize = p.getInt(KEY_LOG_TEXT_SIZE, 15).coerceIn(5, 20)
         logBufferFlushInterval = p.getInt(KEY_LOG_BUFFER_FLUSH_INTERVAL, DEFAULT_LOG_BUFFER_FLUSH_INTERVAL).coerceIn(100, 1000)
@@ -417,6 +423,11 @@ object AerixPreferences {
     fun saveNotificationPromptShown(value: Boolean) {
         notificationPromptShown = value
         edit { putBoolean(KEY_NOTIFICATION_PROMPT_SHOWN, value) }
+    }
+
+    fun saveWhatsNewVersion(value: String) {
+        whatsNewVersionShown = value
+        edit { putString(KEY_WHATS_NEW_VERSION, value) }
     }
 
     fun saveLoadingWallpaper(value: Boolean) {

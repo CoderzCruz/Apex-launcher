@@ -599,7 +599,7 @@ private val launchNight = Color(0xFF2A0A10)
 
 /**
  * Countdown strip for the 2.0 launch: the days left until launch day, flipping to a LIVE banner
- * the moment the day arrives. Tapping it opens the Diwali Special announcement page.
+ * the moment the day arrives. Once live, a tap opens the What's New changelog.
  */
 @Composable
 private fun ApexLaunchBanner() {
@@ -627,7 +627,7 @@ private fun ApexLaunchBanner() {
                 ),
                 shape = RoundedCornerShape(AerixRadii.card)
             )
-            .clickable { AerixNav.navigate(LauncherSection.DIWALI) }
+            .clickable { AerixNav.navigate(LauncherSection.WHATS_NEW) }
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
