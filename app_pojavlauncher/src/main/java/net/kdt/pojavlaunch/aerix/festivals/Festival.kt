@@ -113,6 +113,11 @@ enum class Festival(
         override fun isToday(date: FestivalDate) = date.checkDate(2, 14)
     },
 
+    /** Apex Launcher 2.0 launch, celebrated for three days */
+    APEX_LAUNCH(isChinese = false, isInternational = true, textRes = R.string.aerix_festivals_apex_launch) {
+        override fun isToday(date: FestivalDate) = date.checkDateRange(11, 20..22)
+    },
+
     /** Qixi */
     QIXI(isChinese = true, isInternational = false, textRes = R.string.aerix_festivals_qixi) {
         override fun isToday(date: FestivalDate) = date.checkLunar(7, 7)

@@ -103,6 +103,8 @@ enum class LauncherSection {
     CHATS,
     /** The Diwali Special announcement, its own destination in the rail. */
     DIWALI,
+    /** The 2.0 changelog, opened from the Diwali announcement. */
+    WHATS_NEW,
     /** The team page, between Settings and the account entry. */
     CONTRIBUTION,
     ACCOUNTS,

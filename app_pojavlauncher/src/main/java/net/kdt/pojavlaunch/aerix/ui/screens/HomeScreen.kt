@@ -90,6 +90,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import net.kdt.pojavlaunch.R
@@ -502,6 +503,7 @@ private fun WideHomeDashboard(
             .padding(bottom = AerixSpacing.smPlus),
         verticalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
     ) {
+        ApexLaunchBanner()
         SameVersionNudgeStrip(selected = selected, accent = accent, onOpenSocials = actions.socials)
         HomeSectionLabel(stringResource(R.string.aerix_home_your_space), null)
         QuickTiles(accent, actions, Modifier.fillMaxWidth().height(78.dp), scrollable = false)
@@ -525,6 +527,7 @@ private fun CompactHomeDashboard(
     ) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
+                ApexLaunchBanner()
                 SameVersionNudgeStrip(selected = selected, accent = accent, onOpenSocials = actions.socials)
                 HomeSectionLabel(stringResource(R.string.aerix_home_your_space), null)
                 QuickTiles(accent, actions, Modifier.fillMaxWidth(), scrollable = true)
@@ -586,6 +589,78 @@ private fun QuickTiles(accent: Color, actions: HomeActions, modifier: Modifier, 
                 modifier = if (scrollable) Modifier.width(198.dp).height(78.dp) else Modifier.weight(1f).fillMaxHeight()
             )
         }
+    }
+}
+
+/** Diwali gold on crimson — the launch identity, same face as the announcement page. */
+private val launchGold = Color(0xFFFFB020)
+private val launchDeepRed = Color(0xFF6B0F1A)
+private val launchNight = Color(0xFF2A0A10)
+
+/**
+ * Countdown strip for the 2.0 launch: the days left until 20 November, flipping to a LIVE banner
+ * the moment the day arrives. Tapping it opens the Diwali Special announcement page.
+ */
+@Composable
+private fun ApexLaunchBanner() {
+    var remaining by remember { mutableStateOf(ApexDiwali.millisUntilRelease()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            remaining = ApexDiwali.millisUntilRelease()
+            delay(30_000L)
+        }
+    }
+    val live = remaining <= 0L
+    val days = remaining / 86_400_000L
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(AerixRadii.card))
+            .background(
+                Brush.verticalGradient(listOf(launchDeepRed, launchNight))
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.horizontalGradient(
+                    listOf(launchGold.copy(alpha = 0.75f), launchGold.copy(alpha = 0.20f))
+                ),
+                shape = RoundedCornerShape(AerixRadii.card)
+            )
+            .clickable { AerixNav.navigate(LauncherSection.DIWALI) }
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = if (live) "\uD83C\uDF86" else "\uD83D\uDE80", fontSize = 20.sp)
+        Spacer(Modifier.width(11.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = if (live) {
+                    "Apex Launcher 2.0 is LIVE!"
+                } else {
+                    "Apex Launcher 2.0 — $days days to go"
+                },
+                color = launchGold,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = if (live) {
+                    "Open for the full What\'s New"
+                } else {
+                    "Launching ${ApexDiwali.DATE_VALUE} · tap for the countdown"
+                },
+                color = Color.White.copy(alpha = 0.72f),
+                fontSize = 10.5.sp
+            )
+        }
+        Text(
+            text = "\u203A",
+            color = launchGold,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 

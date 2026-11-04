@@ -297,6 +297,7 @@
     <string name="aerix_festivals_halloween">Happy Halloween!</string>
     <string name="aerix_festivals_valentines">Happy Valentine\'s Day!</string>
     <string name="aerix_festivals_christmas">Merry Christmas!</string>
+    <string name="aerix_festivals_apex_launch">Apex Launcher 2.0 is LIVE!</string>
 
     <!-- In-launcher downloads (mirai ui/screens/content/download) -->
     <string name="aerix_nav_downloads">Download</string>

@@ -203,6 +203,10 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
                                 onOpenSocials = { navigate(LauncherSection.SOCIALS) }
                             )
                             LauncherSection.DIWALI -> net.kdt.pojavlaunch.aerix.ui.screens.DiwaliSpecialScreen(
+                                onClose = { navigate(LauncherSection.HOME) },
+                                onOpenWhatsNew = { navigate(LauncherSection.WHATS_NEW) }
+                            )
+                            LauncherSection.WHATS_NEW -> net.kdt.pojavlaunch.aerix.ui.screens.WhatsNewScreen(
                                 onClose = { navigate(LauncherSection.HOME) }
                             )
                             LauncherSection.LIBRARY -> LibraryScreen(activity)

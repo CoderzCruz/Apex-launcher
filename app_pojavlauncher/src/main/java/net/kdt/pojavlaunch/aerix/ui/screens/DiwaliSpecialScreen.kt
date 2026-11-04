@@ -126,6 +126,12 @@ object ApexDiwali {
     const val FOOTER = "APEX LAUNCHER 2.0"
     const val FOOTER_TAGLINE = "The Next Generation Begins. \uD83D\uDE80"
 
+    /** Midnight of the release day, in the announcement's timezone. */
+    fun releaseMoment(): Long = momentOf(RELEASE_YEAR, RELEASE_MONTH, RELEASE_DAY)
+
+    /** Milliseconds left until launch; zero from the first moment of 20 November 2026. */
+    fun millisUntilRelease(): Long = (releaseMoment() - System.currentTimeMillis()).coerceAtLeast(0L)
+
     /** Text used by the share sheet. */
     fun shareText(): String = buildString {
         append("\uD83C\uDF87 Apex Launcher 2.0 \u2014 Diwali Special \uD83C\uDF87\n\n")
@@ -147,11 +153,6 @@ private fun momentOf(year: Int, month: Int, day: Int): Long =
         clear()
         set(year, month, day, 0, 0, 0)
     }.timeInMillis
-
-private fun millisUntilRelease(): Long {
-    val release = momentOf(ApexDiwali.RELEASE_YEAR, ApexDiwali.RELEASE_MONTH, ApexDiwali.RELEASE_DAY)
-    return (release - System.currentTimeMillis()).coerceAtLeast(0L)
-}
 
 /**
  * Every block of the page drifts up into place after [delayMs], so the announcement assembles
@@ -182,14 +183,14 @@ private fun Modifier.entrance(delayMs: Long): Modifier {
 }
 
 @Composable
-fun DiwaliSpecialScreen(onClose: () -> Unit) {
+fun DiwaliSpecialScreen(onClose: () -> Unit, onOpenWhatsNew: () -> Unit) {
     val context = LocalContext.current
-    var remaining by remember { mutableLongStateOf(millisUntilRelease()) }
+    var remaining by remember { mutableLongStateOf(ApexDiwali.millisUntilRelease()) }
 
     // One tick a second keeps the countdown honest without waking anything else up.
     LaunchedEffect(Unit) {
         while (true) {
-            remaining = millisUntilRelease()
+            remaining = ApexDiwali.millisUntilRelease()
             delay(1_000L)
         }
     }
@@ -262,6 +263,13 @@ fun DiwaliSpecialScreen(onClose: () -> Unit) {
                     modifier = Modifier.entrance(860).weight(1f)
                 )
             }
+
+            AerixGhostButton(
+                text = "\u2728 What's new in 2.0",
+                iconRes = null,
+                onClick = onOpenWhatsNew,
+                modifier = Modifier.entrance(900).fillMaxWidth()
+            )
 
             // Closing card, on the plain panel so the gold hero keeps the emphasis.
             val footerGlow = rememberInfiniteTransition(label = "diwali-footer")
