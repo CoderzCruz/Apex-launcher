@@ -62,19 +62,40 @@
             android:name="android.max_aspect"
             android:value="ratio_float" />
 
+        <!-- The launcher entry points are the two aliases below; DiwaliSkin.syncIcon flips
+             between them so the home-screen icon can change without an update. -->
         <activity
             android:name="net.kdt.pojavlaunch.TestStorageActivity"
             android:exported="true"
             android:label="@string/aerix_app_label"
             android:launchMode="singleTop"
             android:screenOrientation="sensorLandscape"
-            android:theme="@style/Aerix.SplashScreen">
+            android:theme="@style/Aerix.SplashScreen" />
+        <activity-alias
+            android:name="net.kdt.pojavlaunch.ApexLauncherIcon"
+            android:targetActivity="net.kdt.pojavlaunch.TestStorageActivity"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/aerix_app_label">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+        <!-- Shown instead of the normal icon while DiwaliSkin.active() is true (4-8 Nov 2026). -->
+        <activity-alias
+            android:name="net.kdt.pojavlaunch.ApexLauncherIconDiwali"
+            android:targetActivity="net.kdt.pojavlaunch.TestStorageActivity"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_diwali"
+            android:label="@string/aerix_app_label">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
         <activity
             android:name="net.kdt.pojavlaunch.LauncherActivity"
             android:label="@string/aerix_app_label"
@@ -225,6 +246,16 @@
                 <action android:name="net.kdt.pojavlaunch.aerix.ACTION_DISCORD_GAME_STARTED" />
                 <action android:name="net.kdt.pojavlaunch.aerix.ACTION_DISCORD_SCHEDULE_CLEAR" />
                 <action android:name="net.kdt.pojavlaunch.aerix.ACTION_DISCORD_CLEAR_NOW" />
+            </intent-filter>
+        </receiver>
+        <!-- Re-checks the Diwali icon window after a reboot or an app update, so the icon
+             also reverts for someone who never reopened the launcher. -->
+        <receiver
+            android:name="net.kdt.pojavlaunch.aerix.festivals.DiwaliIconReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
     </application>

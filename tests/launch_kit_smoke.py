@@ -3,7 +3,7 @@
 
 The kit is three real pieces: a What's New changelog destination, a countdown banner on the
 home dashboard that flips LIVE on launch day, and fireworks through the festival system for
-20-22 November. Nothing here may promise a feature that does not ship.
+4-8 November. Nothing here may promise a feature that does not ship.
 """
 from pathlib import Path
 
@@ -69,7 +69,7 @@ assert "AerixPreferences.guidePlayed" in screen, "the tour always comes first"
 # ── launch day: real fireworks through the festival system ─────────────────
 festival = FESTIVAL.read_text()
 assert "APEX_LAUNCH(" in festival
-assert "checkDateRange(11, 4..6)" in festival, "launch day plus two"
+assert "checkDateRange(11, 4..8)" in festival, "launch day through Diwali"
 assert "isInternational = true" in festival, "every locale celebrates"
 effects = EFFECTS.read_text()
 assert "Festival.APEX_LAUNCH to listOf(FIREWORKS)" in effects

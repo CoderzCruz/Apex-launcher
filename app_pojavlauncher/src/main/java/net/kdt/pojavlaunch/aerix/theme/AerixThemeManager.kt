@@ -35,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.kdt.pojavlaunch.aerix.bridge.AerixColorTheme
 import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
+import net.kdt.pojavlaunch.aerix.festivals.DiwaliSkin
 import java.io.File
 import android.graphics.Color as AndroidColor
 
@@ -125,10 +126,16 @@ object AerixThemeManager {
     }
 
     @Composable
-    fun currentAccent(): Color = if (AerixPreferences.colorTheme == AerixColorTheme.CUSTOM) {
-        Color(AerixPreferences.customColor)
-    } else {
-        MaterialTheme.colorScheme.primary
+    fun currentAccent(): Color {
+        // Read the scheme first so consumers recompose when the Diwali window opens or closes.
+        val schemeAccent = MaterialTheme.colorScheme.primary
+        return if (DiwaliSkin.active()) {
+            DiwaliSkin.GOLD
+        } else if (AerixPreferences.colorTheme == AerixColorTheme.CUSTOM) {
+            Color(AerixPreferences.customColor)
+        } else {
+            schemeAccent
+        }
     }
 
     /** Canvas tint drawn over the wallpaper; opacity follows the Aerix background opacity slider. */

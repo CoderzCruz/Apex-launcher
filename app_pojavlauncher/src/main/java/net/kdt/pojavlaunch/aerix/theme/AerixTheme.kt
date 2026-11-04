@@ -26,14 +26,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import kotlinx.coroutines.delay
 import net.kdt.pojavlaunch.aerix.bridge.AerixColorTheme
 import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
+import net.kdt.pojavlaunch.aerix.festivals.DiwaliSkin
 
 private val systemSans = FontFamily.SansSerif
 private val defaults = Typography()
@@ -114,14 +120,52 @@ private fun customAccentScheme(accent: Color): ColorScheme {
     )
 }
 
+/**
+ * The Diwali skin scheme: marigold gold on the usual dark glass. Only returned while
+ * DiwaliSkin.active() is true, so the user's own theme comes back untouched afterwards.
+ */
+private fun diwaliScheme(): ColorScheme {
+    val gold = DiwaliSkin.GOLD
+    val onGold = Color(0xFF201405)
+    val flame = Color(0xFFFF8A3D)
+    return aerixDark.copy(
+        primary = gold,
+        onPrimary = onGold,
+        primaryContainer = gold.copy(alpha = 0.33f),
+        onPrimaryContainer = AerixSurface.textPrimary,
+        secondary = flame,
+        onSecondary = onGold,
+        secondaryContainer = flame.copy(alpha = 0.33f),
+        onSecondaryContainer = AerixSurface.textPrimary,
+        inversePrimary = gold
+    )
+}
+
+/**
+ * True while the Diwali window (4-8 Nov 2026) is open. It recomputes itself at the moment
+ * the window opens or closes, so an app left running across midnight reverts by itself.
+ */
+@Composable
+private fun rememberDiwaliSkin(): Boolean {
+    var active by remember { mutableStateOf(DiwaliSkin.active()) }
+    LaunchedEffect(active) {
+        val remaining = DiwaliSkin.millisToNextBoundary()
+        if (remaining > 0) delay(remaining)
+        active = DiwaliSkin.active()
+    }
+    return active
+}
+
 @Composable
 fun AerixLauncherTheme(content: @Composable () -> Unit) {
     val theme = AerixPreferences.colorTheme
     val custom = AerixPreferences.customColor
-    val scheme = remember(theme, custom) {
-        when (theme) {
-            AerixColorTheme.AERIX -> aerixDark
-            AerixColorTheme.CUSTOM -> customAccentScheme(Color(custom))
+    val diwali = rememberDiwaliSkin()
+    val scheme = remember(theme, custom, diwali) {
+        when {
+            diwali -> diwaliScheme()
+            theme == AerixColorTheme.AERIX -> aerixDark
+            else -> customAccentScheme(Color(custom))
         }
     }
     MaterialTheme(

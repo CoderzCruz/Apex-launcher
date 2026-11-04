@@ -99,6 +99,11 @@ public class PojavApplication extends MGApplication {
 			return;
 		}
 
+		// Diwali skin: flip the launcher icon when the calendar window opens or closes.
+		try {
+			net.kdt.pojavlaunch.aerix.festivals.DiwaliSkin.syncIcon(this);
+		} catch (Throwable ignored) {}
+
 		// Disable fatal errors on gplay. This is necessary so that google can collect crash report data and send it to me
 		// (where i can find the cause and fix it)
         //noinspection ConstantValue

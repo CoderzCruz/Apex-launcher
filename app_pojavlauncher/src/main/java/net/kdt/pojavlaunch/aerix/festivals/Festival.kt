@@ -113,9 +113,9 @@ enum class Festival(
         override fun isToday(date: FestivalDate) = date.checkDate(2, 14)
     },
 
-    /** Apex Launcher 2.0 launch, celebrated for three days */
+    /** Apex Launcher 2.0 launch on 4 November, fireworks kept on through Diwali (8 November) */
     APEX_LAUNCH(isChinese = false, isInternational = true, textRes = R.string.aerix_festivals_apex_launch) {
-        override fun isToday(date: FestivalDate) = date.checkDateRange(11, 4..6)
+        override fun isToday(date: FestivalDate) = date.checkDateRange(11, 4..8)
     },
 
     /** Qixi */
