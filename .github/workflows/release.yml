@@ -7,10 +7,10 @@ name: Release CI
 # A marked push has to touch this file to be seen at all, so each release cuts a
 # one line note here recording what it shipped.
 #
-# Last cut: v1.5.6 - the first-run guide no longer closes the launcher. The
-# tour's card was offset from a component that could be off canvas, which made
-# Compose reject a negative padding (report: Android 9, AerixGuide.kt:235).
-# Everything from 1.5.5 ships unchanged.
+# Last cut: v2.0.0 - the Diwali launch. Apex Service (the AI assistant in
+# Chats), the accent-following theme, social avatars from Minecraft profiles,
+# the Diwali Special page and the What's New changelog all ship together on
+# 4 November 2026.
 #
 # The publish job uploads the build artifacts after the build job succeeds.
 # Each edition goes up three times, named after version.properties:
@@ -32,7 +32,7 @@ on:
   # build can be started by pushing a change to this file whose commit message carries the marker
   # below. Any other push only skips the job: the marker is the confirmation.
   push:
-    branches: [ "arena/e95bf452-aerix-launcher" ]
+    branches: [ "arena/e95bf452-aerix-launcher", "arena/a426cc08-apex-launcher" ]
     paths: [ ".github/workflows/release.yml" ]
 
 permissions:
