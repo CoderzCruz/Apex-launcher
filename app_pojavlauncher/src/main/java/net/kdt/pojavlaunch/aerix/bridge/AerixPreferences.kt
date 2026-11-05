@@ -30,7 +30,7 @@ import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.prefs.LauncherPreferences
 
 /** Color theme types kept from Zalith/Aerix. Only AERIX and CUSTOM are reachable from the port. */
-enum class AerixColorTheme { AERIX, CUSTOM }
+enum class AerixColorTheme { AERIX, CUSTOM, OCEAN, SUNSET }
 
 /** Page transition types, from mirai utils/animation/TransitionAnimationType.kt. */
 enum class AerixTransitionType { CLOSE, JELLY_BOUNCE, BOUNCE, SLICE_IN }

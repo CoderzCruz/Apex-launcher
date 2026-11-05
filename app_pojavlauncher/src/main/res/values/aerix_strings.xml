@@ -207,9 +207,11 @@
     <string name="aerix_settings_cat_misc">Miscellaneous</string>
     <string name="aerix_settings_cat_experimental">Experimental</string>
     <string name="aerix_settings_color_theme">Colour theme</string>
-    <string name="aerix_settings_color_theme_sub">Aerix palette or a custom accent</string>
+    <string name="aerix_settings_color_theme_sub">Built-in palettes or a custom accent</string>
     <string name="aerix_settings_theme_aerix">Crimson Noir</string>
     <string name="aerix_settings_theme_custom">Custom</string>
+    <string name="aerix_settings_theme_ocean">Ocean</string>
+    <string name="aerix_settings_theme_sunset">Sunset</string>
     <string name="aerix_settings_custom_color">Custom accent</string>
     <string name="aerix_settings_custom_color_sub">Used when the colour theme is Custom</string>
     <string name="aerix_settings_bg_opacity">Wallpaper visibility</string>
@@ -298,6 +300,8 @@
     <string name="aerix_festivals_valentines">Happy Valentine\'s Day!</string>
     <string name="aerix_festivals_christmas">Merry Christmas!</string>
     <string name="aerix_festivals_apex_launch">Apex Launcher 2.0 is LIVE!</string>
+    <string name="aerix_festivals_lohri">Happy Lohri!</string>
+    <string name="aerix_festivals_baisakhi">Happy Baisakhi!</string>
 
     <!-- In-launcher downloads (mirai ui/screens/content/download) -->
     <string name="aerix_nav_downloads">Download</string>

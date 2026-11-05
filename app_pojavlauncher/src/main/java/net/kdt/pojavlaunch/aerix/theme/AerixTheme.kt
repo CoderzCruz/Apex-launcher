@@ -121,6 +121,22 @@ private fun customAccentScheme(accent: Color): ColorScheme {
 }
 
 /**
+ * Built-in preset palettes: a whole accent family (accent + related secondary), so one tap
+ * restyles the shell without the colour picker.
+ */
+private val oceanAccent = Color(0xFF38BDF8)
+private val oceanSecondary = Color(0xFF7DD3FC)
+private val sunsetAccent = Color(0xFFF59E0B)
+private val sunsetSecondary = Color(0xFFFCD34D)
+
+private fun presetScheme(accent: Color, secondary: Color): ColorScheme =
+    customAccentScheme(accent).copy(
+        secondary = secondary,
+        secondaryContainer = secondary.copy(alpha = 0.33f),
+        onSecondaryContainer = AerixSurface.textPrimary
+    )
+
+/**
  * The Diwali skin scheme: marigold gold on the usual dark glass. Only returned while
  * DiwaliSkin.active() is true, so the user's own theme comes back untouched afterwards.
  */
@@ -165,6 +181,8 @@ fun AerixLauncherTheme(content: @Composable () -> Unit) {
         when {
             diwali -> diwaliScheme()
             theme == AerixColorTheme.AERIX -> aerixDark
+            theme == AerixColorTheme.OCEAN -> presetScheme(oceanAccent, oceanSecondary)
+            theme == AerixColorTheme.SUNSET -> presetScheme(sunsetAccent, sunsetSecondary)
             else -> customAccentScheme(Color(custom))
         }
     }

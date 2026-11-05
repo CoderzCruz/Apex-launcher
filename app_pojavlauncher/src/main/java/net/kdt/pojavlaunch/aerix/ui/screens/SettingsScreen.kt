@@ -1379,8 +1379,12 @@ private fun LauncherTabContent(activity: FragmentActivity) {
     )
     val aerixLabel = stringResource(R.string.aerix_settings_theme_aerix)
     val customLabel = stringResource(R.string.aerix_settings_theme_custom)
+    val oceanLabel = stringResource(R.string.aerix_settings_theme_ocean)
+    val sunsetLabel = stringResource(R.string.aerix_settings_theme_sunset)
     val themeEntries = listOf(
         AerixColorTheme.AERIX.name to aerixLabel,
+        AerixColorTheme.OCEAN.name to oceanLabel,
+        AerixColorTheme.SUNSET.name to sunsetLabel,
         AerixColorTheme.CUSTOM.name to customLabel
     )
     val downloadSourceSetting = remember {
