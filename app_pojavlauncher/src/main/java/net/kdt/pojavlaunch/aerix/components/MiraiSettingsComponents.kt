@@ -384,19 +384,60 @@ fun MiraiSettingsCard(
     }
 }
 
+/** Leading icon chip for option rows: accent-tinted rounded square that follows the theme. */
+@Composable
+fun OptionIconChip(icon: Int, size: Dp = 40.dp) {
+    val accent = AerixThemeManager.currentAccent()
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(RoundedCornerShape(AerixRadii.controlSmall))
+            .background(accent.copy(alpha = 0.16f))
+            .border(
+                BorderStroke(AerixSpacing.hairline, accent.copy(alpha = 0.40f)),
+                RoundedCornerShape(AerixRadii.controlSmall)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = accent,
+            modifier = Modifier.size(size * 0.5f)
+        )
+    }
+}
+
 @Composable
 fun MiraiTitleAndSummary(
     title: String,
     summary: String? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    icon: Int? = null
 ) {
+    if (icon != null) {
+        Row(
+            modifier = modifier,
+            horizontalArrangement = Arrangement.spacedBy(AerixSpacing.md),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OptionIconChip(icon)
+            TitleSummaryTexts(title, summary, Modifier.weight(1f))
+        }
+    } else {
+        TitleSummaryTexts(title, summary, modifier)
+    }
+}
+
+@Composable
+private fun TitleSummaryTexts(title: String, summary: String?, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleSmall,
+            style = MaterialTheme.typography.titleMedium,
             color = Color.White
         )
         if (!summary.isNullOrEmpty()) {
@@ -414,6 +455,7 @@ fun MiraiTitleAndSummary(
 fun MiraiSwitchSettingsCard(
     title: String,
     summary: String? = null,
+    icon: Int? = null,
     checked: Boolean,
     position: CardPosition = CardPosition.Single,
     enabled: Boolean = true,
@@ -434,7 +476,8 @@ fun MiraiSwitchSettingsCard(
             MiraiTitleAndSummary(
                 title = title,
                 summary = summary,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                icon = icon
             )
             DefaultSwitch(
                 checked = checked,
@@ -458,6 +501,7 @@ fun <E> MiraiListSettingsCard(
     position: CardPosition = CardPosition.Single,
     modifier: Modifier = Modifier,
     summary: String? = null,
+    icon: Int? = null,
     getItemText: @Composable (E) -> String,
     getItemId: (E) -> String,
     getItemSummary: (@Composable (E) -> Unit)? = null,
@@ -495,7 +539,8 @@ fun <E> MiraiListSettingsCard(
                 ) {
                     MiraiTitleAndSummary(
                         title = title,
-                        summary = summary
+                        summary = summary,
+                        icon = icon
                     )
                     middleLayout?.invoke(this)
                     if (selectedIdText != null) {
@@ -785,6 +830,7 @@ fun MiraiIntSliderSettingsCard(
     position: CardPosition = CardPosition.Single,
     modifier: Modifier = Modifier,
     summary: String? = null,
+    icon: Int? = null,
     valueRange: IntRange,
     steps: Int = 0,
     suffix: String? = null,
@@ -806,7 +852,7 @@ fun MiraiIntSliderSettingsCard(
                 .padding(all = AerixSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            MiraiTitleAndSummary(title = title, summary = summary)
+            MiraiTitleAndSummary(title = title, summary = summary, icon = icon)
             MiraiSimpleTextSlider(
                 modifier = Modifier.fillMaxWidth(),
                 value = currentVal.toFloat(),

@@ -64,6 +64,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -255,18 +256,27 @@ fun QuickActionTile(
     ) {
         Box(
             modifier = Modifier
-                .size(38.dp)
+                .size(40.dp)
                 .clip(RoundedCornerShape(AerixRadii.control))
-                .background(accent.copy(alpha = 0.18f))
-                .border(BorderStroke(AerixSpacing.hairline, accent.copy(alpha = 0.45f)), RoundedCornerShape(AerixRadii.control)),
+                .background(
+                    Brush.verticalGradient(listOf(accent.copy(alpha = 0.30f), accent.copy(alpha = 0.10f))),
+                    RoundedCornerShape(AerixRadii.control)
+                )
+                .border(BorderStroke(AerixSpacing.hairline, accent.copy(alpha = 0.55f)), RoundedCornerShape(AerixRadii.control)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(painter = painterResource(iconRes), contentDescription = null, tint = accent, modifier = Modifier.size(20.dp))
+            Icon(painter = painterResource(iconRes), contentDescription = null, tint = accent, modifier = Modifier.size(21.dp))
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, color = AerixSurface.textPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(text = subtitle, color = AerixSurface.textSecondary, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
+        Icon(
+            painter = painterResource(R.drawable.aerix_ic_chevron_right),
+            contentDescription = null,
+            tint = AerixSurface.textMuted,
+            modifier = Modifier.size(16.dp)
+        )
     }
 }
 

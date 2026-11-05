@@ -212,6 +212,11 @@
     <string name="aerix_settings_theme_custom">Custom</string>
     <string name="aerix_settings_theme_ocean">Ocean</string>
     <string name="aerix_settings_theme_sunset">Sunset</string>
+    <string name="aerix_settings_group_appearance">Appearance</string>
+    <string name="aerix_settings_group_background">Background</string>
+    <string name="aerix_settings_group_motion">Motion</string>
+    <string name="aerix_settings_group_downloads">Downloads &amp; logs</string>
+    <string name="aerix_settings_group_aetherium">Aetherium</string>
     <string name="aerix_settings_custom_color">Custom accent</string>
     <string name="aerix_settings_custom_color_sub">Used when the colour theme is Custom</string>
     <string name="aerix_settings_bg_opacity">Wallpaper visibility</string>

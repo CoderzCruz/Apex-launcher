@@ -84,6 +84,7 @@ jobs:
           python3 tests/diwali_skin_smoke.py
           python3 tests/indian_festivals_smoke.py
           python3 tests/theme_presets_smoke.py
+          python3 tests/ui_refresh_smoke.py
           mkdir -p "$RUNNER_TEMP/aerix-memory-test"
           javac -d "$RUNNER_TEMP/aerix-memory-test" \
             app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/InstanceMemory.java \
