@@ -28,9 +28,10 @@ import androidx.compose.ui.graphics.Color
 import java.util.Calendar
 
 /**
- * The Diwali skin window: 4 November 2026 up to (but not including) 9 November 2026, local
- * time, so Diwali day itself (8 November) is the last skinned day. Every check reads the
- * clock, so the skin switches on and off by itself — no preference, no toggle, no update.
+ * The Diwali skin window: 4 November 2026 only — the event was ended early on 5 November
+ * (it was meant to run through Diwali, 8 November). Closing the window is still just the
+ * clock: every check reads it, so the skin switches off by itself with no preference, no
+ * toggle and no update. Set DAY_AFTER_LAST back to 9 to re-arm it for Diwali day.
  */
 object DiwaliSkin {
     /** Marigold gold — the Diwali accent everywhere in the shell. */
@@ -38,7 +39,7 @@ object DiwaliSkin {
 
     private const val YEAR = 2026
     private const val FIRST_DAY = 4
-    private const val DAY_AFTER_LAST = 9
+    private const val DAY_AFTER_LAST = 5
 
     /** Component names of the two launcher-icon aliases declared in the manifest. */
     private const val ICON_NORMAL = "net.kdt.pojavlaunch.ApexLauncherIcon"

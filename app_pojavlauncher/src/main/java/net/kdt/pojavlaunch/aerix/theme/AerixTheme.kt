@@ -158,8 +158,9 @@ private fun diwaliScheme(): ColorScheme {
 }
 
 /**
- * True while the Diwali window (4-8 Nov 2026) is open. It recomputes itself at the moment
- * the window opens or closes, so an app left running across midnight reverts by itself.
+ * True while the Diwali skin window (4 Nov 2026, ended early on 5 Nov) is open. It
+ * recomputes itself at the moment the window opens or closes, so an app left running across
+ * midnight reverts by itself.
  */
 @Composable
 private fun rememberDiwaliSkin(): Boolean {

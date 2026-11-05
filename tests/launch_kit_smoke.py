@@ -2,8 +2,8 @@
 """Smoke checks for the 2.0 launch kit.
 
 The kit is three real pieces: a What's New changelog destination, a countdown banner on the
-home dashboard that flips LIVE on launch day, and fireworks through the festival system for
-4-8 November. Nothing here may promise a feature that does not ship.
+home dashboard that flips LIVE on launch day, and fireworks through the festival system on
+launch day (4 November). Nothing here may promise a feature that does not ship.
 """
 from pathlib import Path
 
@@ -69,7 +69,7 @@ assert "AerixPreferences.guidePlayed" in screen, "the tour always comes first"
 # ── launch day: real fireworks through the festival system ─────────────────
 festival = FESTIVAL.read_text()
 assert "APEX_LAUNCH(" in festival
-assert "checkDateRange(11, 4..8)" in festival, "launch day through Diwali"
+assert "checkDate(11, 4)" in festival, "launch day only"
 assert "isInternational = true" in festival, "every locale celebrates"
 effects = EFFECTS.read_text()
 assert "Festival.APEX_LAUNCH to listOf(FIREWORKS)" in effects

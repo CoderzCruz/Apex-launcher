@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Smoke checks for the temporary Diwali skin (4-8 November 2026).
+"""Smoke checks for the temporary Diwali skin (window: 4 November 2026, ended early on
+5 November — it was meant to run through Diwali, 8 November).
 
 The skin is three real pieces: two launcher-icon aliases that DiwaliSkin flips straight
 from the calendar, a gold scheme that takes over the shell while the window is open, and a
-window that closes itself on 9 November with no update. Nothing here may persist a toggle.
+window that closes itself at the boundary with no update. Nothing here may persist a toggle.
 """
 from pathlib import Path
 
@@ -68,7 +69,7 @@ assert "ic_launcher_diwali_background" in color
 # ── DiwaliSkin: date-windowed, never persisted, never zero icons ─────────
 skin = SKIN.read_text()
 assert "val GOLD = Color(0xFFFFC24B)" in skin
-assert "FIRST_DAY = 4" in skin and "DAY_AFTER_LAST = 9" in skin and "YEAR = 2026" in skin
+assert "FIRST_DAY = 4" in skin and "DAY_AFTER_LAST = 5" in skin and "YEAR = 2026" in skin
 assert "fun active(now: Long" in skin
 assert "millisToNextBoundary" in skin
 assert "@JvmStatic" in skin and "fun syncIcon(context: Context)" in skin
@@ -97,8 +98,8 @@ manager = MANAGER.read_text()
 assert "DiwaliSkin.active()" in manager
 assert "DiwaliSkin.GOLD" in manager
 
-# ── Fireworks stay on through Diwali day, then the festival ends too ─────
+# ── Fireworks ran on launch day; the celebration ended early on 5 Nov ────
 festival = FESTIVAL.read_text()
-assert "checkDateRange(11, 4..8)" in festival
+assert "checkDate(11, 4)" in festival and "checkDateRange(11, 4..8)" not in festival
 
 print("Diwali skin: aliases, icon assets, date window and gold theme passed")

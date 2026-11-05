@@ -83,7 +83,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
-        <!-- Shown instead of the normal icon while DiwaliSkin.active() is true (4-8 Nov 2026). -->
+        <!-- Shown instead of the normal icon while DiwaliSkin.active() is true (4 Nov 2026 window, ended early). -->
         <activity-alias
             android:name="net.kdt.pojavlaunch.ApexLauncherIconDiwali"
             android:targetActivity="net.kdt.pojavlaunch.TestStorageActivity"
