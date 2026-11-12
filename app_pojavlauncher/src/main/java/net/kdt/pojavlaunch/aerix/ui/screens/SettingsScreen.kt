@@ -133,6 +133,7 @@ import net.kdt.pojavlaunch.aerix.components.CardPosition
 import net.kdt.pojavlaunch.aerix.components.DefaultSwitch
 import net.kdt.pojavlaunch.aerix.components.MiraiIntSliderSettingsCard
 import net.kdt.pojavlaunch.aerix.components.MiraiListSettingsCard
+import net.kdt.pojavlaunch.aerix.components.OptionIconChip
 import net.kdt.pojavlaunch.aerix.components.MiraiRendererSummaryLayout
 import net.kdt.pojavlaunch.aerix.components.ModrinthMetaPill
 import net.kdt.pojavlaunch.aerix.components.SettingsCardColumn
@@ -379,7 +380,7 @@ private fun RendererTabContent(activity: FragmentActivity) {
                     text = "Renderer Backend",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
+                    color = AerixSurface.textPrimary
                 )
 
                 // Installed renderer plugin APKs come first: they are renderer backends like the
@@ -517,7 +518,7 @@ private fun RendererTabContent(activity: FragmentActivity) {
                                         text = option.title,
                                         style = MaterialTheme.typography.labelLarge,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White,
+                                        color = AerixSurface.textPrimary,
                                         modifier = Modifier.weight(1f),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
@@ -557,7 +558,7 @@ private fun RendererTabContent(activity: FragmentActivity) {
                     text = "Memory Allocation & Java Runtime",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
+                    color = AerixSurface.textPrimary
                 )
 
                 Surface(
@@ -581,7 +582,7 @@ private fun RendererTabContent(activity: FragmentActivity) {
                                 text = "RAM Allocation",
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = AerixSurface.textPrimary
                             )
                             Text(
                                 text = "$ramAlloc MB / $totalRamMb MB",
@@ -753,7 +754,7 @@ private fun RendererTabContent(activity: FragmentActivity) {
                             Icon(
                                 painter = painterResource(R.drawable.aerix_ic_download_2_outlined),
                                 contentDescription = "Download Renderer Plugin",
-                                tint = Color.White
+                                tint = AerixSurface.textPrimary
                             )
                         }
                     },
@@ -794,7 +795,7 @@ private fun RendererTabContent(activity: FragmentActivity) {
                             Icon(
                                 painter = painterResource(R.drawable.aerix_ic_download_2_outlined),
                                 contentDescription = "Download Vulkan Driver",
-                                tint = Color.White
+                                tint = AerixSurface.textPrimary
                             )
                         }
                     },
@@ -961,7 +962,7 @@ private fun RendererPluginCard(
                     text = plugin.displayName,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = AerixSurface.textPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -1189,7 +1190,7 @@ private fun JavaManageTabContent(activity: FragmentActivity) {
                     text = stringResource(R.string.multirt_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
+                    color = AerixSurface.textPrimary
                 )
                 Text(
                     text = stringResource(R.string.multirt_subtitle),
@@ -1248,7 +1249,7 @@ private fun JavaManageTabContent(activity: FragmentActivity) {
                                 text = runtimeLabel(runtime),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = AerixSurface.textPrimary
                             )
                             Text(
                                 text = when {
@@ -1321,7 +1322,7 @@ private fun JavaManageTabContent(activity: FragmentActivity) {
                                 text = ext.getLabel(),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = AerixSurface.textPrimary
                             )
                             Text(
                                 text = stringResource(R.string.global_not_installed),
@@ -1381,10 +1382,12 @@ private fun LauncherTabContent(activity: FragmentActivity) {
     val customLabel = stringResource(R.string.aerix_settings_theme_custom)
     val oceanLabel = stringResource(R.string.aerix_settings_theme_ocean)
     val sunsetLabel = stringResource(R.string.aerix_settings_theme_sunset)
+    val pastelLabel = stringResource(R.string.aerix_settings_theme_pastel)
     val themeEntries = listOf(
         AerixColorTheme.AERIX.name to aerixLabel,
         AerixColorTheme.OCEAN.name to oceanLabel,
         AerixColorTheme.SUNSET.name to sunsetLabel,
+        AerixColorTheme.PASTEL.name to pastelLabel,
         AerixColorTheme.CUSTOM.name to customLabel
     )
     val downloadSourceSetting = remember {
@@ -1431,6 +1434,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     defaultId = AerixColorTheme.AERIX.name,
                     title = stringResource(R.string.aerix_settings_color_theme),
                     summary = stringResource(R.string.aerix_settings_color_theme_sub),
+                    icon = R.drawable.aerix_ic_style_outlined,
                     getItemText = { it.second },
                     getItemId = { it.first },
                     onValueChange = { item ->
@@ -1441,6 +1445,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Middle,
                     title = stringResource(R.string.aerix_settings_custom_color),
                     summary = stringResource(R.string.aerix_settings_custom_color_sub),
+                    icon = R.drawable.aerix_ic_styler_outlined,
                     value = "#%06X".format(AerixPreferences.customColor and 0xFFFFFF),
                     onClick = { showColorPicker = true }
                 )
@@ -1448,6 +1453,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Middle,
                     title = stringResource(R.string.aerix_settings_festival),
                     summary = stringResource(R.string.aerix_settings_festival_sub),
+                    icon = R.drawable.aerix_ic_diwali,
                     checked = AerixPreferences.festivalEffects,
                     onCheckedChange = { AerixPreferences.saveFestivalEffects(it) }
                 )
@@ -1455,6 +1461,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Bottom,
                     title = stringResource(R.string.aerix_settings_fullscreen),
                     summary = stringResource(R.string.aerix_settings_fullscreen_sub),
+                    icon = R.drawable.aerix_ic_visibility_outlined,
                     checked = AerixPreferences.fullScreen,
                     onCheckedChange = { value ->
                         AerixPreferences.saveFullScreen(value)
@@ -1472,6 +1479,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Top,
                     title = stringResource(R.string.aerix_settings_bg_opacity),
                     summary = stringResource(R.string.aerix_settings_bg_opacity_sub),
+                    icon = R.drawable.aerix_ic_wallpaper,
                     value = AerixPreferences.backgroundOpacity,
                     range = 20..100,
                     step = 1,
@@ -1482,6 +1490,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Bottom,
                     title = stringResource(R.string.aerix_settings_bg_blur),
                     summary = stringResource(R.string.aerix_settings_bg_blur_sub),
+                    icon = R.drawable.aerix_ic_image_outlined,
                     value = AerixPreferences.backgroundBlur,
                     range = 0..20,
                     step = 1,
@@ -1498,6 +1507,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Top,
                     title = stringResource(R.string.aerix_settings_theme_motion),
                     summary = stringResource(R.string.aerix_settings_theme_motion_sub),
+                    icon = R.drawable.aerix_ic_touch_app_outlined,
                     checked = AerixPreferences.themeMotion,
                     onCheckedChange = { AerixPreferences.saveThemeMotion(it) }
                 )
@@ -1505,6 +1515,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Middle,
                     title = stringResource(R.string.aerix_settings_animate_speed),
                     summary = stringResource(R.string.aerix_settings_animate_speed_sub),
+                    icon = R.drawable.aerix_ic_schedule_outlined,
                     value = AerixPreferences.animateSpeed,
                     range = 0..10,
                     step = 1,
@@ -1515,6 +1526,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Middle,
                     title = stringResource(R.string.aerix_settings_animate_extent),
                     summary = stringResource(R.string.aerix_settings_animate_extent_sub),
+                    icon = R.drawable.aerix_ic_dashboard_outlined,
                     value = AerixPreferences.animateExtent,
                     range = 0..10,
                     step = 1,
@@ -1528,6 +1540,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     defaultId = AerixTransitionType.JELLY_BOUNCE.name,
                     title = stringResource(R.string.aerix_settings_transition),
                     summary = stringResource(R.string.aerix_settings_transition_sub),
+                    icon = R.drawable.aerix_ic_refresh,
                     getItemText = { it.second },
                     getItemId = { it.first },
                     onValueChange = { item ->
@@ -1548,6 +1561,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                         defaultId = downloadSourceEntries.first().first,
                         title = stringResource(downloadSourceSetting.titleRes),
                         summary = downloadSourceSetting.summaryRes?.let { stringResource(it) },
+                        icon = R.drawable.aerix_ic_cloud_download,
                         getItemText = { it.second },
                         getItemId = { it.first },
                         onValueChange = { item ->
@@ -1563,6 +1577,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     defaultId = AssetPlatform.MODRINTH.name,
                     title = stringResource(R.string.aerix_settings_asset_platform),
                     summary = stringResource(R.string.aerix_settings_asset_platform_sub),
+                    icon = R.drawable.aerix_ic_package_2_outlined,
                     getItemText = { it.second },
                     getItemId = { it.first },
                     onValueChange = { item ->
@@ -1573,6 +1588,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Middle,
                     title = stringResource(R.string.aerix_settings_log_retention),
                     summary = stringResource(R.string.aerix_settings_log_retention_sub),
+                    icon = R.drawable.aerix_ic_schedule_outlined,
                     value = AerixPreferences.logRetentionDays,
                     range = 1..14,
                     step = 1,
@@ -1586,6 +1602,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Middle,
                     title = stringResource(R.string.aerix_settings_curseforge_key),
                     summary = stringResource(R.string.aerix_settings_curseforge_key_sub),
+                    icon = R.drawable.aerix_ic_link,
                     value = if (ownerAccess) {
                         AerixPreferences.curseForgeApiKey
                     } else {
@@ -1601,6 +1618,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Middle,
                     title = stringResource(R.string.aerix_settings_ai_key),
                     summary = stringResource(R.string.aerix_settings_ai_key_sub),
+                    icon = R.drawable.aerix_ic_lightbulb,
                     value = if (ownerAccess) {
                         AerixPreferences.effectiveAiKey()
                     } else {
@@ -1614,6 +1632,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Middle,
                     title = stringResource(R.string.preference_force_english_title),
                     summary = stringResource(R.string.preference_force_english_description),
+                    icon = R.drawable.aerix_ic_text_snippet_filled,
                     checked = remember(revision) { LauncherPreferences.PREF_FORCE_ENGLISH },
                     onCheckedChange = { PojavSettingsBridge.writeBoolean(activity, "force_english", it) }
                 )
@@ -1621,6 +1640,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Bottom,
                     title = stringResource(R.string.main_share_logs),
                     summary = stringResource(R.string.aerix_logs_subtitle),
+                    icon = R.drawable.aerix_ic_share_filled,
                     value = "Share",
                     onClick = { PojavNavigator.shareLogs(activity) }
                 )
@@ -1635,6 +1655,7 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                     position = CardPosition.Single,
                     title = stringResource(R.string.aerix_settings_aetherium),
                     summary = stringResource(R.string.aerix_settings_aetherium_sub),
+                    icon = R.drawable.aerix_ic_client_crystal,
                     value = stringResource(R.string.aerix_settings_aetherium_tag),
                     onClick = { AerixNav.navigate(LauncherSection.DISCOVER) }
                 )
@@ -1851,7 +1872,7 @@ private fun ControlManagerTabContent(activity: FragmentActivity) {
                     text = stringResource(R.string.preference_edit_controls_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
+                    color = AerixSurface.textPrimary
                 )
                 Text(
                     text = stringResource(R.string.preference_edit_controls_summary),
@@ -1917,7 +1938,7 @@ private fun ControlManagerTabContent(activity: FragmentActivity) {
                                 text = file.nameWithoutExtension,
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = AerixSurface.textPrimary
                             )
                             Text(
                                 text = file.name,
@@ -2115,7 +2136,7 @@ private fun AboutInfoTabContent(activity: FragmentActivity) {
                             text = "Cruz",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White,
+                            color = AerixSurface.textPrimary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -2190,7 +2211,7 @@ private fun AboutRowCard(
                     text = title,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = AerixSurface.textPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -2242,6 +2263,7 @@ private fun MiraiSwitchSettingsCard(
     position: CardPosition,
     title: String,
     summary: String?,
+    icon: Int? = null,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
@@ -2262,6 +2284,10 @@ private fun MiraiSwitchSettingsCard(
                 .padding(all = AerixSpacing.lg),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (icon != null) {
+                OptionIconChip(icon)
+                Spacer(modifier = Modifier.width(AerixSpacing.md))
+            }
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -2270,9 +2296,9 @@ private fun MiraiSwitchSettingsCard(
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = AerixSurface.textPrimary
                 )
                 if (!summary.isNullOrEmpty()) {
                     Text(
@@ -2296,6 +2322,7 @@ private fun MiraiSliderSettingsCard(
     position: CardPosition,
     title: String,
     summary: String?,
+    icon: Int? = null,
     value: Int,
     range: IntRange,
     step: Int,
@@ -2307,6 +2334,7 @@ private fun MiraiSliderSettingsCard(
         title = title,
         position = position,
         summary = summary,
+        icon = icon,
         valueRange = range,
         suffix = suffix,
         fineTuningControl = true,
@@ -2325,6 +2353,7 @@ private fun MiraiActionSettingsCard(
     position: CardPosition,
     title: String,
     summary: String?,
+    icon: Int? = null,
     value: String,
     onClick: () -> Unit,
     trailingIcon: (@Composable () -> Unit)? = null
@@ -2347,15 +2376,18 @@ private fun MiraiActionSettingsCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
         ) {
+            if (icon != null) {
+                OptionIconChip(icon)
+            }
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(AerixSpacing.xxs)
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = AerixSurface.textPrimary
                 )
                 if (!summary.isNullOrEmpty()) {
                     Text(
@@ -2382,6 +2414,7 @@ private fun MiraiTextSettingsCard(
     position: CardPosition,
     title: String,
     summary: String?,
+    icon: Int? = null,
     value: String,
     onValueChange: (String) -> Unit,
     editable: Boolean = true,
@@ -2406,18 +2439,32 @@ private fun MiraiTextSettingsCard(
                 .padding(all = AerixSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-            if (!summary.isNullOrEmpty()) {
-                Text(
-                    text = summary,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AerixSurface.textSecondary
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.md),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (icon != null) {
+                    OptionIconChip(icon)
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(AerixSpacing.xxs)
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = AerixSurface.textPrimary
+                    )
+                    if (!summary.isNullOrEmpty()) {
+                        Text(
+                            text = summary,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = AerixSurface.textSecondary
+                        )
+                    }
+                }
             }
             if (!editable && lockedHint != null) {
                 Text(

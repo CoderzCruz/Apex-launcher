@@ -8,11 +8,12 @@ theme = (aerix / "theme/AerixTheme.kt").read_text()
 home = (aerix / "ui/screens/HomeScreen.kt").read_text()
 strings = (root / "app_pojavlauncher/src/main/res/values/aerix_strings.xml").read_text()
 
-# Palette: graphite canvas, crimson accent, white text on the accent.
-assert "val canvas = Color(0xFF08090B)" in surface
+# Palette: graphite canvas (dark value; Pastel Light flips it via lightMode), crimson accent,
+# white text on the accent.
+assert "Color(0xFF08090B)" in surface
 assert "val accentDefault = Color(0xFFE11D48)" in surface
 assert "val onAccentDefault = Color(0xFF1B0508)" in surface
-assert "val textPrimary = Color(0xFFF4F5F7)" in surface
+assert "Color(0xFFF4F5F7)" in surface
 assert "onPrimary = Color.White" in theme
 
 # The wallpaper preset keeps its own teal so it does not repaint the crimson theme.

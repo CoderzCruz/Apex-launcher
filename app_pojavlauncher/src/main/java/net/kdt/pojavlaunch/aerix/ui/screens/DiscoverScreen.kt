@@ -489,7 +489,7 @@ private fun SearchAssetsContent(
                             submittedQuery = it
                         },
                         singleLine = true,
-                        textStyle = TextStyle(color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium),
+                        textStyle = TextStyle(color = AerixSurface.textPrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium),
                         cursorBrush = SolidColor(AerixThemeManager.currentAccent()),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(onSearch = {
@@ -803,7 +803,7 @@ private fun PageController(
                 modifier = Modifier.padding(start = AerixSpacing.md, end = AerixSpacing.md),
                 text = "$pageNumber / $totalPages",
                 style = MaterialTheme.typography.labelLarge,
-                color = Color.White
+                color = AerixSurface.textPrimary
             )
             IconButton(
                 enabled = pageNumber > 1,
@@ -852,7 +852,7 @@ internal fun ResultProjectLayout(
         modifier = modifier,
         shape = RoundedCornerShape(AerixRadii.cardSmall),
         color = AerixSurface.panelRaised,
-        contentColor = Color.White,
+        contentColor = AerixSurface.textPrimary,
         border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft),
         onClick = onClick
     ) {
@@ -880,7 +880,7 @@ internal fun ResultProjectLayout(
                     text = project.title,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
+                    color = AerixSurface.textPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -1277,7 +1277,7 @@ private fun AssetDetailContent(
                                 value = searchMcVersion,
                                 onValueChange = { searchMcVersion = it },
                                 singleLine = true,
-                                textStyle = TextStyle(color = Color.White, fontSize = 12.sp),
+                                textStyle = TextStyle(color = AerixSurface.textPrimary, fontSize = 12.sp),
                                 cursorBrush = SolidColor(accent),
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -1405,7 +1405,7 @@ private fun DownloadHeroCard(
                 Icon(
                     painter = painterResource(R.drawable.aerix_ic_arrow_back),
                     contentDescription = "Back",
-                    tint = Color.White,
+                    tint = AerixSurface.textPrimary,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -1426,7 +1426,7 @@ private fun DownloadHeroCard(
                     text = project.title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
+                    color = AerixSurface.textPrimary,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -1561,7 +1561,7 @@ private fun ScreenshotCard(screenshot: AssetScreenshot, width: Dp) {
                             text = it,
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White,
+                            color = AerixSurface.textPrimary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -1627,7 +1627,7 @@ private fun VersionGroupCard(
                     text = group.gameVersion,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
+                    color = AerixSurface.textPrimary
                 )
                 group.loaderLabel?.let { ldr ->
                     ModrinthMetaPill(text = ldr, highlighted = group.isAdapted)
@@ -1687,7 +1687,7 @@ private fun VersionGroupCard(
                                     text = file.name.ifBlank { file.fileName },
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White,
+                                    color = AerixSurface.textPrimary,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -1735,7 +1735,7 @@ private fun LinksRail(activity: FragmentActivity, details: AssetProjectDetails) 
             text = "Links",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = AerixSurface.textPrimary
         )
         Row(
             modifier = Modifier

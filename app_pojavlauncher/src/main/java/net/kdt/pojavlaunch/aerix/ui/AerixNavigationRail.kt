@@ -144,7 +144,7 @@ fun AerixNavigationRail(
                 .liquidGlass(shape = CircleShape, tint = AerixSurface.glassTint, strength = 0.94f, elevation = AerixMetrics.glassRailElevation),
             shape = CircleShape,
             color = Color.Transparent,
-            contentColor = Color.White
+            contentColor = AerixSurface.textPrimary
         ) {
             Column(
                 modifier = Modifier

@@ -82,7 +82,7 @@ fun AerixClientScreen(activity: FragmentActivity) {
                 ) {
                     Text(
                         text = AerixClientInstaller.statusHeadline,
-                        color = Color.White,
+                        color = AerixSurface.textPrimary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -112,7 +112,7 @@ fun AerixClientScreen(activity: FragmentActivity) {
                 radius = AerixRadii.card,
                 color = AerixSurface.errorDarkContainer.copy(alpha = 0.55f)
             ) {
-                Text(text = err, color = Color.White, fontSize = 12.sp)
+                Text(text = err, color = AerixSurface.textPrimary, fontSize = 12.sp)
             }
         }
 
@@ -178,7 +178,7 @@ fun AerixClientScreen(activity: FragmentActivity) {
                         ) {
                             Text(
                                 text = "Minecraft ${spec.mcVersion}",
-                                color = Color.White,
+                                color = AerixSurface.textPrimary,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.ExtraBold
                             )
@@ -193,7 +193,7 @@ fun AerixClientScreen(activity: FragmentActivity) {
                                 ) {
                                     Text(
                                         text = "INSTALLED",
-                                        color = Color.White,
+                                        color = AerixSurface.textPrimary,
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.ExtraBold
                                     )
@@ -203,7 +203,7 @@ fun AerixClientScreen(activity: FragmentActivity) {
                         Spacer(Modifier.height(2.dp))
                         Text(
                             text = spec.summary,
-                            color = Color.White.copy(alpha = 0.76f),
+                            color = AerixSurface.textPrimary.copy(alpha = 0.76f),
                             fontSize = 12.sp
                         )
                     }
@@ -274,7 +274,7 @@ fun AerixClientScreen(activity: FragmentActivity) {
                                     installed == null -> "Download"
                                     else -> "Re-download"
                                 },
-                                color = Color.White,
+                                color = AerixSurface.textPrimary,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.ExtraBold
                             )
@@ -322,7 +322,7 @@ fun AerixClientScreen(activity: FragmentActivity) {
                             ) {
                                 Text(
                                     text = if (preparingLaunchVer == spec.mcVersion) "Syncing..." else "Launch",
-                                    color = Color.White,
+                                    color = AerixSurface.textPrimary,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.ExtraBold
                                 )

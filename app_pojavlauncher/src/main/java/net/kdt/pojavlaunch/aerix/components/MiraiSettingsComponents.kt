@@ -264,7 +264,7 @@ fun ModrinthCompactSearchField(
                 value = value,
                 onValueChange = onValueChange,
                 singleLine = true,
-                textStyle = TextStyle(color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium),
+                textStyle = TextStyle(color = AerixSurface.textPrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium),
                 cursorBrush = SolidColor(AerixThemeManager.currentAccent()),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -367,7 +367,7 @@ fun MiraiSettingsCard(
         modifier = modifier,
         shape = shape,
         color = AerixSurface.panel,
-        contentColor = Color.White,
+        contentColor = AerixSurface.textPrimary,
         border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
     ) {
         val clickMod = if (onClick != null) {
@@ -384,26 +384,67 @@ fun MiraiSettingsCard(
     }
 }
 
+/** Leading icon chip for option rows: accent-tinted rounded square that follows the theme. */
+@Composable
+fun OptionIconChip(icon: Int, size: Dp = 40.dp) {
+    val accent = AerixThemeManager.currentAccent()
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(RoundedCornerShape(AerixRadii.controlSmall))
+            .background(accent.copy(alpha = 0.16f))
+            .border(
+                BorderStroke(AerixSpacing.hairline, accent.copy(alpha = 0.40f)),
+                RoundedCornerShape(AerixRadii.controlSmall)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = accent,
+            modifier = Modifier.size(size * 0.5f)
+        )
+    }
+}
+
 @Composable
 fun MiraiTitleAndSummary(
     title: String,
     summary: String? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    icon: Int? = null
 ) {
+    if (icon != null) {
+        Row(
+            modifier = modifier,
+            horizontalArrangement = Arrangement.spacedBy(AerixSpacing.md),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OptionIconChip(icon)
+            TitleSummaryTexts(title, summary, Modifier.weight(1f))
+        }
+    } else {
+        TitleSummaryTexts(title, summary, modifier)
+    }
+}
+
+@Composable
+private fun TitleSummaryTexts(title: String, summary: String?, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleSmall,
-            color = Color.White
+            style = MaterialTheme.typography.titleMedium,
+            color = AerixSurface.textPrimary
         )
         if (!summary.isNullOrEmpty()) {
             Text(
                 text = summary,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.70f)
+                color = AerixSurface.textPrimary.copy(alpha = 0.70f)
             )
         }
     }
@@ -414,6 +455,7 @@ fun MiraiTitleAndSummary(
 fun MiraiSwitchSettingsCard(
     title: String,
     summary: String? = null,
+    icon: Int? = null,
     checked: Boolean,
     position: CardPosition = CardPosition.Single,
     enabled: Boolean = true,
@@ -434,7 +476,8 @@ fun MiraiSwitchSettingsCard(
             MiraiTitleAndSummary(
                 title = title,
                 summary = summary,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                icon = icon
             )
             DefaultSwitch(
                 checked = checked,
@@ -458,6 +501,7 @@ fun <E> MiraiListSettingsCard(
     position: CardPosition = CardPosition.Single,
     modifier: Modifier = Modifier,
     summary: String? = null,
+    icon: Int? = null,
     getItemText: @Composable (E) -> String,
     getItemId: (E) -> String,
     getItemSummary: (@Composable (E) -> Unit)? = null,
@@ -495,7 +539,8 @@ fun <E> MiraiListSettingsCard(
                 ) {
                     MiraiTitleAndSummary(
                         title = title,
-                        summary = summary
+                        summary = summary,
+                        icon = icon
                     )
                     middleLayout?.invoke(this)
                     if (selectedIdText != null) {
@@ -505,7 +550,7 @@ fun <E> MiraiListSettingsCard(
                             modifier = Modifier.alpha(0.7f),
                             text = "Selected: $selectedText",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White
+                            color = AerixSurface.textPrimary
                         )
                     }
                 }
@@ -529,7 +574,7 @@ fun <E> MiraiListSettingsCard(
                         Icon(
                             painter = painterResource(R.drawable.aerix_ic_arrow_drop_down_rounded),
                             contentDescription = if (expanded) "Collapse" else "Expand",
-                            tint = Color.White
+                            tint = AerixSurface.textPrimary
                         )
                     }
                 }
@@ -595,7 +640,7 @@ fun MiraiSimpleListItem(
             onClick = onClick,
             colors = RadioButtonDefaults.colors(
                 selectedColor = accent,
-                unselectedColor = Color.White.copy(alpha = 0.70f)
+                unselectedColor = AerixSurface.textPrimary.copy(alpha = 0.70f)
             )
         )
         Column(
@@ -605,7 +650,7 @@ fun MiraiSimpleListItem(
             Text(
                 text = itemName,
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.White
+                color = AerixSurface.textPrimary
             )
             summary?.invoke()
         }
@@ -641,7 +686,7 @@ fun MiraiSimpleTextSlider(
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
             containerColor = AerixSurface.panelRaised,
-            title = { Text("Enter Value", color = Color.White) },
+            title = { Text("Enter Value", color = AerixSurface.textPrimary) },
             text = {
                 OutlinedTextField(
                     value = editInput,
@@ -655,8 +700,8 @@ fun MiraiSimpleTextSlider(
                         )
                     },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
+                        focusedTextColor = AerixSurface.textPrimary,
+                        unfocusedTextColor = AerixSurface.textPrimary,
                         focusedBorderColor = accent,
                         unfocusedBorderColor = AerixSurface.borderSoft
                     )
@@ -785,6 +830,7 @@ fun MiraiIntSliderSettingsCard(
     position: CardPosition = CardPosition.Single,
     modifier: Modifier = Modifier,
     summary: String? = null,
+    icon: Int? = null,
     valueRange: IntRange,
     steps: Int = 0,
     suffix: String? = null,
@@ -806,7 +852,7 @@ fun MiraiIntSliderSettingsCard(
                 .padding(all = AerixSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            MiraiTitleAndSummary(title = title, summary = summary)
+            MiraiTitleAndSummary(title = title, summary = summary, icon = icon)
             MiraiSimpleTextSlider(
                 modifier = Modifier.fillMaxWidth(),
                 value = currentVal.toFloat(),
@@ -897,7 +943,7 @@ fun MiraiToggleableIntSliderSettingsCard(
                     colors = CheckboxDefaults.colors(
                         checkedColor = accent,
                         checkmarkColor = AerixSurface.onAccent,
-                        uncheckedColor = Color.White.copy(alpha = 0.70f)
+                        uncheckedColor = AerixSurface.textPrimary.copy(alpha = 0.70f)
                     )
                 )
             }
@@ -954,7 +1000,7 @@ fun MiraiStatefulDropdownMenuFollowGlobal(
                     modifier = Modifier.alpha(0.7f),
                     text = currentState.label,
                     style = MaterialTheme.typography.labelMedium,
-                    color = Color.White
+                    color = AerixSurface.textPrimary
                 )
                 IconButton(
                     modifier = Modifier.size(34.dp),
@@ -964,7 +1010,7 @@ fun MiraiStatefulDropdownMenuFollowGlobal(
                     Icon(
                         painter = painterResource(R.drawable.aerix_ic_settings_filled),
                         contentDescription = title,
-                        tint = Color.White,
+                        tint = AerixSurface.textPrimary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -979,7 +1025,7 @@ fun MiraiStatefulDropdownMenuFollowGlobal(
                             text = {
                                 Text(
                                     text = state.label,
-                                    color = Color.White,
+                                    color = AerixSurface.textPrimary,
                                     style = MaterialTheme.typography.labelMedium
                                 )
                             },
@@ -992,7 +1038,7 @@ fun MiraiStatefulDropdownMenuFollowGlobal(
                                     },
                                     colors = RadioButtonDefaults.colors(
                                         selectedColor = accent,
-                                        unselectedColor = Color.White.copy(alpha = 0.7f)
+                                        unselectedColor = AerixSurface.textPrimary.copy(alpha = 0.7f)
                                     )
                                 )
                             },
@@ -1051,7 +1097,7 @@ fun MiraiTextInputSettingsCard(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = editable,
                 value = value,
-                textStyle = MaterialTheme.typography.labelMedium.copy(color = Color.White),
+                textStyle = MaterialTheme.typography.labelMedium.copy(color = AerixSurface.textPrimary),
                 onValueChange = { raw ->
                     if (editable) {
                         val cleaned = if (singleLine) raw.replace("\n", "").replace("\r", "") else raw
@@ -1062,20 +1108,20 @@ fun MiraiTextInputSettingsCard(
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color.White.copy(alpha = 0.65f)
+                        color = AerixSurface.textPrimary.copy(alpha = 0.65f)
                     )
                 },
                 singleLine = singleLine,
                 shape = MaterialTheme.shapes.large,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedTextColor = AerixSurface.textPrimary,
+                    unfocusedTextColor = AerixSurface.textPrimary,
                     focusedBorderColor = accent,
                     unfocusedBorderColor = AerixSurface.borderSoft,
                     cursorColor = accent,
-                    disabledTextColor = Color.White.copy(alpha = 0.75f),
+                    disabledTextColor = AerixSurface.textPrimary.copy(alpha = 0.75f),
                     disabledBorderColor = AerixSurface.borderSoft,
-                    disabledLabelColor = Color.White.copy(alpha = 0.45f)
+                    disabledLabelColor = AerixSurface.textPrimary.copy(alpha = 0.45f)
                 )
             )
         }
@@ -1123,13 +1169,13 @@ fun <E> MiraiEnumSettingsCard(
                             onClick = { onValueChange(item) },
                             colors = RadioButtonDefaults.colors(
                                 selectedColor = accent,
-                                unselectedColor = Color.White.copy(alpha = 0.70f)
+                                unselectedColor = AerixSurface.textPrimary.copy(alpha = 0.70f)
                             )
                         )
                         Text(
                             text = getItemText(item),
                             style = MaterialTheme.typography.labelMedium,
-                            color = Color.White
+                            color = AerixSurface.textPrimary
                         )
                     }
                 }
@@ -1266,7 +1312,7 @@ fun MiraiRendererSummaryLayout(renderer: MiraiRendererEntry) {
             Text(
                 text = summaryText,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.White
+                color = AerixSurface.textPrimary
             )
         }
         val minVer = renderer.minVer
@@ -1279,20 +1325,20 @@ fun MiraiRendererSummaryLayout(renderer: MiraiRendererEntry) {
                 Text(
                     text = "MC Version Support:",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.White
+                    color = AerixSurface.textPrimary
                 )
                 if (minVer != null) {
                     Text(
                         text = ">= $minVer",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.White
+                        color = AerixSurface.textPrimary
                     )
                 }
                 if (maxVer != null) {
                     Text(
                         text = "<= $maxVer",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.White
+                        color = AerixSurface.textPrimary
                     )
                 }
             }

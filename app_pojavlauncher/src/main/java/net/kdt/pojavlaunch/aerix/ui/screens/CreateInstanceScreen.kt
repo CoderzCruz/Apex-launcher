@@ -213,7 +213,7 @@ fun CreateInstanceScreen(activity: FragmentActivity, onClose: () -> Unit) {
                         Icon(
                             painter = painterResource(R.drawable.aerix_ic_arrow_back),
                             contentDescription = stringResource(R.string.aerix_create_close),
-                            tint = Color.White,
+                            tint = AerixSurface.textPrimary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -221,7 +221,7 @@ fun CreateInstanceScreen(activity: FragmentActivity, onClose: () -> Unit) {
                 Text(
                     text = stringResource(R.string.aerix_create_title),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
-                    color = Color.White
+                    color = AerixSurface.textPrimary
                 )
                 ModrinthMetaPill(
                     text = buildString {
@@ -675,7 +675,7 @@ private fun VersionRow(
             )
             Text(
                 text = label,
-                color = Color.White,
+                color = AerixSurface.textPrimary,
                 fontSize = 13.sp,
                 fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold,
                 maxLines = 1,

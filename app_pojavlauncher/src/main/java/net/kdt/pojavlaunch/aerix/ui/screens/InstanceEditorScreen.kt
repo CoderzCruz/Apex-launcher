@@ -287,7 +287,7 @@ fun InstanceEditorScreen(activity: FragmentActivity, onClose: () -> Unit) {
                         Icon(
                             painter = painterResource(R.drawable.aerix_ic_arrow_back),
                             contentDescription = "Back",
-                            tint = Color.White,
+                            tint = AerixSurface.textPrimary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -667,7 +667,7 @@ private fun InstanceModsPane(activity: FragmentActivity) {
                         value = nameFilter,
                         onValueChange = { nameFilter = it },
                         singleLine = true,
-                        textStyle = TextStyle(color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium),
+                        textStyle = TextStyle(color = AerixSurface.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.Medium),
                         cursorBrush = SolidColor(accent),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -911,7 +911,7 @@ private fun ModItemCard(
                         text = entry.displayTitle,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = AerixSurface.textPrimary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -1073,7 +1073,7 @@ private fun InstanceContentPane(
                         value = query,
                         onValueChange = { query = it },
                         singleLine = true,
-                        textStyle = TextStyle(color = Color.White, fontSize = 12.sp),
+                        textStyle = TextStyle(color = AerixSurface.textPrimary, fontSize = 12.sp),
                         cursorBrush = SolidColor(accent),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -1185,7 +1185,7 @@ private fun InstanceContentPane(
                                     text = entry.displayTitle,
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White,
+                                    color = AerixSurface.textPrimary,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -1430,7 +1430,7 @@ private fun InstanceSettingsPane(
                         Icon(
                             painter = painterResource(R.drawable.aerix_ic_refresh),
                             contentDescription = "Refresh Controls",
-                            tint = Color.White
+                            tint = AerixSurface.textPrimary
                         )
                     }
                 },
@@ -1644,7 +1644,7 @@ private fun InstanceOverviewPane(
             text = "Instance Overview",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.ExtraBold,
-            color = Color.White
+            color = AerixSurface.textPrimary
         )
 
         Row(
@@ -1688,7 +1688,7 @@ private fun OverviewTile(title: String, value: String, modifier: Modifier = Modi
             verticalArrangement = Arrangement.spacedBy(AerixSpacing.xxs)
         ) {
             Text(title, style = MaterialTheme.typography.labelSmall, color = AerixSurface.textSecondary, maxLines = 1)
-            Text(value, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(value, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = AerixSurface.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -1765,7 +1765,7 @@ private fun InstanceLoaderPane(activity: FragmentActivity, draft: AerixInstanceD
                 text = stringResource(R.string.aerix_loader_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color.White
+                color = AerixSurface.textPrimary
             )
             Spacer(Modifier.width(AerixSpacing.sm))
             Text(

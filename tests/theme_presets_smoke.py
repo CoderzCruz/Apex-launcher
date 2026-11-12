@@ -16,7 +16,7 @@ STRINGS = APP / "res/values/aerix_strings.xml"
 
 # ── The enum appends, so existing saved names still resolve ──────────────
 prefs = PREFS.read_text()
-assert "enum class AerixColorTheme { AERIX, CUSTOM, OCEAN, SUNSET }" in prefs
+assert "enum class AerixColorTheme { AERIX, CUSTOM, OCEAN, SUNSET, PASTEL }" in prefs
 
 # ── The scheme picks each preset by name; Custom still falls to the picker
 theme = THEME.read_text()

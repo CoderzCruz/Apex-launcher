@@ -474,7 +474,7 @@ private fun LibraryHeaderRow(
                 text = "Instance Management",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color.White,
+                color = AerixSurface.textPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -817,7 +817,7 @@ private fun InstanceListRow(
                     text = instance.name,
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = AerixSurface.textPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -961,7 +961,7 @@ private fun LandscapeInstanceListItem(
                     text = instance.name,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = AerixSurface.textPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -1075,7 +1075,7 @@ private fun VersionManagementDetailPane(
                             text = instance.name,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color.White,
+                            color = AerixSurface.textPrimary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -1438,7 +1438,7 @@ internal fun ModpackExportDialog(
                             colors = RadioButtonDefaults.colors(selectedColor = accent)
                         )
                         Column {
-                            Text(f.label, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text(f.label, color = AerixSurface.textPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             Text(f.description, color = AerixSurface.textSecondary, fontSize = 11.sp)
                         }
                     }

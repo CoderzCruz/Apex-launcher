@@ -264,7 +264,7 @@ fun WallpapersScreen(modifier: Modifier = Modifier) {
                         } else {
                             stringResource(R.string.aerix_wallpaper_header, AerixThemeManager.wallpapers.size)
                         },
-                        color = Color.White,
+                        color = AerixSurface.textPrimary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.ExtraBold,
                         maxLines = 1,
@@ -706,7 +706,7 @@ private fun HdClipCard(
                         Icon(
                             painter = painterResource(R.drawable.aerix_ic_cloud_download),
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = AerixSurface.textPrimary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -838,7 +838,7 @@ private fun ClipCard(
                     Icon(
                         painter = painterResource(R.drawable.aerix_ic_play_arrow_filled),
                         contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.85f),
+                        tint = AerixSurface.textPrimary.copy(alpha = 0.85f),
                         modifier = Modifier
                             .align(Alignment.Center)
                             .size(22.dp)

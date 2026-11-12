@@ -392,7 +392,7 @@ private fun ActionMenuCard(
                                 text = selected?.name ?: stringResource(R.string.aerix_home_no_active_world),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White,
+                                color = AerixSurface.textPrimary,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -701,7 +701,7 @@ private fun ActiveWorldPanel(selected: AerixInstance?, accent: Color, actions: H
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(AerixSpacing.xs)) {
                     Text(
                         text = selected?.name ?: stringResource(R.string.aerix_home_no_active_world),
-                        color = Color.White,
+                        color = AerixSurface.textPrimary,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.ExtraBold,
                         maxLines = 1,
