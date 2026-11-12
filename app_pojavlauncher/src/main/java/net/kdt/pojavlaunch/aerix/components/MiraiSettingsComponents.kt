@@ -444,7 +444,7 @@ private fun TitleSummaryTexts(title: String, summary: String?, modifier: Modifie
             Text(
                 text = summary,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.70f)
+                color = AerixSurface.textSecondary
             )
         }
     }
@@ -640,7 +640,7 @@ fun MiraiSimpleListItem(
             onClick = onClick,
             colors = RadioButtonDefaults.colors(
                 selectedColor = accent,
-                unselectedColor = Color.White.copy(alpha = 0.70f)
+                unselectedColor = AerixSurface.textSecondary
             )
         )
         Column(

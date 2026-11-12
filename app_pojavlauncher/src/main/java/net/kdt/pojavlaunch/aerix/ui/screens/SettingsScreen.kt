@@ -2271,11 +2271,14 @@ private fun AboutPillButton(
 // Mirai SettingsCard layouts (SwitchSettingsCard, SliderSettingsCard, ActionSettingsCard, TextSettingsCard)
 // ============================================================================================
 
-/** Section header above a settings group: accent dot, bold label, hairline rule. */
+/** Section header above a settings group: accent dot, spaced-out label, hairline rule. */
 @Composable
 private fun SettingsGroupHeader(title: String) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            // Extra room above so the header hugs the group it introduces, not the one before it.
+            .padding(top = AerixSpacing.md),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
     ) {
@@ -2286,8 +2289,9 @@ private fun SettingsGroupHeader(title: String) {
                 .background(AerixThemeManager.currentAccent())
         )
         Text(
-            text = title,
+            text = title.uppercase(),
             style = MaterialTheme.typography.titleSmall,
+            letterSpacing = 1.sp,
             fontWeight = FontWeight.ExtraBold,
             color = Color.White
         )
