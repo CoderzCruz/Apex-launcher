@@ -114,8 +114,6 @@ import net.kdt.pojavlaunch.aerix.guide.guideAnchor
 import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
 import net.kdt.pojavlaunch.aerix.theme.AerixSurface
 import net.kdt.pojavlaunch.aerix.theme.AerixThemeManager
-import net.kdt.pojavlaunch.aerix.theme.ThemeMotion
-import net.kdt.pojavlaunch.aerix.theme.accentGlow
 import net.kdt.pojavlaunch.aerix.ui.AerixNav
 import net.kdt.pojavlaunch.aerix.ui.LauncherSection
 import net.kdt.pojavlaunch.contracts.OpenDocumentWithExtension
@@ -455,46 +453,36 @@ private fun ActionMenuCard(
                     }
                 }
 
-                // Vibrant Pill PLAY Button (Mirai VersionsContent) — gradient face + accent glow.
+                // Vibrant Pill PLAY Button (Mirai VersionsContent)
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = AerixSpacing.smPlus)
                         .padding(bottom = AerixSpacing.smPlus)
-                        .height(42.dp)
-                        .accentGlow(accent, active = true, enabled = ThemeMotion.rememberEnabled()),
+                        .height(42.dp),
                     shape = RoundedCornerShape(AerixRadii.panel),
-                    color = Color.Transparent,
+                    color = accent,
                     contentColor = AerixSurface.onAccent,
                     onClick = if (selected != null) actions.play else actions.create
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(listOf(accent, accent.copy(alpha = 0.84f))),
-                                RoundedCornerShape(AerixRadii.panel)
-                            ),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "PLAY",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = AerixSurface.onAccent
-                            )
-                            Spacer(Modifier.width(AerixSpacing.xs))
-                            Icon(
-                                painter = painterResource(R.drawable.aerix_ic_play_arrow_filled),
-                                contentDescription = stringResource(R.string.aerix_home_play),
-                                tint = AerixSurface.onAccent,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
+                        Text(
+                            text = "PLAY",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = AerixSurface.onAccent
+                        )
+                        Spacer(Modifier.width(AerixSpacing.xs))
+                        Icon(
+                            painter = painterResource(R.drawable.aerix_ic_play_arrow_filled),
+                            contentDescription = stringResource(R.string.aerix_home_play),
+                            tint = AerixSurface.onAccent,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                 }
             }
@@ -678,24 +666,10 @@ private fun ApexLaunchBanner() {
 
 @Composable
 private fun HomeSectionLabel(title: String, subtitle: String?, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm),
-        verticalAlignment = Alignment.Top
-    ) {
-        // Same accent dot the Settings section headers carry, so every section reads as one family.
-        Box(
-            modifier = Modifier
-                .padding(top = 3.dp)
-                .size(7.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(AerixThemeManager.currentAccent())
-        )
-        Column {
-            Text(text = title.uppercase(), color = AerixSurface.textPrimary, fontSize = 11.sp, letterSpacing = 1.2.sp, fontWeight = FontWeight.ExtraBold)
-            if (subtitle != null) {
-                Text(text = subtitle, color = AerixSurface.textSecondary, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
+    Column(modifier = modifier) {
+        Text(text = title.uppercase(), color = AerixSurface.textPrimary, fontSize = 11.sp, letterSpacing = 1.2.sp, fontWeight = FontWeight.ExtraBold)
+        if (subtitle != null) {
+            Text(text = subtitle, color = AerixSurface.textSecondary, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
