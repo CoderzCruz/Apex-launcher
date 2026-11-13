@@ -241,7 +241,6 @@ fun PageHeader(title: String, subtitle: String?, modifier: Modifier = Modifier, 
 }
 
 /** Dashboard tile with a tinted icon well, title and subtitle. */
-@Composable
 /**
  * Click with a visible press effect: the target dips under the finger and springs back while
  * the platform ripple plays, so every tap answers with motion.
@@ -271,6 +270,7 @@ fun Modifier.apexPress(onClick: () -> Unit, role: Role = Role.Button): Modifier 
         )
 }
 
+@Composable
 fun QuickActionTile(
     @DrawableRes iconRes: Int,
     title: String,
