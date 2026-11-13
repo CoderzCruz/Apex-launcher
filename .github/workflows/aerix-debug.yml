@@ -69,6 +69,8 @@ jobs:
           python3 tests/modern_cape_smoke.py
           python3 tests/social_profile_cosmetics_smoke.py
           python3 tests/client_background_smoke.py
+          python3 tests/home_v2_smoke.py
+          python3 tests/apex_ai_smoke.py
           mkdir -p "$RUNNER_TEMP/aerix-memory-test"
           javac -d "$RUNNER_TEMP/aerix-memory-test" \
             app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/InstanceMemory.java \
@@ -143,6 +145,32 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.14.3"
+
+      # Bake the Apex Service Gemini key into the placeholder string at build time. The secret
+      # never lands in the repository; when it is missing the assistant answers from its
+      # built-in knowledge base instead of the Gemini API.
+      - name: Bake Apex Service key (optional)
+        shell: bash
+        env:
+          APEX_SERVICE_AI_KEY: ${{ secrets.APEX_SERVICE_AI_KEY }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, re
+          key = os.environ.get("APEX_SERVICE_AI_KEY", "").strip()
+          p = pathlib.Path("app_pojavlauncher/src/main/res/values/strings.xml")
+          t = p.read_text()
+          if key:
+              key_xml = (key.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+              t, n = re.subn(
+                  r'<string name="apex_service_ai_key"[^>]*>.*?</string>',
+                  '<string name="apex_service_ai_key" translatable="false">%s</string>' % key_xml,
+                  t, flags=re.S,
+              )
+              p.write_text(t)
+              print("apex_service_ai_key baked (%d replacement)" % n)
+          else:
+              print("APEX_SERVICE_AI_KEY not set — assistant uses the built-in knowledge base")
+          PY
 
       - name: Build debug APK
         shell: bash

@@ -22,6 +22,7 @@ package net.kdt.pojavlaunch.aerix.bridge
 
 import android.content.Context
 import android.content.SharedPreferences
+import net.kdt.pojavlaunch.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,8 @@ object AerixPreferences {
     private const val FILE = "aerix_ui_prefs"
 
     const val KEY_COLOR_THEME = "launcherColorTheme"
+    /** The player's own Apex Service key; blank falls back to the CI-baked one. */
+    const val KEY_GOOGLE_AI_KEY = "apexServiceAiKey"
     const val KEY_CUSTOM_COLOR = "launcherCustomColor"
     const val KEY_BACKGROUND_OPACITY = "launcherBackgroundOpacity"
     const val KEY_FULL_SCREEN = "launcherFullScreen"
@@ -89,6 +92,12 @@ object AerixPreferences {
     private var prefs: SharedPreferences? = null
 
     var colorTheme by mutableStateOf(AerixColorTheme.AERIX)
+        private set
+    /** Player-entered Gemini key for Apex Service; blank means use the baked key. */
+    var googleAiKey by mutableStateOf("")
+        private set
+    /** Key baked into this build by CI from the APEX_SERVICE_AI_KEY secret (empty in the repo). */
+    var bakedAiKey by mutableStateOf("")
         private set
     var customColor by mutableIntStateOf(DEFAULT_CUSTOM_COLOR)
         private set
@@ -181,6 +190,9 @@ object AerixPreferences {
     fun init(context: Context) {
         val p = context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
         prefs = p
+        bakedAiKey = runCatching { context.getString(R.string.apex_service_ai_key).trim() }
+            .getOrDefault("")
+        googleAiKey = p.getString(KEY_GOOGLE_AI_KEY, "") ?: ""
         colorTheme = runCatching {
             AerixColorTheme.valueOf(p.getString(KEY_COLOR_THEME, AerixColorTheme.AERIX.name)!!)
         }.getOrDefault(AerixColorTheme.AERIX)
@@ -262,6 +274,14 @@ object AerixPreferences {
     fun saveColorTheme(value: AerixColorTheme) {
         colorTheme = value
         edit { putString(KEY_COLOR_THEME, value.name) }
+    }
+
+    /** The key Apex Service should actually use: the player's own if set, else the built-in one. */
+    fun effectiveAiKey(): String = googleAiKey.ifBlank { bakedAiKey }
+
+    fun saveGoogleAiKey(value: String) {
+        googleAiKey = value.trim()
+        edit { putString(KEY_GOOGLE_AI_KEY, googleAiKey) }
     }
 
     fun saveCustomColor(argb: Int) {

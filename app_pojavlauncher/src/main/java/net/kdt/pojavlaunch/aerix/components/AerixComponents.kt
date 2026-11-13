@@ -33,6 +33,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,6 +58,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -64,6 +70,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -235,6 +242,35 @@ fun PageHeader(title: String, subtitle: String?, modifier: Modifier = Modifier, 
 
 /** Dashboard tile with a tinted icon well, title and subtitle. */
 @Composable
+/**
+ * Click with a visible press effect: the target dips under the finger and springs back while
+ * the platform ripple plays, so every tap answers with motion.
+ */
+@Composable
+fun Modifier.apexPress(onClick: () -> Unit, role: Role = Role.Button): Modifier {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.955f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "apexPressScale"
+    )
+    return this
+        .graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        }
+        .clickable(
+            interactionSource = interactionSource,
+            indication = LocalIndication.current,
+            role = role,
+            onClick = onClick
+        )
+}
+
 fun QuickActionTile(
     @DrawableRes iconRes: Int,
     title: String,
@@ -248,7 +284,7 @@ fun QuickActionTile(
         modifier = modifier
             .liquidGlass(shape = shape, tint = accent, strength = 0.7f)
             .background(AerixSurface.panel, shape)
-            .clickable(role = Role.Button, onClick = onClick)
+            .apexPress(onClick)
             .padding(horizontal = AerixSpacing.md, vertical = AerixSpacing.smPlus),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)

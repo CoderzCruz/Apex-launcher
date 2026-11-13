@@ -100,6 +100,8 @@ enum class LauncherSection {
     CONTRIBUTION,
     ACCOUNTS,
     ABOUT,
+    /** Apex Service — the assistant chat, opened from the Home header. */
+    AI,
     /** Pages opened on top of a section (Mirai "Create New Instance", instance settings, account sign-in). */
     CREATE_INSTANCE,
     INSTANCE_EDITOR,

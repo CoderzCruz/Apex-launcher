@@ -94,8 +94,11 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.aerix.bridge.AerixInstance
+import net.kdt.pojavlaunch.aerix.bridge.AssetType
 import net.kdt.pojavlaunch.aerix.bridge.GameDownloadTarget
 import net.kdt.pojavlaunch.aerix.bridge.PojavAccountBridge
+import net.kdt.pojavlaunch.aerix.bridge.PojavAuth
+import net.kdt.pojavlaunch.aerix.bridge.PojavAuthBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavInstanceBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavLaunchBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavNavigator
@@ -105,6 +108,7 @@ import net.kdt.pojavlaunch.aerix.components.AerixSkinPreview3D
 import net.kdt.pojavlaunch.aerix.components.MetaPill
 import net.kdt.pojavlaunch.aerix.components.QuickActionTile
 import net.kdt.pojavlaunch.aerix.components.QuietEmptyState
+import net.kdt.pojavlaunch.aerix.components.apexPress
 import net.kdt.pojavlaunch.aerix.components.liquidGlass
 import net.kdt.pojavlaunch.aerix.theme.AerixMetrics
 import net.kdt.pojavlaunch.aerix.theme.AerixRadii
@@ -160,7 +164,17 @@ private class HomeActions(
     val downloads: () -> Unit,
     val fileManager: () -> Unit,
     val logs: () -> Unit,
-    val accounts: () -> Unit
+    val accounts: () -> Unit,
+    // The Home v2 extras: the five-option grid, the login quick row, and the header entries.
+    val mods: () -> Unit,
+    val settings: () -> Unit,
+    val contribution: () -> Unit,
+    val ai: () -> Unit,
+    val background: () -> Unit,
+    val loginMicrosoft: () -> Unit,
+    val loginEly: () -> Unit,
+    val loginOffline: () -> Unit,
+    val importSkin: () -> Unit
 )
 
 @Composable
@@ -201,7 +215,17 @@ fun HomeScreen(activity: FragmentActivity, navigate: (LauncherSection) -> Unit) 
         downloads = { navigate(LauncherSection.DISCOVER) },
         fileManager = { navigate(LauncherSection.FILES) },
         logs = { navigate(LauncherSection.LOGS) },
-        accounts = { navigate(LauncherSection.ACCOUNTS) }
+        accounts = { navigate(LauncherSection.ACCOUNTS) },
+        // Home v2: Mods opens Discover on its Mods tab; the rest land on their sections or flows.
+        mods = { AerixDownloadRequest.open(AssetType.MOD, navigate) },
+        settings = { navigate(LauncherSection.SETTINGS) },
+        contribution = { navigate(LauncherSection.CONTRIBUTION) },
+        ai = { navigate(LauncherSection.AI) },
+        background = { navigate(LauncherSection.WALLPAPERS) },
+        loginMicrosoft = { PojavAuthBridge.openLogin(activity, PojavAuth.MICROSOFT) },
+        loginEly = { PojavAuthBridge.openLogin(activity, PojavAuth.ELYBY) },
+        loginOffline = { navigate(LauncherSection.OFFLINE_ACCOUNT) },
+        importSkin = { navigate(LauncherSection.ACCOUNTS) }
     )
 
     // Mirai LauncherScreen: content dashboard on the left (weight 7.4f) and the docked 3D skin
@@ -553,23 +577,392 @@ private fun CompactHomeDashboard(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
                 SameVersionNudgeStrip(selected = selected, accent = accent, onOpenSocials = actions.socials)
-                HomeSectionLabel(stringResource(R.string.aerix_home_your_space), null)
-                QuickTiles(count, accent, actions, Modifier.fillMaxWidth(), scrollable = true)
+                HomeHeaderRow(actions)
             }
         }
-        // On a phone the side action panel is collapsed, so the play step points at the world card here.
-        item {
-            ActiveWorldPanel(
-                selected, accent, actions,
-                Modifier
-                    .fillMaxWidth()
-                    .height(190.dp)
-                    .guideAnchor(AerixGuideState.PLAY)
-            )
-        }
+        // Phone Home v2: the rotatable skin stage with the account pill and login quick row.
+        item { PhoneSkinStage(accent, actions) }
+        // The instance selector and the centred PLAY button — the launcher's main action.
+        item { MiddlePlayBlock(selected, accent, actions) }
+        // The five options: Modpacks, Mods, Settings, Contribution, Add Version.
+        item { OptionsGrid(accent, actions) }
         item { TaskSummaryPanel(taskCount, accent, Modifier.fillMaxWidth().height(74.dp)) }
         item { RecentWorldsPanel(recent, selected, accent, actions, Modifier.fillMaxWidth(), lazy = false) }
-        item { QuickToolsPanel(accent, actions, Modifier.fillMaxWidth(), scrollable = false) }
+    }
+}
+
+// ============================================================================================
+// Home v2 (phone): header chips → skin stage + login row → middle PLAY → the five options.
+// ============================================================================================
+
+/** Header chips: the assistant, the background picker, and the wardrobe import entry. */
+@Composable
+private fun HomeHeaderRow(actions: HomeActions) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+    ) {
+        HeaderChip("AI", R.drawable.aerix_ic_lightbulb, Modifier.weight(1f), actions.ai)
+        HeaderChip("Background", R.drawable.aerix_ic_wallpaper, Modifier.weight(1.4f), actions.background)
+        HeaderChip("Import skin", R.drawable.aerix_ic_style_outlined, Modifier.weight(1.6f), actions.importSkin)
+    }
+}
+
+@Composable
+private fun HeaderChip(label: String, icon: Int, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val accent = AerixThemeManager.currentAccent()
+    Surface(
+        modifier = modifier
+            .clip(RoundedCornerShape(AerixRadii.control))
+            .apexPress(onClick),
+        shape = RoundedCornerShape(AerixRadii.control),
+        color = AerixSurface.panel,
+        border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = AerixSpacing.md, vertical = AerixSpacing.smTight),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = accent,
+                modifier = Modifier.size(14.dp)
+            )
+            Spacer(Modifier.width(AerixSpacing.xs))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = AerixSurface.textPrimary,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+/**
+ * The phone skin stage: Steve on the pedestal with the same drag-and-fling rotation the wide
+ * ActionMenu has, the account pill below him, and the three sign-in ways as quick pills.
+ * Tapping the stage opens Accounts; dragging spins the model.
+ */
+@Composable
+private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
+    val account = PojavAccountBridge.current
+    var dollAzimuth by remember(account?.username) { mutableFloatStateOf(28f) }
+    val flingScope = rememberCoroutineScope()
+    val dollVelocityTracker = remember(account?.username) { VelocityTracker() }
+    var dollFlingJob by remember(account?.username) { mutableStateOf<Job?>(null) }
+
+    Surface(
+        shape = RoundedCornerShape(AerixRadii.card),
+        color = AerixSurface.panel,
+        border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(240.dp)
+                    .padding(top = AerixSpacing.smCompact, start = AerixSpacing.sm, end = AerixSpacing.sm)
+                    .clip(RoundedCornerShape(AerixRadii.control))
+                    .pointerInput(actions) {
+                        detectTapGestures(onTap = { actions.accounts() })
+                    }
+                    .pointerInput(account?.username) {
+                        detectHorizontalDragGestures(
+                            onDragStart = {
+                                dollFlingJob?.cancel()
+                                dollFlingJob = null
+                                dollVelocityTracker.resetTracking()
+                            },
+                            onDragEnd = {
+                                val releaseVelocity = dollVelocityTracker.calculateVelocity().x * DOLL_DRAG_DEG_PER_PX
+                                dollFlingJob?.cancel()
+                                if (abs(releaseVelocity) < DOLL_FLING_MIN_VELOCITY) {
+                                    dollFlingJob = null
+                                    return@detectHorizontalDragGestures
+                                }
+                                dollFlingJob = flingScope.launch {
+                                    var velocity = releaseVelocity
+                                    var lastFrame = withFrameNanos { it }
+                                    while (abs(velocity) > DOLL_FLING_STOP_VELOCITY) {
+                                        ensureActive()
+                                        val now = withFrameNanos { it }
+                                        val dt = ((now - lastFrame) / 1_000_000_000f).coerceIn(0f, 0.05f)
+                                        lastFrame = now
+                                        dollAzimuth = (dollAzimuth + velocity * dt).mod(360f)
+                                        velocity *= exp(-DOLL_FLING_FRICTION * dt)
+                                    }
+                                    dollFlingJob = null
+                                }
+                            },
+                            onDragCancel = {
+                                dollFlingJob?.cancel()
+                                dollFlingJob = null
+                            },
+                            onHorizontalDrag = { change, dragAmount ->
+                                dollVelocityTracker.addPosition(change.uptimeMillis, change.position)
+                                dollAzimuth = (dollAzimuth + dragAmount * DOLL_DRAG_DEG_PER_PX).mod(360f)
+                            }
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                AerixSkinPreview3D(
+                    account = account,
+                    azimuth = dollAzimuth.roundToInt(),
+                    interactionEnabled = false,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = AerixSpacing.mdPlus)
+                )
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .offset(y = (-4).dp),
+                    shape = RoundedCornerShape(AerixRadii.compact),
+                    color = AerixSurface.canvas,
+                    border = BorderStroke(AerixSpacing.hairline, accent.copy(alpha = 0.45f)),
+                    onClick = { actions.accounts() }
+                ) {
+                    Text(
+                        text = account?.username ?: "+ Add Account",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (account != null) AerixSurface.textPrimary else accent,
+                        maxLines = 1,
+                        modifier = Modifier.padding(horizontal = AerixSpacing.smPlus, vertical = AerixSpacing.tiny)
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(AerixSpacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+            ) {
+                LoginPill("Microsoft", Modifier.weight(1f), actions.loginMicrosoft)
+                LoginPill("Ely.by", Modifier.weight(1f), actions.loginEly)
+                LoginPill("Offline", Modifier.weight(1f), actions.loginOffline)
+            }
+        }
+    }
+}
+
+@Composable
+private fun LoginPill(label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val accent = AerixThemeManager.currentAccent()
+    Surface(
+        modifier = modifier
+            .clip(RoundedCornerShape(AerixRadii.panel))
+            .apexPress(onClick),
+        shape = RoundedCornerShape(AerixRadii.panel),
+        color = accent.copy(alpha = 0.14f),
+        border = BorderStroke(AerixSpacing.hairline, accent.copy(alpha = 0.5f))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = AerixSpacing.smTight, horizontal = AerixSpacing.sm),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = accent,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+/** Instance selector + the centred PLAY button: the launcher's main action on a phone. */
+@Composable
+private fun MiddlePlayBlock(selected: AerixInstance?, accent: Color, actions: HomeActions) {
+    val vanilla = stringResource(R.string.aerix_home_vanilla)
+    var showInstanceMenu by remember { mutableStateOf(false) }
+    val instances = PojavInstanceBridge.instances
+    // The loader and the version of the game: "Fabric 1.16.5" / "Minecraft 1.20.1".
+    val versionSubtitle = remember(selected, vanilla) {
+        when {
+            selected == null -> "Select Instance"
+            loaderLabel(selected.versionId, vanilla) == vanilla ->
+                "Minecraft ${GameDownloadTarget.minecraftVersionIn(selected.versionId) ?: selected.versionId}"
+            else -> instanceVersionLabel(selected.versionId, vanilla)
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AerixSpacing.smPlus)
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(AerixRadii.cardSmall),
+                color = AerixSurface.panel,
+                border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft),
+                onClick = {
+                    if (instances.isNotEmpty()) showInstanceMenu = true else actions.library()
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = AerixSpacing.smPlus, vertical = AerixSpacing.smTight),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(AerixSpacing.xxs)
+                ) {
+                    Text(
+                        text = selected?.name ?: stringResource(R.string.aerix_home_no_active_world),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = AerixSurface.textPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = versionSubtitle,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = accent,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            DropdownMenu(
+                expanded = showInstanceMenu,
+                onDismissRequest = { showInstanceMenu = false }
+            ) {
+                instances.forEach { instance ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+                            ) {
+                                AerixImageWell(
+                                    image = instance.icon,
+                                    fallback = R.drawable.aerix_ic_videogame_asset_outlined,
+                                    size = 24.dp,
+                                    radius = AerixRadii.tiny
+                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(instance.name, fontWeight = FontWeight.Bold, maxLines = 1)
+                                    Text(
+                                        instance.versionId,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = AerixSurface.textSecondary,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        },
+                        onClick = {
+                            actions.select(instance)
+                            showInstanceMenu = false
+                        }
+                    )
+                }
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = "Manage All Instances...",
+                            color = accent,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
+                    onClick = {
+                        showInstanceMenu = false
+                        actions.library()
+                    }
+                )
+            }
+        }
+
+        // The centred PLAY button — press effect, and the tour still points here.
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AerixSpacing.smPlus)
+                .clip(RoundedCornerShape(AerixRadii.panel))
+                .apexPress(if (selected != null) actions.play else actions.create)
+                .guideAnchor(AerixGuideState.PLAY)
+                .height(48.dp),
+            shape = RoundedCornerShape(AerixRadii.panel),
+            color = accent,
+            contentColor = AerixSurface.onAccent
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "PLAY",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = AerixSurface.onAccent
+                )
+                Spacer(Modifier.width(AerixSpacing.xs))
+                Icon(
+                    painter = painterResource(R.drawable.aerix_ic_play_arrow_filled),
+                    contentDescription = stringResource(R.string.aerix_home_play),
+                    tint = AerixSurface.onAccent,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+    }
+}
+
+/** The five home options: Modpacks, Mods, Settings, Contribution, Add Version. */
+@Composable
+private fun OptionsGrid(accent: Color, actions: HomeActions) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+        ) {
+            QuickActionTile(
+                R.drawable.aerix_ic_package_2_outlined, "Modpacks", "Browse & install",
+                accent, actions.explore, Modifier.weight(1f).height(78.dp)
+            )
+            QuickActionTile(
+                R.drawable.aerix_ic_extension_outlined, "Mods", "Client mods",
+                accent, actions.mods, Modifier.weight(1f).height(78.dp)
+            )
+            QuickActionTile(
+                R.drawable.aerix_ic_settings_filled, "Settings", "Launcher options",
+                accent, actions.settings, Modifier.weight(1f).height(78.dp)
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+        ) {
+            QuickActionTile(
+                R.drawable.aerix_ic_group_outlined, "Contribution", "The team",
+                accent, actions.contribution, Modifier.weight(1f).height(78.dp)
+            )
+            QuickActionTile(
+                R.drawable.aerix_ic_add, "Add Version", "New instance",
+                accent, actions.create, Modifier.weight(1.6f).height(78.dp)
+            )
+        }
     }
 }
 

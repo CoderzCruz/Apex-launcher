@@ -660,4 +660,7 @@ Your original layout is kept unchanged. Continue importing?</string>
     <string name="ctrl_theme_static">Static</string>
     <string name="ctrl_theme_starcross">Star Cross</string>
     <string name="ctrl_theme_comet">Comet Grid</string>
+    <!-- CI overwrites this with the APEX_SERVICE_AI_KEY secret at build time; empty by design
+         so no secret ever lands in the repository. Blank = built-in knowledge base answers. -->
+    <string name="apex_service_ai_key" translatable="false"></string>
 </resources>
