@@ -79,6 +79,7 @@ import net.kdt.pojavlaunch.aerix.ui.screens.AboutScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AccountsScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AddAccountScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AiScreen
+import net.kdt.pojavlaunch.aerix.ui.screens.RulesScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AerixContribution
 import net.kdt.pojavlaunch.aerix.ui.screens.ContributionDetailScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.ContributionScreen
@@ -190,7 +191,6 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
                         when (target) {
                             LauncherSection.OTHER_RELEASES -> net.kdt.pojavlaunch.aerix.ui.screens.OtherReleasesScreen(activity, navigate)
                             LauncherSection.HOME -> HomeScreen(activity, navigate)
-                            LauncherSection.AERIX_CLIENT -> net.kdt.pojavlaunch.aerix.ui.screens.AerixClientScreen(activity)
                             LauncherSection.LIBRARY -> LibraryScreen(activity)
                             LauncherSection.SOCIALS -> SocialsScreen(activity) { AerixNav.finishTo(LauncherSection.HOME) }
                             LauncherSection.DISCOVER, LauncherSection.DOWNLOADS -> DiscoverScreen(activity, navigate)
@@ -234,6 +234,9 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
                                 onCreated = { AerixNav.finishTo(LauncherSection.ACCOUNTS) }
                             )
                             LauncherSection.AI -> AiScreen(
+                                onClose = { AerixNav.finishTo(LauncherSection.HOME) }
+                            )
+                            LauncherSection.RULES -> RulesScreen(
                                 onClose = { AerixNav.finishTo(LauncherSection.HOME) }
                             )
                         }

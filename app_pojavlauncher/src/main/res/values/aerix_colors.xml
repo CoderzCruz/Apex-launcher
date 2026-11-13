@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Aerix glass palette, ported from mirai-launcher- ui/theme/AerixSurface.kt -->
+<!-- Vortex glass palette, ported from mirai-launcher- ui/theme/VortexSurface.kt -->
 <resources>
     <color name="aerix_canvas">#FF07131D</color>
     <color name="aerix_panel">#9D172B3A</color>

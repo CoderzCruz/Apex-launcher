@@ -321,7 +321,7 @@ internal object LauncherUpdater {
                         val uri = FileProvider.getUriForFile(context, "${context.packageName}.updates", file)
                         context.startActivity(Intent(Intent.ACTION_VIEW).apply {
                             setDataAndType(uri, "application/vnd.android.package-archive")
-                            clipData = ClipData.newRawUri("Aerix update", uri)
+                            clipData = ClipData.newRawUri("Vortex update", uri)
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         })
                     }

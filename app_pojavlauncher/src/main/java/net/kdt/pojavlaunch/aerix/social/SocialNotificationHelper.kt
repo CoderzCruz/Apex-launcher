@@ -123,7 +123,7 @@ object SocialNotificationHelper {
 
         return NotificationCompat.Builder(context, CHANNEL_BG_SYNC)
             .setSmallIcon(R.drawable.notif_icon)
-            .setContentTitle("Aerix Socials connected")
+            .setContentTitle("Vortex Socials connected")
             .setContentText("Listening for friend & party messages")
             .setContentIntent(contentPi)
             .setPriority(NotificationCompat.PRIORITY_MIN)

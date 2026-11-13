@@ -208,7 +208,7 @@ private fun DiscordRichPresenceLivePreview(
     }
     val detailsLine = when {
         usingOfficialMcProfile -> "Playing Minecraft 1.21.4 · via Aerix Launcher"
-        previewInGame -> "Aerix Launcher · Survival SMP"
+        previewInGame -> "Vortex Launcher · Survival SMP"
         else -> "Browsing the dashboard"
     }
     val stateLine = if (usingOfficialMcProfile) "Survival SMP (2 of 4)" else null
@@ -299,7 +299,7 @@ private fun DiscordRichPresenceLivePreview(
                     ) {
                         Image(
                             painter = painterResource(R.drawable.aerix_logo),
-                            contentDescription = "Aerix Cover Art",
+                            contentDescription = "Vortex Cover Art",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(62.dp)
@@ -309,7 +309,7 @@ private fun DiscordRichPresenceLivePreview(
                         if (usingOfficialMcProfile) {
                             Image(
                                 painter = painterResource(R.drawable.aerix_logo),
-                                contentDescription = "Aerix Badge",
+                                contentDescription = "Vortex Badge",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .size(22.dp)

@@ -3,7 +3,7 @@
     <color name="control_button_color">#4CC4C4C4</color>
     <color name="control_button_pressed_color">#4D000000</color>
 
-    <!-- Pojav widget colors re-tinted with the Aerix glass palette (aerix_colors.xml). -->
+    <!-- Pojav widget colors re-tinted with the Vortex glass palette (aerix_colors.xml). -->
     <color name="minebutton_color">@color/aerix_action</color>
     <color name="minebutton_secondary">@color/aerix_panel_solid</color>
     <color name="background_app">@color/aerix_canvas</color>

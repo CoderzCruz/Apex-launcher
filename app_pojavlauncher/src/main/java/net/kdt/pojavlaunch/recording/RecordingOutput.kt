@@ -20,7 +20,7 @@ internal class RecordingOutput(private val context: Context) {
     private var uri: Uri? = null
     private var file: File? = null
     private var descriptor: ParcelFileDescriptor? = null
-    private val name = "Aerix-${SimpleDateFormat("yyyyMMdd-HHmmss-SSS", Locale.ROOT).format(Date())}.mp4"
+    private val name = "Vortex-${SimpleDateFormat("yyyyMMdd-HHmmss-SSS", Locale.ROOT).format(Date())}.mp4"
 
     fun open(): MediaMuxer {
         if (Build.VERSION.SDK_INT >= 29) {
@@ -47,7 +47,7 @@ internal class RecordingOutput(private val context: Context) {
             descriptor = requireNotNull(context.contentResolver.openFileDescriptor(uri!!, "rw"))
             return MediaMuxer(descriptor!!.fileDescriptor, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
         }
-        val directory = File(requireNotNull(context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)), "Aerix")
+        val directory = File(requireNotNull(context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)), "Vortex")
         check(directory.isDirectory || directory.mkdirs()) { "Cannot create recording folder" }
         file = File(directory, name)
         return MediaMuxer(file!!.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)

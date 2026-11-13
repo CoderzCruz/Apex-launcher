@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Aerix Launcher UI strings.
+  Vortex Launcher UI strings.
   Wording taken from mirai-launcher- (Zalith Launcher 2 fork):
     MiraiLauncher/src/main/res/values/strings.xml
     MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/home/MiraiHomeDashboard.kt
@@ -8,7 +8,7 @@
   Licensed under GPL-3.0 together with the rest of the project.
 -->
 <resources>
-    <string name="aerix_brand" translatable="false">Aerix</string>
+    <string name="aerix_brand" translatable="false">Vortex</string>
 
     <!-- Navigation rail -->
     <string name="aerix_nav_home">Home</string>
@@ -19,7 +19,7 @@
     <string name="aerix_nav_settings">Settings</string>
     <string name="aerix_nav_contribution">Contribution</string>
     <string name="aerix_nav_about">About</string>
-    <string name="aerix_nav_back_home">Back to Aerix home</string>
+    <string name="aerix_nav_back_home">Back to Vortex home</string>
 
     <!-- Home dashboard -->
     <string name="aerix_home_ready">READY WHEN YOU ARE</string>
@@ -38,7 +38,7 @@
     <string name="aerix_home_view_all">View all</string>
     <string name="aerix_home_quick_tools">Quick tools</string>
     <!-- In game menu (full screen overlay) -->
-    <string name="aerix_ingame_menu_title">Aerix Menu</string>
+    <string name="aerix_ingame_menu_title">Vortex Menu</string>
     <string name="aerix_ingame_menu_subtitle">%1$s</string>
     <string name="aerix_ingame_menu_resume">Resume game</string>
     <string name="aerix_ingame_menu_force_close">Force close game</string>
@@ -164,7 +164,7 @@
     <string name="aerix_wallpaper_custom">Custom image</string>
     <string name="aerix_wallpaper_custom_sub">Pick a picture, the accent follows its colours</string>
     <string name="aerix_wallpaper_none">No wallpaper</string>
-    <string name="aerix_wallpaper_none_sub">Plain Aerix canvas</string>
+    <string name="aerix_wallpaper_none_sub">Plain Vortex canvas</string>
     <string name="aerix_wallpaper_active">Active</string>
     <string name="aerix_wallpaper_header">%1$d Minecraft HD Wallpapers &amp; Dynamic Themes</string>
     <string name="aerix_wallpaper_active_line">Active: %1$s • Theme: %2$s</string>
@@ -202,8 +202,8 @@
     <string name="aerix_settings_cat_misc">Miscellaneous</string>
     <string name="aerix_settings_cat_experimental">Experimental</string>
     <string name="aerix_settings_color_theme">Colour theme</string>
-    <string name="aerix_settings_color_theme_sub">Aerix palette or a custom accent</string>
-    <string name="aerix_settings_theme_aerix">Aerix</string>
+    <string name="aerix_settings_color_theme_sub">Vortex palette or a custom accent</string>
+    <string name="aerix_settings_theme_aerix">Vortex</string>
     <string name="aerix_settings_theme_custom">Custom</string>
     <string name="aerix_settings_custom_color">Custom accent</string>
     <string name="aerix_settings_custom_color_sub">Used when the colour theme is Custom</string>
@@ -227,20 +227,20 @@
     <string name="aerix_settings_saturation">Saturation</string>
     <string name="aerix_settings_brightness">Brightness</string>
     <string name="aerix_settings_apply">Apply</string>
-    <string name="aerix_settings_classic_all">All Aerix Launcher settings</string>
+    <string name="aerix_settings_classic_all">All Vortex Launcher settings</string>
     <string name="aerix_settings_classic_all_sub">The complete original preference tree</string>
-    <string name="aerix_settings_classic_home">Classic Aerix Launcher home</string>
+    <string name="aerix_settings_classic_home">Classic Vortex Launcher home</string>
     <string name="aerix_settings_classic_home_sub">Version spinner, news, Discord, controls, .jar, logs and directory buttons</string>
 
     <!-- About -->
     <string name="aerix_about_title">About</string>
-    <string name="aerix_about_subtitle">Aerix Launcher</string>
+    <string name="aerix_about_subtitle">Vortex Launcher</string>
     <string name="aerix_about_version">Version %1$s</string>
     <string name="aerix_about_license">GNU General Public License v3.0</string>
-    <string name="aerix_about_credits">Interface ported from Aerix / Zalith Launcher 2 (MovTery and contributors). Launcher core from PojavLauncher / MojoLauncher (PojavLauncherTeam and contributors).</string>
+    <string name="aerix_about_credits">Interface ported from Vortex / Zalith Launcher 2 (MovTery and contributors). Launcher core from PojavLauncher / MojoLauncher (PojavLauncherTeam and contributors).</string>
     <string name="aerix_about_website">Website</string>
     <string name="aerix_about_source">Source code</string>
-    <string name="aerix_about_ui_source">Aerix interface source</string>
+    <string name="aerix_about_ui_source">Vortex interface source</string>
 
     <!-- Navigation additions -->
     <string name="aerix_nav_content">Content</string>
@@ -424,7 +424,7 @@
     <string name="aerix_settings_log_retention">Log retention</string>
     <string name="aerix_settings_log_retention_sub">Crash reports and trashed files older than this are removed when the launcher starts</string>
 
-    <!-- Create New Instance / instance settings / account pages (Aerix UI layer). -->
+    <!-- Create New Instance / instance settings / account pages (Vortex UI layer). -->
     <string name="aerix_settings_value_on">On</string>
     <string name="aerix_settings_value_off">Off</string>
     <string name="aerix_settings_value_none">none</string>
@@ -562,18 +562,18 @@
     <string name="aerix_loader_finish_installer">Complete the installer to update this instance</string>
     <string name="aerix_loader_change_game_title">Change Minecraft version?</string>
     <string name="aerix_loader_change_game_warning">This updates the existing instance to a different Minecraft version. Its mods may be incompatible. Back up your worlds before launching.</string>
-    <string name="aerix_logo_size_title">In-game Aerix logo size</string>
+    <string name="aerix_logo_size_title">In-game Vortex logo size</string>
     <string name="aerix_logo_size_value">Logo size: %1$d dp</string>
     <string name="aerix_logo_size_hint">Very small (20 dp) to big (96 dp). Drag the slider for a live preview. Small sizes are harder to tap.</string>
     <string name="aerix_logo_size_default">Default</string>
-    <string name="aerix_logo_size_accessibility">Aerix menu. Tap to open; drag to move; hold to resize.</string>
+    <string name="aerix_logo_size_accessibility">Vortex menu. Tap to open; drag to move; hold to resize.</string>
 
 
-    <!-- Aerix menu: the wallpaper behind the controls while the game starts. -->
+    <!-- Vortex menu: the wallpaper behind the controls while the game starts. -->
     <string name="aerix_ingame_menu_loading_wallpaper">Use wallpaper as loading background</string>
     <string name="aerix_ingame_menu_loading_wallpaper_summary">Your wallpaper - or animation - instead of black until the game window appears.</string>
 
-    <!-- Aerix menu: the account panel and the restart it needs to switch accounts in game. -->
+    <!-- Vortex menu: the account panel and the restart it needs to switch accounts in game. -->
     <string name="aerix_ingame_menu_switch_account">Switch account</string>
     <string name="aerix_ingame_menu_rotate_hint">Drag to rotate</string>
     <string name="aerix_ingame_menu_switch_restart_title">Switch account</string>

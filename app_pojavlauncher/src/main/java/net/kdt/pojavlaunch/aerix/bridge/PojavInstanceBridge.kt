@@ -359,7 +359,7 @@ object PojavInstanceBridge {
                                 addProperty("manifestVersion", 1)
                                 addProperty("name", packName.ifBlank { instance.name })
                                 addProperty("version", packVersion.ifBlank { "1.0.0" })
-                                addProperty("author", packAuthor.ifBlank { "Aerix" })
+                                addProperty("author", packAuthor.ifBlank { "Vortex" })
                                 add("files", JsonArray())
                                 addProperty("overrides", "overrides")
                             }

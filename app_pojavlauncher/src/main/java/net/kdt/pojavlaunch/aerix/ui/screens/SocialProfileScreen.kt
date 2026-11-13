@@ -648,7 +648,7 @@ private fun ProfileCard(
                                 as android.content.ClipboardManager
                         clipboard.setPrimaryClip(
                             android.content.ClipData.newPlainText(
-                                "Aerix invite",
+                                "Vortex invite",
                                 "aerix-social://friend/$code"
                             )
                         )

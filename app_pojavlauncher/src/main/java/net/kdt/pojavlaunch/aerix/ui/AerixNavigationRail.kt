@@ -83,8 +83,6 @@ import net.kdt.pojavlaunch.aerix.theme.AerixThemeManager
 /** Primary destinations kept visible while the Aerix launcher is open. */
 enum class LauncherSection {
     HOME,
-    /** Dedicated Aerix Client (Minecraft 1.16.5 Testing Edition · Liquid Crystal Clear). */
-    AERIX_CLIENT,
     LIBRARY,
     /** Friends, messages and parties - the social launcher, opened from Home and the rail. */
     SOCIALS,
@@ -102,6 +100,8 @@ enum class LauncherSection {
     ABOUT,
     /** Apex Service — the assistant chat, opened from the Home header. */
     AI,
+    /** Rules of Vortex Launcher — the page every player reads before playing v1. */
+    RULES,
     /** Pages opened on top of a section (Mirai "Create New Instance", instance settings, account sign-in). */
     CREATE_INSTANCE,
     INSTANCE_EDITOR,
@@ -152,7 +152,7 @@ fun AerixNavigationRail(
                     modifier = Modifier
                         .clip(RoundedCornerShape(AerixRadii.panelSmall))
                         .clickable(role = Role.Button) { onNavigate(LauncherSection.HOME) }
-                        .semantics { contentDescription = "Aerix Home" }
+                        .semantics { contentDescription = "Vortex Home" }
                         .padding(vertical = AerixSpacing.xs),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(AerixSpacing.xxs)
@@ -172,13 +172,13 @@ fun AerixNavigationRail(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_aerix_mark),
-                            contentDescription = "Aerix",
+                            contentDescription = "Vortex",
                             tint = Color.Unspecified,
                             modifier = Modifier.size(if (compactRail) 20.dp else 24.dp)
                         )
                     }
                     if (expandedRail) {
-                        Text(text = "AERIX", fontSize = 8.sp, letterSpacing = 1.1.sp, fontWeight = FontWeight.ExtraBold, color = AerixSurface.textSecondary)
+                        Text(text = "VORTEX", fontSize = 8.sp, letterSpacing = 1.1.sp, fontWeight = FontWeight.ExtraBold, color = AerixSurface.textSecondary)
                     }
                 }
 
@@ -186,8 +186,8 @@ fun AerixNavigationRail(
 
                 RailIconItem(R.drawable.aerix_ic_home_filled, stringResource(R.string.aerix_nav_home),
                     selectedSection == LauncherSection.HOME, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.HOME) }
-                RailIconItem(R.drawable.aerix_ic_client_crystal, "Aerix Client",
-                    selectedSection == LauncherSection.AERIX_CLIENT, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.AERIX_CLIENT) }
+                RailIconItem(R.drawable.aerix_ic_description_outlined, "Rules",
+                    selectedSection == LauncherSection.RULES, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.RULES) }
                 RailIconItem(R.drawable.aerix_ic_add, stringResource(R.string.create_instance),
                     selectedSection == LauncherSection.CREATE_INSTANCE, activeAccent, expandedRail, compactRail,
                     onClick = onCreateInstance, guideKey = AerixGuideState.CREATE)

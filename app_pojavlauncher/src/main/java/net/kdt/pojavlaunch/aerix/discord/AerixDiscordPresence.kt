@@ -922,10 +922,10 @@ object AerixDiscordPresence {
         val usingMinecraftProfile = isMinecraftCatalogId(connectedAppId)
         val clickable = AerixPreferences.discordClickableLinks
 
-        val cardName = if (usingMinecraftProfile) "Minecraft" else "Aerix Launcher"
+        val cardName = if (usingMinecraftProfile) "Minecraft" else "Vortex Launcher"
         // status_display_type: 0 = Name ("Playing Minecraft"), 2 = Details ("In the launcher" / "Playing Minecraft 1.21")
         val statusDisplayType = if (usingMinecraftProfile) 0 else 2
-        val effectiveDetails = if (usingMinecraftProfile && !details.contains("Aerix", ignoreCase = true)) {
+        val effectiveDetails = if (usingMinecraftProfile && !details.contains("Vortex", ignoreCase = true)) {
             "$details · via Aerix Launcher"
         } else {
             details
@@ -963,11 +963,11 @@ object AerixDiscordPresence {
             assets.put("large_image", validPackIcon)
             assets.put("large_text", "$state · Aerix Launcher")
             assets.put("small_image", AERIX_LOGO_URL)
-            assets.put("small_text", "Aerix Launcher — Tap to join Discord")
+            assets.put("small_text", "Vortex Launcher — Tap to join Discord")
         } else {
             assets.put("large_image", AERIX_LOGO_URL)
             assets.put("large_text", if (usingMinecraftProfile)
-                "Aerix Launcher — Minecraft Java Edition on Android" else "Aerix Launcher — Official Website & Info")
+                "Vortex Launcher — Minecraft Java Edition on Android" else "Vortex Launcher — Official Website & Info")
             if (usingMinecraftProfile) {
                 assets.put("small_image", AERIX_LOGO_URL)
                 assets.put("small_text", "Powered by Aerix Launcher")
@@ -1110,7 +1110,7 @@ object AerixDiscordPresence {
         const val FILES = "In the file browser"
         const val ABOUT = "Reading about the launcher"
         const val SOCIALS = "Chatting in Socials"
-        const val AERIX_CLIENT = "Configuring Aerix Client 1.16.5"
+        const val AERIX_CLIENT = "Configuring Vortex Client 1.16.5"
         const val GENERIC = "Browsing"
 
         fun stateFor(section: String?): String = when (section?.uppercase()) {
