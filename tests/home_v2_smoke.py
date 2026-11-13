@@ -2,8 +2,8 @@
 """Smoke checks for Home v2 on the phone: skin stage, login quick row, middle PLAY,
 the five-option grid, header entries, and the shared press effect.
 
-The wide ActionMenu keeps its own copy of the stage — these assertions cover the compact
-dashboard the player actually sees on a handset.
+The v2 dashboard is the ONLY dashboard now: the old right-hand ActionMenu Steve card was
+removed as the player's duplicate, so every width shows exactly one skin stage.
 """
 from pathlib import Path
 
