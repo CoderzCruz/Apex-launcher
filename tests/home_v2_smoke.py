@@ -22,6 +22,11 @@ for section in ("HomeHeaderRow(actions)", "PhoneSkinStage(accent, actions)",
 # Replaced pieces are gone from the phone dashboard.
 assert "QuickTiles(count" not in compact
 assert "QuickToolsPanel" not in compact
+# v2 is the only layout: no wide branch, no ActionMenu Steve card anywhere.
+home_all = home
+assert "WideHomeDashboard(selected" not in home_all, "wide branch removed"
+assert "showActionMenu" not in home_all
+assert home_all.count("CompactHomeDashboard(selected, recent") == 1
 
 # ── Skin stage: drag + fling rotation, account pill, login quick row ──────
 stage = home[home.index("private fun PhoneSkinStage"):home.index("private fun LoginPill")]
