@@ -86,7 +86,7 @@ object SocialNotificationHelper {
             "Socials Background Listener",
             NotificationManager.IMPORTANCE_MIN
         ).apply {
-            description = "Keeps Apex Socials connected for instant message alerts while closed"
+            description = "Keeps Aerix Socials connected for instant message alerts while closed"
             setSound(null, null)
             enableVibration(false)
             setShowBadge(false)
@@ -123,7 +123,7 @@ object SocialNotificationHelper {
 
         return NotificationCompat.Builder(context, CHANNEL_BG_SYNC)
             .setSmallIcon(R.drawable.notif_icon)
-            .setContentTitle("Apex Socials connected")
+            .setContentTitle("Aerix Socials connected")
             .setContentText("Listening for friend & party messages")
             .setContentIntent(contentPi)
             .setPriority(NotificationCompat.PRIORITY_MIN)

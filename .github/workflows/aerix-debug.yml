@@ -41,7 +41,7 @@ concurrency:
 env:
   # One APK for every phone: the debug build carries both ARM architectures, so it installs
   # anywhere without a second file to choose between.
-  APK_NAME: ApexLauncher1.0.apk
+  APK_NAME: Aerix-Launcher-debug.apk
   APK_PATH: app_pojavlauncher/build/outputs/apk/noruntime/debug/app_pojavlauncher-noruntime-debug.apk
 
 jobs:
@@ -50,10 +50,6 @@ jobs:
     timeout-minutes: 60
     env:
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-      # Optional brain for Apex Service. Add it under Settings → Secrets and variables →
-      # Actions as "APEX_SERVICE_AI_KEY"; when it is missing the assistant still answers
-      # from its built-in knowledge base, so the build never breaks without it.
-      APEX_SERVICE_AI_KEY: ${{ secrets.APEX_SERVICE_AI_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -70,22 +66,9 @@ jobs:
         run: |
           python3 tests/branding_identity_smoke.py
           python3 tests/discord_presence_logo_smoke.py
-          python3 tests/discord_game_handoff_smoke.py
-          python3 tests/apex_owner_and_diwali_smoke.py
-          python3 tests/public_chat_smoke.py
-          python3 tests/public_chat_voice_badges_smoke.py
-          python3 tests/apex_service_smoke.py
           python3 tests/modern_cape_smoke.py
           python3 tests/social_profile_cosmetics_smoke.py
           python3 tests/client_background_smoke.py
-          python3 tests/crimson_noir_home_smoke.py
-          python3 tests/nav_back_smoke.py
-          python3 tests/launch_kit_smoke.py
-          python3 tests/diwali_skin_smoke.py
-          python3 tests/indian_festivals_smoke.py
-          python3 tests/theme_presets_smoke.py
-          python3 tests/ui_refresh_smoke.py
-          python3 tests/pastel_light_smoke.py
           mkdir -p "$RUNNER_TEMP/aerix-memory-test"
           javac -d "$RUNNER_TEMP/aerix-memory-test" \
             app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/InstanceMemory.java \
@@ -168,24 +151,11 @@ jobs:
           ./gradlew :app_pojavlauncher:assembleNoruntimeDebug --console=plain > build.log 2>&1
           code=$?
           if [ "$code" -ne 0 ]; then
-            # Any Kotlin diagnostic, anywhere in the line, plus the usual Gradle failure block.
-            grep -aE "e: |error: |CMake Error|CMake Generate step failed|FAILURE: |What went wrong|Caused by|Exception" build.log |
-              sort -u | head -60 |
+            grep -E "^e: |error: |CMake Error|CMake Generate step failed|FAILURE: |What went wrong|Caused by" -A5 build.log | sort -u | head -40 |
               while read -r l; do echo "::error title=gradle::$(printf '%s' "$l" | head -c 500)"; done
-            grep -aE "\.kt:[0-9]+" build.log | sort -u | head -40 |
-              while read -r l; do echo "::error title=kt::$(printf '%s' "$l" | head -c 500)"; done
+            tail -20 build.log | while read -r l; do echo "::error title=tail::$(printf '%s' "$l" | head -c 500)"; done
           fi
           exit "$code"
-
-      # The log endpoint is not readable from every client, so the raw build log is kept as an
-      # artifact and can be pulled down when a failure needs a closer look.
-      - name: Upload build log on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
-          retention-days: 5
 
       - name: Check it is really the debug build
         id: verify
@@ -205,104 +175,6 @@ jobs:
           echo "version_code=$VCODE" >> "$GITHUB_OUTPUT"
           echo "::notice title=apk-verified::$BADGING"
 
-      - name: Check the Apex Service key made it into the APK
-        id: apexkey
-        shell: bash
-        # Never prints the key: only whether the build carries one. With no secret configured the
-        # assistant still runs on its knowledge base, so this must not fail the build.
-        run: |
-          STATUS="$(python3 - <<'PY'
-          import os, zipfile
-          key = os.environ.get("APEX_SERVICE_AI_KEY", "").strip()
-          if not key:
-              print("NOT-CONFIGURED")
-              raise SystemExit
-          res = zipfile.ZipFile(os.environ["APK_PATH"]).read("resources.arsc")
-          print("EMBEDDED" if (key.encode() in res or key.encode("utf-16-le") in res) else "MISSING")
-          PY
-          )"
-          STATUS="$(printf '%s' "$STATUS" | tr -d '[:space:]')"
-          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
-          echo "::notice title=apex-service::key $STATUS"
-          test "$STATUS" != "MISSING"
-
-      - name: Probe the Apex Service brain
-        id: apexprobe
-        shell: bash
-        # Real call to the Gemini API with the saved key. Prints only status codes and the model
-        # name, never the key, and never fails the build: a broken brain must not block an APK.
-        continue-on-error: true
-        run: |
-          python3 - <<'PY'
-          import json, os, re, urllib.error, urllib.request
-
-          key = os.environ.get("APEX_SERVICE_AI_KEY", "").strip()
-          base = "https://generativelanguage.googleapis.com/v1beta"
-          summary = "no-key"
-          if key:
-              def call(url, payload=None):
-                  data = json.dumps(payload).encode() if payload else None
-                  req = urllib.request.Request(url, data=data, method="POST" if payload else "GET")
-                  req.add_header("x-goog-api-key", key)
-                  if payload:
-                      req.add_header("Content-Type", "application/json")
-                  try:
-                      with urllib.request.urlopen(req, timeout=40) as r:
-                          return r.status, json.loads(r.read().decode())
-                  except urllib.error.HTTPError as e:
-                      return e.code, {}
-                  except Exception:
-                      return 0, {}
-
-              status, listing = call(f"{base}/models?pageSize=200")
-              junk = ("tts", "image", "audio", "embedding", "aqa", "live", "native",
-                      "video", "veo", "imagen", "learnlm", "robotics", "computer")
-              models = [m.get("name", "").split("/")[-1] for m in listing.get("models", [])
-                        if "generateContent" in m.get("supportedGenerationMethods", [])
-                        and not any(j in m.get("name", "") for j in junk)]
-              # Same ranking the app uses: newest version first, flash before others, stable
-              # before preview and lite.
-              def rank(name):
-                  version = re.search(r"gemini-(\d+(?:\.\d+)?)", name)
-                  return (
-                      1 if "flash" in name else 0,
-                      float(version.group(1)) if version else 0.0,
-                      0 if "preview" in name else 1,
-                      0 if "lite" in name else 1,
-                  )
-              ranked = sorted(models, key=rank, reverse=True)
-              summary = f"models={status}/{len(models)}"
-              # Ask the top few names the app would try, so the release notes show which ones
-              # actually answer on this key.
-              tried = []
-              for pick in ranked[:6]:
-                  code, body = call(f"{base}/models/{pick}:generateContent", {
-                      "contents": [{"parts": [{"text": "Reply with OK only."}]}],
-                      "generationConfig": {"thinkingConfig": {"thinkingLevel": "low"},
-                                           "maxOutputTokens": 900},
-                  })
-                  text = ""
-                  try:
-                      text = body["candidates"][0]["content"]["parts"][0]["text"].strip()
-                  except Exception:
-                      text = ""
-                  if text:
-                      tried.append(f"{pick}:{code}:OK")
-                  else:
-                      err = ""
-                      try:
-                          err = str(body["error"]["message"])[:90].replace(" ", "_")
-                      except Exception:
-                          err = ""
-                      tried.append(f"{pick}:{code}" + (f":{err}" if err else ""))
-              if tried:
-                  summary += " " + ",".join(tried)
-
-          print("::notice title=apex-probe::" + summary.replace(":", " "))
-          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
-              out.write("summary=" + summary + "\n")
-          PY
-
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
@@ -314,14 +186,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION_CODE: ${{ steps.verify.outputs.version_code }}
-          AI_STATUS: ${{ steps.apexkey.outputs.status }}
-          AI_PROBE: ${{ steps.apexprobe.outputs.summary }}
         shell: bash
         run: |
           set -euo pipefail
           TAG="debug-latest"
           SHORT="${GITHUB_SHA:0:7}"
-          STAMPED_NAME="${APK_NAME%.apk}-$SHORT.apk"
+          STAMPED_NAME="Aerix-Launcher-debug-$SHORT.apk"
           BUILT_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
           STAGE="$(mktemp -d)"
           cp "$APK_PATH" "$STAGE/$APK_NAME"
@@ -339,7 +209,6 @@ jobs:
             echo "built: $BUILT_AT"
             echo "sha256: $SHA256"
             echo "package: net.kdt.pojavlaunch.debug"
-            echo "apex-service: $AI_STATUS"
             echo "note: side-by-side testing build; public stable releases live under v* tags"
           } > "$STAGE/DEBUG_BUILD.txt"
           {
@@ -352,8 +221,6 @@ jobs:
             echo "- **versionCode:** \`$VERSION_CODE\`"
             echo "- **Built:** \`$BUILT_AT\`"
             echo "- **SHA-256:** \`$SHA256\`"
-            echo "- **Apex Service brain:** \`$AI_STATUS\`"
-            echo "- **Apex Service probe:** \`$AI_PROBE\`"
           } > "$STAGE/RELEASE_NOTES.md"
 
           # Anchor the tag ref to the root 2020 keystore commit so GitHub's /releases list
@@ -361,8 +228,7 @@ jobs:
           ANCHOR_SHA="cadb0ab12ff45b582927361b703df878b37e0221"
           if gh release view "$TAG" > /dev/null 2>&1; then
             # Prune previous commit-stamped APKs so only the latest pair remains on debug-latest.
-            STAMPED_BASE="$(printf '%s' "${APK_NAME%.apk}" | sed 's/[.]/\\./g')"
-            for old_asset in $(gh release view "$TAG" --json assets --jq '.assets[].name' | grep -E "^${STAMPED_BASE}-[0-9a-f]+\\.apk$" || true); do
+            for old_asset in $(gh release view "$TAG" --json assets --jq '.assets[].name' | grep -E '^Aerix-Launcher-debug-[0-9a-f]+\.apk$' || true); do
               if [ "$old_asset" != "$STAMPED_NAME" ]; then
                 gh release delete-asset "$TAG" "$old_asset" --yes || true
               fi

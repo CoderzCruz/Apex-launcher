@@ -90,7 +90,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import net.kdt.pojavlaunch.R
@@ -217,9 +216,9 @@ fun HomeScreen(activity: FragmentActivity, navigate: (LauncherSection) -> Unit) 
                     .padding(start = AerixSpacing.mdPlus, end = AerixSpacing.smCompact, top = AerixSpacing.smPlus)
             ) {
                 if (maxWidth >= 720.dp && maxWidth > maxHeight) {
-                    WideHomeDashboard(selected, accent, taskCount, actions)
+                    WideHomeDashboard(selected, recent, instances.size, accent, taskCount, actions)
                 } else {
-                    CompactHomeDashboard(selected, recent, accent, taskCount, actions)
+                    CompactHomeDashboard(selected, recent, instances.size, accent, taskCount, actions)
                 }
             }
             if (showActionMenu) {
@@ -392,7 +391,7 @@ private fun ActionMenuCard(
                                 text = selected?.name ?: stringResource(R.string.aerix_home_no_active_world),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = AerixSurface.textPrimary,
+                                color = Color.White,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -493,6 +492,8 @@ private fun ActionMenuCard(
 @Composable
 private fun WideHomeDashboard(
     selected: AerixInstance?,
+    recent: List<AerixInstance>,
+    count: Int,
     accent: Color,
     taskCount: Int,
     actions: HomeActions
@@ -503,12 +504,35 @@ private fun WideHomeDashboard(
             .padding(bottom = AerixSpacing.smPlus),
         verticalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
     ) {
-        ApexLaunchBanner()
         SameVersionNudgeStrip(selected = selected, accent = accent, onOpenSocials = actions.socials)
-        HomeSectionLabel(stringResource(R.string.aerix_home_your_space), null)
-        QuickTiles(accent, actions, Modifier.fillMaxWidth().height(78.dp), scrollable = false)
-        ActiveWorldPanel(selected, accent, actions, Modifier.fillMaxWidth().weight(1f))
-        TaskSummaryPanel(taskCount, accent, Modifier.fillMaxWidth().height(74.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.57f),
+            horizontalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
+        ) {
+            // The hero banner is gone: the active world now opens the page, and everything that
+            // used to sit below it moves up into the space it took.
+            ActiveWorldPanel(selected, accent, actions, Modifier.weight(1.55f).fillMaxHeight())
+            Column(
+                modifier = Modifier
+                    .weight(0.85f)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
+            ) {
+                TaskSummaryPanel(taskCount, accent, Modifier.height(74.dp))
+                QuickToolsPanel(accent, actions, Modifier.weight(1f), scrollable = true)
+            }
+        }
+        QuickTiles(count, accent, actions, Modifier.fillMaxWidth().height(78.dp), scrollable = false)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.43f),
+            horizontalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
+        ) {
+            RecentWorldsPanel(recent, selected, accent, actions, Modifier.weight(1f).fillMaxHeight(), lazy = true)
+        }
     }
 }
 
@@ -516,6 +540,7 @@ private fun WideHomeDashboard(
 private fun CompactHomeDashboard(
     selected: AerixInstance?,
     recent: List<AerixInstance>,
+    count: Int,
     accent: Color,
     taskCount: Int,
     actions: HomeActions
@@ -527,10 +552,9 @@ private fun CompactHomeDashboard(
     ) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
-                ApexLaunchBanner()
                 SameVersionNudgeStrip(selected = selected, accent = accent, onOpenSocials = actions.socials)
                 HomeSectionLabel(stringResource(R.string.aerix_home_your_space), null)
-                QuickTiles(accent, actions, Modifier.fillMaxWidth(), scrollable = true)
+                QuickTiles(count, accent, actions, Modifier.fillMaxWidth(), scrollable = true)
             }
         }
         // On a phone the side action panel is collapsed, so the play step points at the world card here.
@@ -550,7 +574,7 @@ private fun CompactHomeDashboard(
 }
 
 @Composable
-private fun QuickTiles(accent: Color, actions: HomeActions, modifier: Modifier, scrollable: Boolean) {
+private fun QuickTiles(count: Int, accent: Color, actions: HomeActions, modifier: Modifier, scrollable: Boolean) {
     val rowModifier = if (scrollable) modifier.horizontalScroll(rememberScrollState()) else modifier
     // The Socials tile tells you who is around without opening anything.
     val socialContext = androidx.compose.ui.platform.LocalContext.current
@@ -573,11 +597,13 @@ private fun QuickTiles(accent: Color, actions: HomeActions, modifier: Modifier, 
     }
     Row(modifier = rowModifier, horizontalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)) {
         val tiles = listOf(
-            // Backups open the game folder browser, where worlds are copied or zipped for a
-            // restore. Accounts and Contacts are the two things a player checks before playing.
-            Triple(R.drawable.aerix_ic_archive_filled, stringResource(R.string.aerix_home_quick_backups) to stringResource(R.string.aerix_home_quick_backups_sub), accent to actions.fileManager),
-            Triple(R.drawable.aerix_ic_person_outlined, stringResource(R.string.aerix_home_quick_accounts) to stringResource(R.string.aerix_home_quick_accounts_sub), AerixSurface.glassRose to actions.accounts),
-            Triple(R.drawable.aerix_ic_group_outlined, stringResource(R.string.aerix_home_quick_contacts) to socialSubtitle, accent to actions.socials)
+            // The card that used to open the instance creator now opens Socials: creating an
+            // instance lives on the rail's + button and in the library, where it is not competing
+            // with the one thing the launcher can do that no other launcher can.
+            Triple(R.drawable.aerix_ic_people, stringResource(R.string.aerix_home_quick_socials) to socialSubtitle, accent to actions.socials),
+            Triple(R.drawable.aerix_ic_search, stringResource(R.string.aerix_home_quick_explore) to stringResource(R.string.aerix_home_quick_explore_sub), AerixSurface.glassBlue to actions.explore),
+            Triple(R.drawable.aerix_ic_dashboard_filled, stringResource(R.string.aerix_home_quick_library) to stringResource(R.string.aerix_home_quick_library_sub, count), AerixSurface.glassViolet to actions.library),
+            Triple(R.drawable.aerix_ic_folder_outlined, stringResource(R.string.aerix_home_quick_files) to stringResource(R.string.aerix_home_quick_files_sub), AerixSurface.glassRose to actions.fileManager)
         )
         tiles.forEach { (icon, texts, style) ->
             QuickActionTile(
@@ -589,78 +615,6 @@ private fun QuickTiles(accent: Color, actions: HomeActions, modifier: Modifier, 
                 modifier = if (scrollable) Modifier.width(198.dp).height(78.dp) else Modifier.weight(1f).fillMaxHeight()
             )
         }
-    }
-}
-
-/** Diwali gold on crimson — the launch identity, same face as the announcement page. */
-private val launchGold = Color(0xFFFFB020)
-private val launchDeepRed = Color(0xFF6B0F1A)
-private val launchNight = Color(0xFF2A0A10)
-
-/**
- * Countdown strip for the 2.0 launch: the days left until launch day, flipping to a LIVE banner
- * the moment the day arrives. Once live, a tap opens the What's New changelog.
- */
-@Composable
-private fun ApexLaunchBanner() {
-    var remaining by remember { mutableStateOf(ApexDiwali.millisUntilRelease()) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            remaining = ApexDiwali.millisUntilRelease()
-            delay(30_000L)
-        }
-    }
-    val live = remaining <= 0L
-    val days = remaining / 86_400_000L
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(AerixRadii.card))
-            .background(
-                Brush.verticalGradient(listOf(launchDeepRed, launchNight))
-            )
-            .border(
-                width = 1.dp,
-                brush = Brush.horizontalGradient(
-                    listOf(launchGold.copy(alpha = 0.75f), launchGold.copy(alpha = 0.20f))
-                ),
-                shape = RoundedCornerShape(AerixRadii.card)
-            )
-            .clickable { AerixNav.navigate(LauncherSection.WHATS_NEW) }
-            .padding(horizontal = 14.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = if (live) "\uD83C\uDF86" else "\uD83D\uDE80", fontSize = 20.sp)
-        Spacer(Modifier.width(11.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = if (live) {
-                    "Apex Launcher 2.0 is LIVE!"
-                } else {
-                    "Apex Launcher 2.0 — $days days to go"
-                },
-                color = launchGold,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
-            Spacer(Modifier.height(2.dp))
-            Text(
-                text = if (live) {
-                    "Open for the full What\'s New"
-                } else {
-                    "Launching ${ApexDiwali.DATE_VALUE} · tap for the countdown"
-                },
-                color = Color.White.copy(alpha = 0.72f),
-                fontSize = 10.5.sp
-            )
-        }
-        Text(
-            text = "\u203A",
-            color = launchGold,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
     }
 }
 
@@ -701,8 +655,8 @@ private fun ActiveWorldPanel(selected: AerixInstance?, accent: Color, actions: H
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(AerixSpacing.xs)) {
                     Text(
                         text = selected?.name ?: stringResource(R.string.aerix_home_no_active_world),
-                        color = AerixSurface.textPrimary,
-                        fontSize = 22.sp,
+                        color = Color.White,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.ExtraBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

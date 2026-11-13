@@ -22,7 +22,6 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
-import android.content.pm.PackageManager
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Build
@@ -45,8 +44,8 @@ import java.util.UUID
 /**
  * Publishes rich, clickable Discord Rich Presence cards from Aerix Launcher to the Discord app:
  *
- * 1. **Apex Launcher Card Mode** (always used in launcher, and optionally in-game):
- *    - Published under `Apex Launcher` (`1566402542487736410`) with crisp Apex / modpack cover
+ * 1. **Aerix Launcher Card Mode** (always used in launcher, and optionally in-game):
+ *    - Published under `Aerix Launcher` (`1563812135744839771`) with crisp Aerix / modpack cover
  *      art (`assets.large_image`), clickable cover & badge URLs (`large_url`, `small_url`),
  *      clickable headline & status links (`details_url`, `state_url`) opening the official Aerix
  *      Launcher website and Discord community, action buttons (`About Aerix` + `Join Discord`),
@@ -54,9 +53,9 @@ import java.util.UUID
  * 2. **Official Minecraft Game Profile Mode** (Hybrid in-game option, enabled by default):
  *    - While in-game, switches RPC connection to Minecraft's verified Discord catalog ID
  *      (`1402418491272986635`, with automatic cascade fallback to `356875570916753438` and then
- *      the Minecraft catalog ID if a mobile client rejects external catalog IDs) so
+ *      Aerix's ID `1563812135744839771` if a mobile client rejects external catalog IDs) so
  *      tapping the card on Discord opens Minecraft's native full-screen Game Profile sheet while
- *      displaying `"via Apex Launcher"` and the Apex badge.
+ *      displaying `"via Aerix Launcher"` and the Aerix badge.
  * 3. **Exit cleanup**:
  *    - Send an explicit clear before disconnecting, without a delayed alarm that wakes the app.
  *      Android may freeze or kill the process before a one-minute timer can fire.
@@ -69,77 +68,18 @@ object AerixDiscordPresence {
     private const val HANDLER_PID = 1
     private const val CLOSE_INVALID_CLIENT_ID = 4000
     private const val MAX_ASSET_URL_LEN = 256
-    private const val WATCHDOG_INTERVAL_MS = 5_000L
-
-    /**
-     * The card belongs to this build's owner. Discord reports the signed-in account in the READY
-     * frame; if it is a different account the card is never published, so anyone installing this
-     * APK still sees nothing on their own profile.
-     */
-    const val OWNER_DISCORD_ID = "1385646460774907914"
 
     /** Official clickable destinations & artwork for Aerix Rich Presence cards. */
     const val AERIX_WEBSITE_URL = "https://entitybrian69-bit.github.io/Aerix-launcher/"
     const val AERIX_DISCORD_URL = "https://discord.gg/RS7q9KaCm6"
-    /**
-     * Rich Presence asset key uploaded to the Apex Launcher Discord application. Mobile clients only
-     * resolve application assets, so the card uses the key rather than a bare image URL.
-     */
-    const val APEX_LOGO_ASSET = "apex_logo"
-
-    /**
-     * One setting covers both cases: a plain value is the art asset name uploaded in the Discord
-     * Developer Portal, while an http(s) value is used as the image URL itself.
-     */
-    private fun assetSetting(): String = AerixPreferences.discordAssetName.trim()
-
-    private fun isImageUrl(value: String): Boolean =
-        value.length in 8..MAX_ASSET_URL_LEN &&
-            (value.startsWith("https://", true) || value.startsWith("http://", true))
-
-    /** The asset name to publish: whatever is set in settings, else the shipped key. */
-    fun logoAssetKey(): String {
-        val value = assetSetting()
-        return if (value.isEmpty() || isImageUrl(value)) APEX_LOGO_ASSET else value
-    }
-
-    /** What goes into `assets.large_image`: the configured name or, when a link is given, the URL. */
-    fun logoImageValue(): String {
-        val value = assetSetting()
-        return if (isImageUrl(value)) value else logoAssetKey()
-    }
-
-    /** The fork's own destinations. Blank means the matching button/link is skipped entirely. */
-    const val APEX_WEBSITE_URL = "https://github.com/CoderzCruz/Apex-launcher"
-    /** Apex Launcher community invite, so every install has a working Join button by default. */
-    const val APEX_DISCORD_URL = "https://discord.gg/pERGMvSFw"
-
-    /** Accepts "discord.gg/apex" as well as "https://discord.gg/apex"; drops anything unusable. */
-    private fun normalizeLink(raw: String): String {
-        val value = raw.trim()
-        if (value.isEmpty() || value.contains(' ')) return ""
-        if (value.startsWith("http://", true) || value.startsWith("https://", true)) return value
-        return if (value.contains('.')) "https://$value" else ""
-    }
-
-    /** Community links typed in settings; blank until the fork has destinations of its own. */
-    fun websiteUrl(): String =
-        normalizeLink(AerixPreferences.discordWebsiteUrl).ifBlank { APEX_WEBSITE_URL }
-
-    fun inviteUrl(): String =
-        normalizeLink(AerixPreferences.discordInviteUrl).ifBlank { APEX_DISCORD_URL }
+    const val AERIX_LOGO_URL =
+        "https://raw.githubusercontent.com/entitybrian69-bit/Aerix-launcher/4a3b1c37a8d4838eaa5cb8933610db7fb6efdec5/assets/aerix-logo.png"
 
     /** Verified Discord catalog IDs for Minecraft's native Game Profile sheet. */
     const val MINECRAFT_PRIMARY_APP_ID = 1402418491272986635L
     const val MINECRAFT_LEGACY_APP_ID = 356875570916753438L
 
     private const val CLEAR_FLUSH_DELAY_MS = 400L
-
-    /**
-     * How long the card stays up after the launcher goes to the background. Opening Discord to look
-     * at your own profile backgrounds the launcher, so an immediate clear made the card invisible.
-     */
-    private const val BACKGROUND_GRACE_MS = 120_000L
     private const val CLEAR_BIND_TIMEOUT_MS = 5_500L
     private const val PENDING_INTENT_REQUEST_CLEAR = 94120
     private const val STATE_FILE_NAME = "aerix_discord_presence.json"
@@ -162,120 +102,9 @@ object AerixDiscordPresence {
     private var appContext: Context? = null
     private var service: IDiscordRpcService? = null
     private var connection: IDiscordRpcConnection? = null
-    @Volatile private var connectedAppId: Long = 0L
-    @Volatile private var bound = false
-    @Volatile private var ready = false
-
-    /** Last reason binding failed, shown in Settings so a failure is not a bare "not reachable". */
-    @Volatile private var bindingNote: String = ""
-
-    /** What the settings card shows: whether Discord is bound, connected and on which app id. */
-    /** The last activity error Discord reported, for the settings status card. */
-    fun lastError(): String = lastRpcError
-
-    /** True when the connected Discord account is this build's owner, i.e. may edit the branding. */
-    fun isOwnerAccount(): Boolean =
-        reportedUserId.isNotBlank() && reportedUserId == ownerId()
-
-    /** True when the connected Discord account is somebody else's. */
-    fun isForeignAccount(): Boolean = foreignAccount
-
-    /** The owner id the card is locked to: the setting, else the built-in owner. */
-    private fun ownerId(): String =
-        AerixPreferences.discordOwnerId.trim().ifBlank { OWNER_DISCORD_ID }
-
-    /** Pulls `data.user.id` out of a READY frame, so the card can stay with its owner. */
-    private fun readAccountFromFrame(frame: String) {
-        val id = runCatching {
-            val user = JSONObject(frame).optJSONObject("data")?.optJSONObject("user")
-            user?.optString("id", "")?.filter { it.isDigit() }
-        }.getOrNull().orEmpty()
-        if (id.isBlank()) return
-        reportedUserId = id
-        val owner = ownerId()
-        foreignAccount = owner.isNotBlank() && id != owner
-        if (foreignAccount) {
-            // The card still publishes; only the branding fields stay locked for this account.
-            Log.i(TAG, "Signed-in Discord account is not the owner; branding stays locked")
-        }
-    }
-
-    /** What the card currently says, e.g. "In the launcher · In settings". */
-    fun publishedSummary(): String = publishedSummary
-
-    /**
-     * Re-aligns the in-memory card with the shared state file. Called by the watchdog so the card
-     * follows the game even when the start broadcast is missed or arrives late.
-     */
-    fun syncFromDisk(context: Context?) {
-        val app = context?.applicationContext ?: appContext ?: return
-        appContext = app
-        AerixPreferences.init(app)
-        if (!AerixPreferences.discordPresenceEnabled) return
-        val disk = readDiskState(app) ?: return
-        when (disk.owner) {
-            "game" -> {
-                if (!inGameMode || details != disk.details || state != disk.state) {
-                    inGameMode = true
-                    activeModpackIconUrl = disk.modpackIconUrl
-                    details = disk.details
-                    state = disk.state
-                    if (disk.startedAt > 0L) startedAt = disk.startedAt
-                    main.post { switchConnectionIfNeededOrSend() }
-                }
-            }
-            "launcher" -> {
-                if (inGameMode) {
-                    inGameMode = false
-                    activeModpackIconUrl = null
-                    details = disk.details
-                    state = disk.state
-                    if (disk.startedAt > 0L) startedAt = disk.startedAt
-                    main.post { switchConnectionIfNeededOrSend() }
-                }
-            }
-        }
-    }
-
-    private fun startWatchdog(app: Context) {
-        if (watchdog != null) return
-        val runnable = object : Runnable {
-            private var tick = 0
-            override fun run() {
-                runCatching { syncFromDisk(appContext ?: app) }
-                // Every third tick also refreshes the card, rebuilding a dropped connection and
-                // keeping the elapsed timer alive for whoever is looking at the profile.
-                if (++tick % 3 == 0) {
-                    runCatching {
-                        if (AerixPreferences.discordPresenceEnabled) switchConnectionIfNeededOrSend()
-                    }
-                }
-                main.postDelayed(this, WATCHDOG_INTERVAL_MS)
-            }
-        }
-        watchdog = runnable
-        main.postDelayed(runnable, WATCHDOG_INTERVAL_MS)
-    }
-
-    private fun stopWatchdog() {
-        watchdog?.let { main.removeCallbacks(it) }
-        watchdog = null
-    }
-
-    fun connectionStatus(): String {
-        if (!AerixPreferences.discordPresenceEnabled) return "Presence off"
-        val appId = DiscordAppId.effective()
-        if (appId.isBlank()) return "No application id"
-        return when {
-            !bound -> bindingNote.ifBlank { "Discord app not reachable" }
-            !ready -> "Connecting to Discord…"
-            connectedAppId > 0L -> "Connected · app $connectedAppId"
-            else -> "Connecting…"
-        }
-    }
-
-    /** True when the installed Discord client accepted the connection. */
-    fun isConnected(): Boolean = ready && connection != null
+    private var connectedAppId: Long = 0L
+    private var bound = false
+    private var ready = false
 
     /** Catalog IDs rejected by the installed Discord app during this session (e.g. close 4000). */
     private val rejectedAppIds = HashSet<Long>()
@@ -287,20 +116,9 @@ object AerixDiscordPresence {
     @Volatile
     private var supportsExtendedFields = true
 
-    /**
-     * Discord answers an unknown or rejected activity field with an ERROR frame. Instead of throwing
-     * every optional field away at once, each error drops just one group and the card is resent, so a
-     * client that dislikes `details_url` still gets its buttons.
-     */
-    private var extendedDropLevel = 0
-    @Volatile private var lastRpcError: String = ""
-
     /** Previous app ID whose card must be cleared before switching to a different app ID. */
     @Volatile
     private var staleAppIdToClearFirst: Long = 0L
-
-    /** Pending clear scheduled when the launcher went to the background. */
-    private var exitClearRunnable: Runnable? = null
 
     /** True when binding solely to clear the active card and disconnect. */
     @Volatile
@@ -322,23 +140,7 @@ object AerixDiscordPresence {
     private var gameStartedAtCache: Long = 0L
 
     /** Current state published to Discord. */
-    @Volatile private var inGameMode: Boolean = false
-
-    /** What the last published card said, for the settings status card. */
-    @Volatile private var publishedSummary: String = ""
-
-    /** The Discord account reported by the client, empty until the READY frame arrives. */
-    @Volatile private var reportedUserId: String = ""
-
-    /** True when the signed-in Discord account is not the one this card belongs to. */
-    @Volatile private var foreignAccount: Boolean = false
-
-    /**
-     * `:game` owns the screen while a game runs, and the launcher process can be reclaimed while it
-     * is in the background. A watchdog keeps the card in step with the shared state file, so a
-     * missed or late handoff is corrected within a few seconds instead of leaving a stale card.
-     */
-    private var watchdog: Runnable? = null
+    private var inGameMode: Boolean = false
     private var activeModpackIconUrl: String? = null
     private var details: String = InLauncher.DETAILS
     private var state: String = InLauncher.HOME
@@ -402,7 +204,6 @@ object AerixDiscordPresence {
         override fun onFrame(frame: String?) {
             if (frame == null) return
             if (frame.contains("\"READY\"")) {
-                readAccountFromFrame(frame)
                 main.post {
                     ready = true
                     if (staleAppIdToClearFirst > 0L && connectedAppId == staleAppIdToClearFirst && !clearOnlyMode) {
@@ -463,9 +264,8 @@ object AerixDiscordPresence {
                 }
             } else if (frame.contains("\"ERROR\"")) {
                 Log.w(TAG, "Discord RPC error frame: $frame")
-                lastRpcError = frame.take(200)
                 if (!clearOnlyMode && supportsExtendedFields) {
-                    if (extendedDropLevel < 3) extendedDropLevel++ else supportsExtendedFields = false
+                    supportsExtendedFields = false
                     main.post { sendActivity() }
                 }
             }
@@ -639,7 +439,6 @@ object AerixDiscordPresence {
         appContext = app
         handoffToGameInProgress = false
         AerixPreferences.init(app)
-        cancelPendingExitClear()
         invalidatePendingClear()
         cancelClearAlarm(app)
 
@@ -701,31 +500,14 @@ object AerixDiscordPresence {
                 modpackIconUrl = activeModpackIconUrl
             )
         )
-        // Keep the card up for a grace period: the launcher is backgrounded every time Discord is
-        // opened, and a card cleared on that first tap is a card nobody ever sees.
-        scheduleExitClear(app)
-    }
-
-    private fun scheduleExitClear(app: Context) {
-        cancelPendingExitClear()
-        val runnable = Runnable {
-            exitClearRunnable = null
-            if (readDiskState(app)?.owner != "none") return@Runnable
-            clearAndDetach(app, onlyIfExited = true)
-        }
-        exitClearRunnable = runnable
-        main.postDelayed(runnable, BACKGROUND_GRACE_MS)
-    }
-
-    private fun cancelPendingExitClear() {
-        exitClearRunnable?.let { main.removeCallbacks(it) }
-        exitClearRunnable = null
+        // Clear while the process is still alive instead of relying on a delayed background wake.
+        clearAndDetach(app, onlyIfExited = true)
     }
 
     /**
      * Called right before `:launcher` kills its own PID in ContextAwareDoneListener to launch
      * GameActivity in `:game`. If Hybrid Game Profile mode will switch to Minecraft's catalog ID,
-     * sends an immediate clear on the Apex Launcher card before detaching.
+     * sends an immediate clear on the Aerix Launcher card before detaching.
      */
     @JvmStatic
     fun prepareHandoffToGame(context: Context?) {
@@ -801,11 +583,6 @@ object AerixDiscordPresence {
         if (gameInstanceCache != null || gameVersionCache != null || gameStartedAtCache != 0L) {
             onGameStarted(context, gameInstanceCache, gameVersionCache, gameModpackIconCache)
         }
-        // Coming back from Discord: republish instead of waiting for the watchdog.
-        if (context != null) {
-            captureApplicationContext(context)
-            playing(gameInstanceCache, gameVersionCache, gameModpackIconCache)
-        }
     }
 
     /** Called from GameActivity.onStop() / onDestroy() in `:game`. */
@@ -818,9 +595,12 @@ object AerixDiscordPresence {
 
         if (disk?.owner != "game") return
         writeDiskState(app, disk.copy(owner = "none", exitedAtElapsedMs = SystemClock.elapsedRealtime()))
-        // Opening Discord mid-game stops the game activity: keep the card for the same grace window
-        // as the launcher instead of wiping it the moment the player looks at their profile.
-        scheduleExitClear(app)
+        // One-shot game lifecycle message; unlike the former alarm this does not schedule a wakeup.
+        runCatching {
+            app.sendBroadcast(Intent(app, SocialNotificationReceiver::class.java).apply {
+                action = ACTION_DISCORD_SCHEDULE_CLEAR
+            })
+        }
     }
 
     /**
@@ -927,7 +707,6 @@ object AerixDiscordPresence {
     /* ── core RPC lifecycle ────────────────────────────────────────────────── */
 
     /** Bind once, when the launcher becomes visible. Safe to call repeatedly. */
-    @JvmStatic
     fun attach(context: Context?) {
         if (context == null) return
         appContext = context.applicationContext
@@ -946,12 +725,12 @@ object AerixDiscordPresence {
 
         val intent = resolveService() ?: run {
             Log.i(TAG, "Discord is not installed on this device")
-            if (bindingNote.isBlank()) bindingNote = "Discord app not installed"
             return
         }
-        bound = bindRpcService(appContext!!, intent)
-        if (!bound) Log.w(TAG, "Could not bind to Discord's RPC service: $bindingNote")
-        else startWatchdog(appContext!!)
+        bound = runCatching {
+            appContext!!.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+        }.getOrDefault(false)
+        if (!bound) Log.w(TAG, "Could not bind to Discord's RPC service")
     }
 
     /** Drop the connection immediately (internal helper; use [clearAndDetach] to clear profile first). */
@@ -961,7 +740,6 @@ object AerixDiscordPresence {
         connection = null
         connectedAppId = 0L
         service = null
-        stopWatchdog()
         unbind()
     }
 
@@ -1028,7 +806,9 @@ object AerixDiscordPresence {
             clearOnlyMode = true
             clearOnlyRequiresExit = onlyIfExited
             pendingClearAppId = targetId
-            bound = bindRpcService(ctx, intent)
+            bound = runCatching {
+                ctx.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+            }.getOrDefault(false)
             if (!bound) {
                 clearOnlyMode = false
                 pendingClearAppId = 0L
@@ -1047,8 +827,6 @@ object AerixDiscordPresence {
         AerixPreferences.init(app)
         rejectedAppIds.clear()
         supportsExtendedFields = true
-        extendedDropLevel = 0
-        lastRpcError = ""
         if (!AerixPreferences.discordPresenceEnabled) {
             clearAndDetach(app)
             return
@@ -1061,8 +839,6 @@ object AerixDiscordPresence {
         pendingClearAppId = 0L
         rejectedAppIds.clear()
         supportsExtendedFields = true
-        extendedDropLevel = 0
-        lastRpcError = ""
         syncSettingsChanged(context)
     }
 
@@ -1100,22 +876,13 @@ object AerixDiscordPresence {
     }
 
     /** A game is starting or running: the instance takes over the card. */
-    @JvmStatic
-    @JvmOverloads
     fun playing(instance: String?, minecraftVersion: String?, modpackIconUrl: String? = null) {
         clearOnlyMode = false
         inGameMode = true
         activeModpackIconUrl = modpackIconUrl?.takeIf { it.isNotBlank() }
         details = "Playing Minecraft${if (minecraftVersion.isNullOrBlank()) "" else " $minecraftVersion"}"
         state = instance?.takeIf { it.isNotBlank() } ?: "In game"
-        // Keep the session's own start time so the elapsed timer never jumps back to zero.
-        val diskStarted = appContext?.let { readDiskState(it) }
-            ?.takeIf { it.owner == "game" }?.startedAt ?: 0L
-        startedAt = if (diskStarted > 0L) diskStarted else System.currentTimeMillis()
-        appContext?.let { app ->
-            cancelClearAlarm(app)
-            cancelPendingExitClear()
-        }
+        startedAt = System.currentTimeMillis()
         main.post { switchConnectionIfNeededOrSend() }
     }
 
@@ -1155,11 +922,11 @@ object AerixDiscordPresence {
         val usingMinecraftProfile = isMinecraftCatalogId(connectedAppId)
         val clickable = AerixPreferences.discordClickableLinks
 
-        val cardName = if (usingMinecraftProfile) "Minecraft" else "Apex Launcher"
+        val cardName = if (usingMinecraftProfile) "Minecraft" else "Aerix Launcher"
         // status_display_type: 0 = Name ("Playing Minecraft"), 2 = Details ("In the launcher" / "Playing Minecraft 1.21")
         val statusDisplayType = if (usingMinecraftProfile) 0 else 2
-        val effectiveDetails = if (usingMinecraftProfile && !details.contains("Apex", ignoreCase = true)) {
-            "$details · via Apex Launcher"
+        val effectiveDetails = if (usingMinecraftProfile && !details.contains("Aerix", ignoreCase = true)) {
+            "$details · via Aerix Launcher"
         } else {
             details
         }
@@ -1173,7 +940,7 @@ object AerixDiscordPresence {
             .put("timestamps", JSONObject().put("start", startedAt.coerceAtLeast(1L)))
 
         // Live Aerix Social Party size `(current of max)` when in an active party!
-        if (supportsExtendedFields && extendedDropLevel < 2) {
+        if (supportsExtendedFields) {
             val activeParty = runCatching {
                 SocialBackend.parties.firstOrNull { !it.isExpired() }
             }.getOrNull()
@@ -1184,7 +951,7 @@ object AerixDiscordPresence {
                 activity.put(
                     "party",
                     JSONObject()
-                        .put("id", "apex_${activeParty.id.take(48)}")
+                        .put("id", "aerix_${activeParty.id.take(48)}")
                         .put("size", sizeArr)
                 )
             }
@@ -1194,41 +961,36 @@ object AerixDiscordPresence {
         val validPackIcon = activeModpackIconUrl?.takeIf { clickable && inGameMode && isValidHttpAssetUrl(it) }
         if (validPackIcon != null) {
             assets.put("large_image", validPackIcon)
-            assets.put("large_text", "$state · Apex Launcher")
-            assets.put("small_image", logoImageValue())
-            assets.put("small_text", "Apex Launcher")
+            assets.put("large_text", "$state · Aerix Launcher")
+            assets.put("small_image", AERIX_LOGO_URL)
+            assets.put("small_text", "Aerix Launcher — Tap to join Discord")
         } else {
-            assets.put("large_image", logoImageValue())
+            assets.put("large_image", AERIX_LOGO_URL)
             assets.put("large_text", if (usingMinecraftProfile)
-                "Apex Launcher — Minecraft Java Edition on Android" else "Apex Launcher")
-            // Never repeat the same key as small_image: some clients drop a duplicate pair.
-            val badge = logoAssetKey()
-            if (usingMinecraftProfile && badge != logoImageValue()) {
-                assets.put("small_image", badge)
-                assets.put("small_text", "Powered by Apex Launcher")
+                "Aerix Launcher — Minecraft Java Edition on Android" else "Aerix Launcher — Official Website & Info")
+            if (usingMinecraftProfile) {
+                assets.put("small_image", AERIX_LOGO_URL)
+                assets.put("small_text", "Powered by Aerix Launcher")
             }
         }
-        // Links are added only once the fork has destinations of its own. Empty strings keep the
-        // card from pointing at the upstream project's website and Discord server.
         if (clickable) {
-            val site = websiteUrl()
-            val invite = inviteUrl()
-            if (extendedDropLevel < 1) {
-                // An image slot only ever carries an image; a plain web page would blank the cover.
-                if (isImageUrl(site)) assets.put("large_url", site)
-                if (isImageUrl(invite)) assets.put("small_url", invite)
-                if (site.isNotBlank()) activity.put("details_url", site)
-                if (invite.isNotBlank()) activity.put("state_url", invite)
-            }
-            if (supportsExtendedFields && extendedDropLevel < 3) {
+            activity.put("details_url", AERIX_WEBSITE_URL)
+            activity.put("state_url", AERIX_DISCORD_URL)
+            assets.put("large_url", AERIX_WEBSITE_URL)
+            if (validPackIcon != null || usingMinecraftProfile) assets.put("small_url", AERIX_DISCORD_URL)
+            if (supportsExtendedFields) {
                 val buttons = JSONArray()
-                if (site.isNotBlank()) {
-                    buttons.put(JSONObject().put("label", "About Apex").put("url", site))
-                }
-                if (invite.isNotBlank()) {
-                    buttons.put(JSONObject().put("label", "Join Apex Discord").put("url", invite))
-                }
-                if (buttons.length() > 0) activity.put("buttons", buttons)
+                    .put(
+                        JSONObject()
+                            .put("label", "About Aerix Launcher")
+                            .put("url", AERIX_WEBSITE_URL)
+                    )
+                    .put(
+                        JSONObject()
+                            .put("label", "Join Aerix Discord")
+                            .put("url", AERIX_DISCORD_URL)
+                    )
+                activity.put("buttons", buttons)
             }
         }
         activity.put("assets", assets)
@@ -1237,7 +999,6 @@ object AerixDiscordPresence {
             .put("pid", HANDLER_PID)
             .put("activity", activity)
 
-        publishedSummary = "$details · $state"
         send(
             JSONObject()
                 .put("cmd", "SET_ACTIVITY")
@@ -1320,45 +1081,13 @@ object AerixDiscordPresence {
 
     /* ── plumbing ──────────────────────────────────────────────────────────── */
 
-    /**
-     * Discord's service is queried first, then addressed by its own component. An implicit
-     * package intent is only used when the platform will not report the service, because some
-     * Discord builds export the service under an explicit component only.
-     */
     private fun resolveService(): Intent? {
         val ctx = appContext ?: return null
         for (pkg in DISCORD_PACKAGES) {
-            val probe = Intent(ACTION).setPackage(pkg)
-            val services = runCatching {
-                ctx.packageManager.queryIntentServices(probe, PackageManager.MATCH_ALL)
-            }.getOrNull()
-            val info = services?.firstOrNull { it.serviceInfo?.exported == true }
-            if (info?.serviceInfo != null) {
-                bindingNote = ""
-                return Intent(ACTION).setComponent(
-                    ComponentName(info.serviceInfo.packageName, info.serviceInfo.name)
-                )
-            }
-            if (ctx.packageManager.resolveService(probe, 0) != null) {
-                bindingNote = ""
-                return probe
-            }
+            val intent = Intent(ACTION).setPackage(pkg)
+            if (ctx.packageManager.resolveService(intent, 0) != null) return intent
         }
-        bindingNote = "Discord RPC service not found"
         return null
-    }
-
-    /** Binds to Discord's service, recording the failure reason for the settings status line. */
-    private fun bindRpcService(ctx: Context, intent: Intent): Boolean {
-        return runCatching {
-            ctx.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
-        }.getOrElse { error ->
-            bindingNote = "Bind failed: ${error.javaClass.simpleName}"
-            Log.w(TAG, "bindService threw", error)
-            false
-        }.also { ok ->
-            if (ok) bindingNote = "" else if (bindingNote.isBlank()) bindingNote = "Bind refused by Discord"
-        }
     }
 
     private fun unbind() {
@@ -1381,7 +1110,7 @@ object AerixDiscordPresence {
         const val FILES = "In the file browser"
         const val ABOUT = "Reading about the launcher"
         const val SOCIALS = "Chatting in Socials"
-        const val AERIX_CLIENT = "Configuring Apex Client 1.16.5"
+        const val AERIX_CLIENT = "Configuring Aerix Client 1.16.5"
         const val GENERIC = "Browsing"
 
         fun stateFor(section: String?): String = when (section?.uppercase()) {
@@ -1395,8 +1124,6 @@ object AerixDiscordPresence {
             "ACCOUNTS", "ADD_ACCOUNT", "OFFLINE_ACCOUNT" -> ACCOUNTS
             "FILES" -> FILES
             "SOCIALS" -> SOCIALS
-            "CHATS" -> "Chatting in Chats"
-            "DIWALI" -> "Reading the Diwali surprise"
             "ABOUT", "OTHER_RELEASES" -> ABOUT
             else -> GENERIC
         }
@@ -1405,12 +1132,12 @@ object AerixDiscordPresence {
 
 /**
  * The Discord application the presence is published under, registered once for the project as
- * "Apex Launcher" (Developer Portal → New Application). Its name is the title on the card, so it
+ * "Aerix Launcher" (Developer Portal → New Application). Its name is the title on the card, so it
  * has to be this application and not a per-user one: every install shows the same card with no
  * setup. A user can still override it in Settings → Launcher; blank means "use this".
  */
 object AerixDiscordApp {
-    const val DEFAULT_APPLICATION_ID = "1566402542487736410"
+    const val DEFAULT_APPLICATION_ID = "1563812135744839771"
 }
 
 /**
@@ -1418,16 +1145,14 @@ object AerixDiscordApp {
  * public key) is rejected before it can reach Discord, which would otherwise drop the connection.
  */
 object DiscordAppId {
-    /** A snowflake is 17-20 digits; anything else is a typo and Discord would reject it. */
-    private fun overrideOrNull(): String? {
-        val raw = AerixPreferences.discordAppId.trim().trim('"', '\'')
-        return raw.takeIf { it.length in 17..20 && it.all(Char::isDigit) }
-    }
-
-    fun hasCustomOverride(): Boolean = overrideOrNull() != null
+    fun hasCustomOverride(): Boolean =
+        AerixPreferences.discordAppId.trim().trim('"', '\'').length >= 15
 
     /** The override from settings, or the application id this build ships with. */
-    fun effective(): String = overrideOrNull() ?: AerixDiscordApp.DEFAULT_APPLICATION_ID
+    fun effective(): String {
+        val raw = AerixPreferences.discordAppId.trim().trim('"', '\'')
+        return if (raw.length >= 15) raw else AerixDiscordApp.DEFAULT_APPLICATION_ID
+    }
 
     fun asLong(context: Context?): Long? {
         val raw = effective()

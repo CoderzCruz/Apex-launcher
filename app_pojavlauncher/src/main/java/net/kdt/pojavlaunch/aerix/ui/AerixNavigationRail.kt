@@ -26,7 +26,6 @@ package net.kdt.pojavlaunch.aerix.ui
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,7 +35,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -57,7 +55,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -99,12 +96,6 @@ enum class LauncherSection {
     WALLPAPERS,
     LOGS,
     SETTINGS,
-    /** Direct messages, group rooms and the shared public room. */
-    CHATS,
-    /** The Diwali Special announcement, its own destination in the rail. */
-    DIWALI,
-    /** The 2.0 changelog, opened from the Diwali announcement. */
-    WHATS_NEW,
     /** The team page, between Settings and the account entry. */
     CONTRIBUTION,
     ACCOUNTS,
@@ -144,7 +135,7 @@ fun AerixNavigationRail(
                 .liquidGlass(shape = CircleShape, tint = AerixSurface.glassTint, strength = 0.94f, elevation = AerixMetrics.glassRailElevation),
             shape = CircleShape,
             color = Color.Transparent,
-            contentColor = AerixSurface.textPrimary
+            contentColor = Color.White
         ) {
             Column(
                 modifier = Modifier
@@ -159,7 +150,7 @@ fun AerixNavigationRail(
                     modifier = Modifier
                         .clip(RoundedCornerShape(AerixRadii.panelSmall))
                         .clickable(role = Role.Button) { onNavigate(LauncherSection.HOME) }
-                        .semantics { contentDescription = "Apex Home" }
+                        .semantics { contentDescription = "Aerix Home" }
                         .padding(vertical = AerixSpacing.xs),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(AerixSpacing.xxs)
@@ -177,13 +168,11 @@ fun AerixNavigationRail(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Image(
-                            painter = painterResource(R.drawable.ic_apex_mark),
-                            contentDescription = "Apex",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(AerixRadii.control))
+                        Icon(
+                            painter = painterResource(R.drawable.ic_aerix_mark),
+                            contentDescription = "Aerix",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(if (compactRail) 20.dp else 24.dp)
                         )
                     }
                     if (expandedRail) {
@@ -195,7 +184,7 @@ fun AerixNavigationRail(
 
                 RailIconItem(R.drawable.aerix_ic_home_filled, stringResource(R.string.aerix_nav_home),
                     selectedSection == LauncherSection.HOME, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.HOME) }
-                RailIconItem(R.drawable.aerix_ic_client_crystal, "Apex Client",
+                RailIconItem(R.drawable.aerix_ic_client_crystal, "Aerix Client",
                     selectedSection == LauncherSection.AERIX_CLIENT, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.AERIX_CLIENT) }
                 RailIconItem(R.drawable.aerix_ic_add, stringResource(R.string.create_instance),
                     selectedSection == LauncherSection.CREATE_INSTANCE, activeAccent, expandedRail, compactRail,
@@ -207,10 +196,6 @@ fun AerixNavigationRail(
                 // sidebar, so it is not listed next to the launcher's own sections.
                 RailIconItem(R.drawable.aerix_ic_public, stringResource(R.string.aerix_nav_discover),
                     discoverSelected(selectedSection), activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.DISCOVER) }
-                RailIconItem(R.drawable.aerix_ic_chats, "Chats",
-                    selectedSection == LauncherSection.CHATS, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.CHATS) }
-                RailIconItem(R.drawable.aerix_ic_diwali, "Diwali Special",
-                    selectedSection == LauncherSection.DIWALI, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.DIWALI) }
                 RailIconItem(R.drawable.aerix_ic_rocket_launch_filled, "Our other new releases",
                     selectedSection == LauncherSection.OTHER_RELEASES, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.OTHER_RELEASES) }
                 RailIconItem(R.drawable.aerix_ic_format_paint_outlined, stringResource(R.string.aerix_nav_wallpapers),

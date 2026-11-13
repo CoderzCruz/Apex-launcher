@@ -26,11 +26,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.prefs.LauncherPreferences
 
 /** Color theme types kept from Zalith/Aerix. Only AERIX and CUSTOM are reachable from the port. */
-enum class AerixColorTheme { AERIX, CUSTOM, OCEAN, SUNSET, PASTEL }
+enum class AerixColorTheme { AERIX, CUSTOM }
 
 /** Page transition types, from mirai utils/animation/TransitionAnimationType.kt. */
 enum class AerixTransitionType { CLOSE, JELLY_BOUNCE, BOUNCE, SLICE_IN }
@@ -60,8 +59,6 @@ object AerixPreferences {
     const val KEY_GUIDE_PLAYED = "launcherGuidePlayed"
     /** True once the first-run Notification ON/OFF popup window has been answered. */
     const val KEY_NOTIFICATION_PROMPT_SHOWN = "aerixFirstRunNotificationPromptShown"
-    /** The version whose What's New changelog has already been opened on this device. */
-    const val KEY_WHATS_NEW_VERSION = "aerixWhatsNewVersionShown"
     /** True when the launcher's wallpaper is drawn behind the controls while the game starts. */
     const val KEY_LOADING_WALLPAPER = "loadingScreenWallpaper"
     const val KEY_LOG_TEXT_SIZE = "logTextSize"
@@ -69,15 +66,11 @@ object AerixPreferences {
     const val KEY_ASSET_PLATFORM = "assetPlatformSource"
     const val KEY_LOG_RETENTION_DAYS = "launcherLogRetentionDays"
     const val KEY_CURSEFORGE_API_KEY = "curseForgeApiKey"
-    /** True once the owner proved themselves on this device with their Discord user id. */
-    const val KEY_OWNER_VERIFIED = "apexOwnerVerified"
-    /** Free Google AI Studio key that turns Apex Service into a real AI assistant. */
-    const val KEY_GOOGLE_AI_KEY = "apexServiceAiKey"
     /** JSON array of favorite Discover projects (mirai download/assets/favorites). */
     const val KEY_FAVORITES = "aerixFavoriteProjects"
     /** JSON array of pinned instance names (mirai VersionsManageScreen "Pinned" tab). */
     const val KEY_PINNED_INSTANCES = "aerixPinnedInstances"
-    /** Discord Rich Presence: show "Playing Apex Launcher" on the player's own profile. */
+    /** Discord Rich Presence: show "Playing Aerix Launcher" on the player's own profile. */
     const val KEY_DISCORD_PRESENCE = "aerixDiscordPresence"
     /** The Discord application id the presence is published under (Developer Portal). */
     const val KEY_DISCORD_APP_ID = "aerixDiscordAppId"
@@ -85,14 +78,6 @@ object AerixPreferences {
     const val KEY_DISCORD_GAME_PROFILE_MODE = "aerixDiscordGameProfileMode"
     /** Attach modpack art, clickable info URLs, and action buttons to Discord Rich Presence cards. */
     const val KEY_DISCORD_CLICKABLE_LINKS = "aerixDiscordClickableLinks"
-    /** Rich Presence art asset name uploaded to the Discord application. */
-    const val KEY_DISCORD_ASSET_NAME = "aerixDiscordAssetName"
-    /** Discord account that owns the branding; empty means "this build's owner". */
-    const val KEY_DISCORD_OWNER_ID = "aerixDiscordOwnerId"
-    /** Branding (card image, invite, website) is editable unless the owner locks it again. */
-    const val KEY_DISCORD_BRANDING_UNLOCKED = "aerixDiscordBrandingUnlocked"
-    const val KEY_DISCORD_INVITE_URL = "aerixDiscordInviteUrl"
-    const val KEY_DISCORD_WEBSITE_URL = "aerixDiscordWebsiteUrl"
 
     const val DEFAULT_CUSTOM_COLOR = 0xFF8DEFE0.toInt()
     const val DEFAULT_BACKGROUND_OPACITY = 60
@@ -145,9 +130,6 @@ object AerixPreferences {
     /** Set once the first-time app open Notification ON/OFF popup has been answered. */
     var notificationPromptShown by mutableStateOf(false)
         private set
-    /** The version whose What's New changelog has already been opened on this device. */
-    var whatsNewVersionShown by mutableStateOf("")
-        private set
 
     /** Draw the launcher's wallpaper behind the controls while the game starts. */
     var loadingWallpaper by mutableStateOf(false)
@@ -172,24 +154,6 @@ object AerixPreferences {
     var curseForgeApiKey by mutableStateOf("")
         private set
 
-    /**
-     * Owns this build: may edit the card image, invite, website and the two API keys. Set by
-     * [ApexOwner.verify]; everybody else sees those fields as read-only.
-     */
-    var ownerVerified by mutableStateOf(false)
-        private set
-
-    /** Google AI key for Apex Service; blank means the built-in knowledge base answers. */
-    var googleAiKey by mutableStateOf("")
-        private set
-
-    /**
-     * Key that ships with this build (CI secret, never in the repository). Players then get real
-     * AI answers without pasting anything; their own key in Settings still wins.
-     */
-    var bakedAiKey by mutableStateOf("")
-        private set
-
     /** Favorite projects as a JSON array of {platform,id,title,description,author,iconUrl,downloads,type}. */
     var favoritesJson by mutableStateOf("[]")
         private set
@@ -204,13 +168,6 @@ object AerixPreferences {
 
     /** Aerix "aerixDiscordAppId": the Discord application the presence is shown under. */
     var discordAppId by mutableStateOf("")
-    var discordAssetName by mutableStateOf("")
-    var discordOwnerId by mutableStateOf("")
-    // Legacy global switch, kept so older builds read the same file. Branding access is now
-    // decided per field by ApexOwner.
-    var discordBrandingUnlocked by mutableStateOf(false)
-    var discordInviteUrl by mutableStateOf("")
-    var discordWebsiteUrl by mutableStateOf("")
         private set
 
     /** True to switch in-game Rich Presence to Minecraft's verified Discord Game Profile ID. */
@@ -224,8 +181,6 @@ object AerixPreferences {
     fun init(context: Context) {
         val p = context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
         prefs = p
-        bakedAiKey = runCatching { context.getString(R.string.apex_service_ai_key).trim() }
-            .getOrDefault("")
         colorTheme = runCatching {
             AerixColorTheme.valueOf(p.getString(KEY_COLOR_THEME, AerixColorTheme.AERIX.name)!!)
         }.getOrDefault(AerixColorTheme.AERIX)
@@ -244,7 +199,6 @@ object AerixPreferences {
         themeMotion = p.getBoolean(KEY_THEME_MOTION, true)
         guidePlayed = p.getBoolean(KEY_GUIDE_PLAYED, false)
         notificationPromptShown = p.getBoolean(KEY_NOTIFICATION_PROMPT_SHOWN, false)
-        whatsNewVersionShown = p.getString(KEY_WHATS_NEW_VERSION, "") ?: ""
         loadingWallpaper = p.getBoolean(KEY_LOADING_WALLPAPER, false)
         logTextSize = p.getInt(KEY_LOG_TEXT_SIZE, 15).coerceIn(5, 20)
         logBufferFlushInterval = p.getInt(KEY_LOG_BUFFER_FLUSH_INTERVAL, DEFAULT_LOG_BUFFER_FLUSH_INTERVAL).coerceIn(100, 1000)
@@ -252,8 +206,6 @@ object AerixPreferences {
             AssetPlatform.valueOf(p.getString(KEY_ASSET_PLATFORM, AssetPlatform.MODRINTH.name)!!)
         }.getOrDefault(AssetPlatform.MODRINTH)
         curseForgeApiKey = p.getString(KEY_CURSEFORGE_API_KEY, "") ?: ""
-        googleAiKey = p.getString(KEY_GOOGLE_AI_KEY, "") ?: ""
-        ownerVerified = p.getBoolean(KEY_OWNER_VERIFIED, false)
         logRetentionDays = p.getInt(KEY_LOG_RETENTION_DAYS, 7).coerceIn(1, 14)
         favoritesJson = p.getString(KEY_FAVORITES, "[]") ?: "[]"
         pinnedJson = p.getString(KEY_PINNED_INSTANCES, "[]") ?: "[]"
@@ -261,11 +213,6 @@ object AerixPreferences {
         discordAppId = p.getString(KEY_DISCORD_APP_ID, "") ?: ""
         discordGameProfileMode = p.getBoolean(KEY_DISCORD_GAME_PROFILE_MODE, true)
         discordClickableLinks = p.getBoolean(KEY_DISCORD_CLICKABLE_LINKS, true)
-        discordAssetName = p.getString(KEY_DISCORD_ASSET_NAME, "") ?: ""
-        discordOwnerId = p.getString(KEY_DISCORD_OWNER_ID, "") ?: ""
-        discordBrandingUnlocked = p.getBoolean(KEY_DISCORD_BRANDING_UNLOCKED, true)
-        discordInviteUrl = p.getString(KEY_DISCORD_INVITE_URL, "") ?: ""
-        discordWebsiteUrl = p.getString(KEY_DISCORD_WEBSITE_URL, "") ?: ""
     }
 
     fun saveFavoritesJson(value: String) {
@@ -276,34 +223,6 @@ object AerixPreferences {
     fun saveDiscordPresenceEnabled(value: Boolean) {
         discordPresenceEnabled = value
         edit { putBoolean(KEY_DISCORD_PRESENCE, value) }
-    }
-
-    fun saveDiscordInviteUrl(value: String) {
-        if (!ownerVerified) return
-        discordInviteUrl = value.trim().take(120)
-        edit { putString(KEY_DISCORD_INVITE_URL, discordInviteUrl) }
-    }
-
-    fun saveDiscordWebsiteUrl(value: String) {
-        if (!ownerVerified) return
-        discordWebsiteUrl = value.trim().take(200)
-        edit { putString(KEY_DISCORD_WEBSITE_URL, discordWebsiteUrl) }
-    }
-
-    fun saveDiscordBrandingUnlocked(value: Boolean) {
-        discordBrandingUnlocked = value
-        edit { putBoolean(KEY_DISCORD_BRANDING_UNLOCKED, value) }
-    }
-
-    fun saveDiscordOwnerId(value: String) {
-        discordOwnerId = value.trim().filter { it.isDigit() }.take(20)
-        edit { putString(KEY_DISCORD_OWNER_ID, discordOwnerId) }
-    }
-
-    fun saveDiscordAssetName(value: String) {
-        if (!ownerVerified) return
-        discordAssetName = value.trim().take(256)
-        edit { putString(KEY_DISCORD_ASSET_NAME, discordAssetName) }
     }
 
     fun saveDiscordAppId(value: String) {
@@ -336,24 +255,8 @@ object AerixPreferences {
     }
 
     fun saveCurseForgeApiKey(value: String) {
-        if (!ownerVerified) return
         curseForgeApiKey = value.trim()
         edit { putString(KEY_CURSEFORGE_API_KEY, curseForgeApiKey) }
-    }
-
-    /** The key Apex Service should actually use: the player's own if set, else the built-in one. */
-    fun effectiveAiKey(): String = googleAiKey.ifBlank { bakedAiKey }
-
-    fun saveOwnerVerified(value: Boolean) {
-        if (ownerVerified == value) return
-        ownerVerified = value
-        edit { putBoolean(KEY_OWNER_VERIFIED, value) }
-    }
-
-    fun saveGoogleAiKey(value: String) {
-        if (!ownerVerified) return
-        googleAiKey = value.trim()
-        edit { putString(KEY_GOOGLE_AI_KEY, googleAiKey) }
     }
 
     fun saveColorTheme(value: AerixColorTheme) {
@@ -423,11 +326,6 @@ object AerixPreferences {
     fun saveNotificationPromptShown(value: Boolean) {
         notificationPromptShown = value
         edit { putBoolean(KEY_NOTIFICATION_PROMPT_SHOWN, value) }
-    }
-
-    fun saveWhatsNewVersion(value: String) {
-        whatsNewVersionShown = value
-        edit { putString(KEY_WHATS_NEW_VERSION, value) }
     }
 
     fun saveLoadingWallpaper(value: Boolean) {

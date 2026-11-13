@@ -25,22 +25,15 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import kotlinx.coroutines.delay
 import net.kdt.pojavlaunch.aerix.bridge.AerixColorTheme
 import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
-import net.kdt.pojavlaunch.aerix.festivals.DiwaliSkin
 
 private val systemSans = FontFamily.SansSerif
 private val defaults = Typography()
@@ -70,7 +63,7 @@ val AerixTypography = Typography(
 
 private val aerixDark = darkColorScheme(
     primary = AerixSurface.accentDefault,
-    onPrimary = Color.White,
+    onPrimary = AerixSurface.onAccentDefault,
     primaryContainer = AerixSurface.accentContainerDefault,
     onPrimaryContainer = AerixSurface.onAccentContainer,
     secondary = AerixSurface.accentSecondary,
@@ -121,114 +114,14 @@ private fun customAccentScheme(accent: Color): ColorScheme {
     )
 }
 
-/**
- * Built-in preset palettes: a whole accent family (accent + related secondary), so one tap
- * restyles the shell without the colour picker.
- */
-private val oceanAccent = Color(0xFF38BDF8)
-private val oceanSecondary = Color(0xFF7DD3FC)
-private val sunsetAccent = Color(0xFFF59E0B)
-private val sunsetSecondary = Color(0xFFFCD34D)
-private val pastelAccent = Color(0xFF7C8CF8)
-private val pastelSecondary = Color(0xFFC4B5FD)
-
-private fun presetScheme(accent: Color, secondary: Color): ColorScheme =
-    customAccentScheme(accent).copy(
-        secondary = secondary,
-        secondaryContainer = secondary.copy(alpha = 0.33f),
-        onSecondaryContainer = AerixSurface.textPrimary
-    )
-
-/**
- * Pastel Light — variant 09: soft periwinkle on frosted white. This is the only light scheme,
- * so AerixLauncherTheme also flips AerixSurface.lightMode while it is selected.
- */
-private fun pastelScheme(): ColorScheme = lightColorScheme(
-    primary = pastelAccent,
-    onPrimary = Color.White,
-    primaryContainer = pastelAccent.copy(alpha = 0.30f),
-    onPrimaryContainer = Color(0xFF1D2340),
-    secondary = pastelSecondary,
-    onSecondary = Color(0xFF2A2144),
-    secondaryContainer = pastelSecondary.copy(alpha = 0.45f),
-    onSecondaryContainer = Color(0xFF2A2144),
-    tertiary = Color(0xFF5ECBB4),
-    onTertiary = Color(0xFF08201A),
-    error = AerixSurface.danger,
-    onError = Color.White,
-    background = Color(0xFFF3F4F8),
-    onBackground = Color(0xFF14212B),
-    surface = Color(0xE6FFFFFF),
-    onSurface = Color(0xFF14212B),
-    surfaceVariant = Color(0xFFFFFFFF),
-    onSurfaceVariant = Color(0xFF565E6B),
-    outline = Color(0xFF868E9C),
-    outlineVariant = Color(0x5914212B),
-    scrim = Color.Black,
-    inverseSurface = Color(0xFF14212B),
-    inverseOnSurface = Color(0xFFF3F4F8),
-    inversePrimary = pastelAccent,
-    surfaceDim = Color(0xFFD8DBE4),
-    surfaceBright = Color(0xFFFFFFFF),
-    surfaceContainerLowest = Color(0xFFFFFFFF),
-    surfaceContainerLow = Color(0xFFF7F8FC),
-    surfaceContainer = Color(0xFFF3F4F8),
-    surfaceContainerHigh = Color(0xE6FFFFFF),
-    surfaceContainerHighest = Color(0xFFFFFFFF),
-)
-
-/**
- * The Diwali skin scheme: marigold gold on the usual dark glass. Only returned while
- * DiwaliSkin.active() is true, so the user's own theme comes back untouched afterwards.
- */
-private fun diwaliScheme(): ColorScheme {
-    val gold = DiwaliSkin.GOLD
-    val onGold = Color(0xFF201405)
-    val flame = Color(0xFFFF8A3D)
-    return aerixDark.copy(
-        primary = gold,
-        onPrimary = onGold,
-        primaryContainer = gold.copy(alpha = 0.33f),
-        onPrimaryContainer = AerixSurface.textPrimary,
-        secondary = flame,
-        onSecondary = onGold,
-        secondaryContainer = flame.copy(alpha = 0.33f),
-        onSecondaryContainer = AerixSurface.textPrimary,
-        inversePrimary = gold
-    )
-}
-
-/**
- * True while the Diwali skin window (4 Nov 2026, ended early on 5 Nov) is open. It
- * recomputes itself at the moment the window opens or closes, so an app left running across
- * midnight reverts by itself.
- */
-@Composable
-private fun rememberDiwaliSkin(): Boolean {
-    var active by remember { mutableStateOf(DiwaliSkin.active()) }
-    LaunchedEffect(active) {
-        val remaining = DiwaliSkin.millisToNextBoundary()
-        if (remaining > 0) delay(remaining)
-        active = DiwaliSkin.active()
-    }
-    return active
-}
-
 @Composable
 fun AerixLauncherTheme(content: @Composable () -> Unit) {
     val theme = AerixPreferences.colorTheme
     val custom = AerixPreferences.customColor
-    val diwali = rememberDiwaliSkin()
-    val scheme = remember(theme, custom, diwali) {
-        // The light tokens follow the theme before any child composable reads them.
-        AerixSurface.lightMode = theme == AerixColorTheme.PASTEL && !diwali
-        when {
-            diwali -> diwaliScheme()
-            theme == AerixColorTheme.AERIX -> aerixDark
-            theme == AerixColorTheme.OCEAN -> presetScheme(oceanAccent, oceanSecondary)
-            theme == AerixColorTheme.SUNSET -> presetScheme(sunsetAccent, sunsetSecondary)
-            theme == AerixColorTheme.PASTEL -> pastelScheme()
-            else -> customAccentScheme(Color(custom))
+    val scheme = remember(theme, custom) {
+        when (theme) {
+            AerixColorTheme.AERIX -> aerixDark
+            AerixColorTheme.CUSTOM -> customAccentScheme(Color(custom))
         }
     }
     MaterialTheme(

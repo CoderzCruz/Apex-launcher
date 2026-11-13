@@ -67,10 +67,8 @@ object AerixNav {
     fun init() {
         if (initialized) return
         initialized = true
-        // A fresh launch always opens Home. The shell keeps its section in memory while the process
-        // lives, so returning from a file picker or the game still lands where the user was, but
-        // closing the app in Settings no longer reopens Settings next time.
-        section = LauncherSection.HOME
+        val saved = runCatching { LauncherSection.valueOf(AerixPreferences.lastSection) }.getOrDefault(LauncherSection.HOME)
+        section = if (saved in pageSections) LauncherSection.HOME else saved
     }
 
     fun isPage(target: LauncherSection): Boolean = target in pageSections

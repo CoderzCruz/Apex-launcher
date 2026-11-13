@@ -104,11 +104,6 @@
     <string name="aerix_home_quick_library_sub">%1$d instance(s)</string>
     <string name="aerix_home_quick_files">File space</string>
     <string name="aerix_home_quick_files_sub">Open game directory</string>
-    <string name="aerix_home_quick_backups">Backups</string>
-    <string name="aerix_home_quick_backups_sub">Restore points</string>
-    <string name="aerix_home_quick_accounts">Accounts</string>
-    <string name="aerix_home_quick_accounts_sub">Profiles and skins</string>
-    <string name="aerix_home_quick_contacts">Contacts</string>
     <string name="aerix_home_ready_sub">Your next chapter is only one touch away.</string>
     <string name="aerix_home_empty_sub">Build a world, choose your style, and make it yours.</string>
     <string name="aerix_home_active_sub">Your selected game instance</string>
@@ -207,12 +202,9 @@
     <string name="aerix_settings_cat_misc">Miscellaneous</string>
     <string name="aerix_settings_cat_experimental">Experimental</string>
     <string name="aerix_settings_color_theme">Colour theme</string>
-    <string name="aerix_settings_color_theme_sub">Built-in palettes or a custom accent</string>
-    <string name="aerix_settings_theme_aerix">Crimson Noir</string>
+    <string name="aerix_settings_color_theme_sub">Aerix palette or a custom accent</string>
+    <string name="aerix_settings_theme_aerix">Aerix</string>
     <string name="aerix_settings_theme_custom">Custom</string>
-    <string name="aerix_settings_theme_ocean">Ocean</string>
-    <string name="aerix_settings_theme_sunset">Sunset</string>
-    <string name="aerix_settings_theme_pastel">Pastel Light</string>
     <string name="aerix_settings_custom_color">Custom accent</string>
     <string name="aerix_settings_custom_color_sub">Used when the colour theme is Custom</string>
     <string name="aerix_settings_bg_opacity">Wallpaper visibility</string>
@@ -300,9 +292,6 @@
     <string name="aerix_festivals_halloween">Happy Halloween!</string>
     <string name="aerix_festivals_valentines">Happy Valentine\'s Day!</string>
     <string name="aerix_festivals_christmas">Merry Christmas!</string>
-    <string name="aerix_festivals_apex_launch">Apex Launcher 2.0 is LIVE!</string>
-    <string name="aerix_festivals_lohri">Happy Lohri!</string>
-    <string name="aerix_festivals_baisakhi">Happy Baisakhi!</string>
 
     <!-- In-launcher downloads (mirai ui/screens/content/download) -->
     <string name="aerix_nav_downloads">Download</string>
@@ -336,8 +325,6 @@
     <string name="aerix_settings_asset_platform_sub">Platform preselected on the download screen</string>
     <string name="aerix_settings_curseforge_key">CurseForge API key</string>
     <string name="aerix_settings_curseforge_key_sub">Overrides the key built into the app; leave empty to use the built-in key</string>
-    <string name="aerix_settings_ai_key">Apex Service (AI) key</string>
-    <string name="aerix_settings_ai_key_sub">Optional free Google AI Studio key. With a key Apex Service answers every question with real AI; without one it answers launcher questions from a built-in knowledge base.</string>
 
     <!-- File manager (mirai filemanager/ui) -->
     <string name="aerix_nav_files">Files</string>

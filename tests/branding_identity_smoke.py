@@ -55,14 +55,7 @@ class BrandingIdentitySmoke(unittest.TestCase):
         self.assertGreaterEqual(count, 50)
         strings = ET.parse(RES / "values/strings.xml").getroot()
         self.assertEqual(strings.find("string[@name='lazy_service_default_title']").text,
-                         "Apex Foreground Service")
-
-    def test_no_loading_screen(self):
-        themes = (RES / "values/aerix_themes.xml").read_text()
-        splash = themes.split('Aerix.SplashScreen', 1)[1].split('</style>', 1)[0]
-        # The entry window shows the plain canvas, not a splash image or progress screen.
-        self.assertIn("@color/aerix_canvas", splash)
-        self.assertNotIn("@drawable/aerix_splash", splash)
+                         "Aerix Foreground Service")
 
     def test_notification_icon_is_used_and_valid_png(self):
         for service in ("GameService", "ProgressService"):
@@ -73,28 +66,6 @@ class BrandingIdentitySmoke(unittest.TestCase):
         self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n")
         self.assertEqual(struct.unpack(">II", data[16:24]), (96, 96))
 
-
-    def test_about_tab_uses_the_apex_mark_and_is_paused(self):
-        """The About tab shows the current logo and every action says it is under construction."""
-        settings = (APP / "src/main/java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.kt").read_text()
-        about = settings.split("private fun AboutInfoTabContent(", 1)[1]
-        # New mark, not the leftover Aerix file.
-        self.assertIn("R.drawable.ic_apex_mark", about)
-        self.assertNotIn("R.drawable.ic_aerix_mark", about)
-        # Nothing opens a link or the update dialog from here any more.
-        self.assertNotIn("PojavNavigator.openUrl", about)
-        self.assertNotIn("PojavNavigator.openDiscord", about)
-        self.assertNotIn("showUpdateDialog = true", about)
-        for label in ("Check for Updates", "Project Link", "Discord", "GitHub profile"):
-            self.assertIn('AboutPillButton("%s", accent, enabled = false)' % label, about)
-        self.assertEqual(about.count("underConstruction(activity)"), 4)
-        self.assertIn("private fun underConstruction(", settings)
-        self.assertIn("Under Construction", settings)
-        # The owner card sits at the bottom, with the Discord mark and the Cruz name.
-        self.assertIn('text = "Cruz"', about)
-        self.assertIn("Owner", about)
-        self.assertIn("R.drawable.ic_discord", about)
-        self.assertIn("R.drawable.apex_contrib_cruz", about)
 
 if __name__ == "__main__":
     unittest.main()

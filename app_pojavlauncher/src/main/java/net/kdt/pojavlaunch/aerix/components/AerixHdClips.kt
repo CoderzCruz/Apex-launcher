@@ -186,7 +186,7 @@ object AerixHdClips {
                 connectTimeout = 20_000
                 readTimeout = 30_000
                 instanceFollowRedirects = true
-                setRequestProperty("User-Agent", "ApexLauncher")
+                setRequestProperty("User-Agent", "AerixLauncher")
             }
             try {
                 require(connection.responseCode in 200..299) { "The server answered ${connection.responseCode}" }

@@ -18,7 +18,6 @@
 
 package net.kdt.pojavlaunch.aerix.discord
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
@@ -46,7 +45,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -56,7 +54,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -66,7 +63,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import net.kdt.pojavlaunch.R
-import net.kdt.pojavlaunch.aerix.bridge.ApexOwner
 import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
 import net.kdt.pojavlaunch.aerix.components.CardPosition
 import net.kdt.pojavlaunch.aerix.components.MiraiSettingsCard
@@ -85,21 +81,6 @@ import net.kdt.pojavlaunch.aerix.theme.AerixThemeManager
  * 3. Toggle for **Cover Art, Clickable Info Links & Profile Action Buttons**.
  * 4. Live Discord profile card preview + optional custom Application ID override.
  */
-
-/** Opens [url] in a browser, or explains that the destination does not exist yet. */
-private fun openLinkOrToast(context: Context, url: String, fallback: String) {
-    if (url.isBlank()) {
-        Toast.makeText(context, fallback, Toast.LENGTH_SHORT).show()
-        return
-    }
-    val opened = runCatching {
-        context.startActivity(
-            Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        )
-    }.isSuccess
-    if (!opened) Toast.makeText(context, fallback, Toast.LENGTH_SHORT).show()
-}
-
 @Composable
 fun DiscordPresenceSettingsCard() {
     val activityContext = LocalContext.current
@@ -130,7 +111,7 @@ fun DiscordPresenceSettingsCard() {
         MiraiSwitchSettingsCard(
             position = CardPosition.Top,
             title = "Discord Rich Presence",
-            summary = "Show what you are doing in Apex Launcher on your Discord profile, " +
+            summary = "Show what you are doing in Aerix Launcher on your Discord profile, " +
                 "and clear when you leave the app or close the game.",
             checked = enabled,
             onCheckedChange = { on ->
@@ -144,100 +125,13 @@ fun DiscordPresenceSettingsCard() {
             }
         )
 
-        MiraiSettingsCard(
-            position = CardPosition.Middle,
-            innerPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
-            onClick = {
-                AerixPreferences.saveDiscordAppId("")
-                AerixDiscordPresence.syncSettingsChanged(appContext)
-                Toast.makeText(
-                    activityContext,
-                    if (AerixDiscordPresence.isConnected()) "Refreshing Discord card"
-                    else "Retrying Discord connection",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        ) {
-            var status by remember { mutableStateOf(AerixDiscordPresence.connectionStatus()) }
-            var connected by remember { mutableStateOf(AerixDiscordPresence.isConnected()) }
-            var rpcError by remember { mutableStateOf(AerixDiscordPresence.lastError()) }
-            LaunchedEffect(enabled, appId) {
-                while (true) {
-                    status = AerixDiscordPresence.connectionStatus()
-                    connected = AerixDiscordPresence.isConnected()
-                    rpcError = AerixDiscordPresence.lastError()
-                    delay(1000)
-                }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = if (connected) "Status  ·  live" else "Status  ·  tap to retry",
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = status,
-                        color = if (connected) AerixSurface.success else AerixSurface.textSecondary,
-                        fontSize = 11.sp
-                    )
-                    // Shows exactly what is published as the card image, so a typo or a link that
-                    // Discord cannot fetch is visible instead of guessing.
-                    Text(
-                        text = "image: " + AerixDiscordPresence.logoImageValue(),
-                        color = AerixSurface.textMuted,
-                        fontSize = 10.sp
-                    )
-                    // What the card says right now, so a card that did not follow the game is visible.
-                    Text(
-                        text = "branding: " + if (ApexOwner.isOwner()) {
-                            "editable by you"
-                        } else {
-                            "locked to the owner"
-                        },
-                        color = AerixSurface.textMuted,
-                        fontSize = 10.sp
-                    )
-                    Text(
-                        text = "live: " + AerixDiscordPresence.publishedSummary()
-                            .ifBlank { "nothing published yet" },
-                        color = AerixSurface.textMuted,
-                        fontSize = 10.sp,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    // Prints what Discord complained about, so a rejected field can be fixed
-                    // instead of guessed at.
-                    if (rpcError.isNotBlank()) {
-                        Text(
-                            text = "discord: " + rpcError.take(120),
-                            color = AerixSurface.textMuted,
-                            fontSize = 9.sp,
-                            maxLines = 3,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-                Text(
-                    text = DiscordAppId.effective(),
-                    color = AerixSurface.textMuted,
-                    fontSize = 10.sp
-                )
-            }
-        }
-
         MiraiSwitchSettingsCard(
             position = CardPosition.Middle,
             title = "Official Minecraft Game Profile in-game",
-            summary = "Hybrid mode: shows the clickable Apex Launcher card while in the launcher, " +
+            summary = "Hybrid mode: shows the clickable Aerix Launcher card while in the launcher, " +
                 "and switches to Minecraft's verified Discord ID while playing so tapping your " +
-                "presence opens Minecraft's official full Game Profile sheet (\u201Cvia Apex Launcher\u201D). " +
-                "Turn off to keep \u201CApex Launcher\u201D as the card title everywhere.",
+                "presence opens Minecraft's official full Game Profile sheet (\u201Cvia Aerix Launcher\u201D). " +
+                "Turn off to keep \u201CAerix Launcher\u201D as the card title everywhere.",
             checked = gameProfileMode,
             enabled = enabled,
             onCheckedChange = { on ->
@@ -251,8 +145,8 @@ fun DiscordPresenceSettingsCard() {
             position = CardPosition.Middle,
             title = "Modpack art, clickable info links & buttons",
             summary = "Show modpack cover artwork, make the headline & status clickable " +
-                "(opening the official Apex website & Discord), and display \u201CAbout Apex Launcher\u201D " +
-                "+ \u201CJoin Apex Discord\u201D buttons on your profile card.",
+                "(opening the official Aerix website & Discord), and display \u201CAbout Aerix Launcher\u201D " +
+                "+ \u201CJoin Aerix Discord\u201D buttons on your profile card.",
             checked = clickableLinks,
             enabled = enabled,
             onCheckedChange = { on ->
@@ -272,133 +166,17 @@ fun DiscordPresenceSettingsCard() {
                 onPreviewModeChange = { previewInGame = it },
                 gameProfileMode = gameProfileMode && appId.trim().length < 15,
                 clickableLinks = clickableLinks,
-                onOpenWebsite = { openLinkOrToast(activityContext, AerixDiscordPresence.websiteUrl(), "Coming soon") },
-                onOpenDiscord = { openLinkOrToast(activityContext, AerixDiscordPresence.inviteUrl(), "Discord server is pending") }
-            )
-        }
-
-        // ── branding: the card stays unlocked, its five identity fields belong to the owner ──
-        // The card itself is public (everyone keeps the image, invite and website it was built
-        // with). Editing those three, plus the two API keys further down in Settings, is reserved
-        // for the owner account.
-        var ownerTick by remember { mutableIntStateOf(0) }
-        val owner = remember(ownerTick, ApexOwner.revision) { ApexOwner.isOwner() }
-
-        MiraiTextInputSettingsCard(
-            value = AerixPreferences.discordAssetName,
-            title = "Card image",
-            summary = "The image shown on the Discord card. Keep it as \u201Capex_logo\u201D \u2014 the " +
-                "name of the art asset uploaded under Discord Developer Portal \u2192 Rich Presence " +
-                "\u2192 Art Assets. Blank also means apex_logo.",
-            label = "apex_logo",
-            position = CardPosition.Middle,
-            editable = owner,
-            lockedHint = if (owner) null else ApexOwner.LOCK_HINT,
-            onValueChange = { value ->
-                AerixPreferences.saveDiscordAssetName(value)
-                AerixDiscordPresence.syncSettingsChanged(appContext)
-            }
-        )
-
-        MiraiTextInputSettingsCard(
-            value = AerixPreferences.discordInviteUrl,
-            title = "Discord invite link",
-            summary = "Paste the server invite (discord.gg/\u2026). It becomes the \u201CJoin Apex " +
-                "Discord\u201D button and the clickable status line. Blank falls back to the " +
-                "built-in invite.",
-            label = "discord.gg/\u2026",
-            position = CardPosition.Middle,
-            editable = owner,
-            lockedHint = if (owner) null else ApexOwner.LOCK_HINT,
-            onValueChange = { url ->
-                AerixPreferences.saveDiscordInviteUrl(url)
-                AerixDiscordPresence.syncSettingsChanged(appContext)
-            }
-        )
-
-        MiraiTextInputSettingsCard(
-            value = AerixPreferences.discordWebsiteUrl,
-            title = "Website link",
-            summary = "Shown as the \u201CAbout Apex\u201D button and makes the first card line " +
-                "clickable. Blank falls back to the built-in link.",
-            label = "https://\u2026",
-            position = CardPosition.Middle,
-            editable = owner,
-            lockedHint = if (owner) null else ApexOwner.LOCK_HINT,
-            onValueChange = { url ->
-                AerixPreferences.saveDiscordWebsiteUrl(url)
-                AerixDiscordPresence.syncSettingsChanged(appContext)
-            }
-        )
-
-        // Owner access: automatic when Discord is connected to the owner account, otherwise the
-        // owner types their Discord user id once on this device.
-        if (owner) {
-            MiraiSettingsCard(position = CardPosition.Middle) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = "\uD83D\uDC51 Owner access",
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(Modifier.height(5.dp))
-                    Text(
-                        text = "This device is recognised as the Apex owner, so the card image, " +
-                            "invite, website and both API keys can be edited here.",
-                        color = AerixSurface.textSecondary,
-                        fontSize = 11.sp
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = "Remove owner access",
-                        color = AerixThemeManager.currentAccent(),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable {
-                            ApexOwner.forget()
-                            ownerTick++
-                            Toast.makeText(
-                                activityContext,
-                                "Owner access removed from this device",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    )
-                }
-            }
-        } else {
-            MiraiTextInputSettingsCard(
-                value = "",
-                title = "\uD83D\uDD12 Owner only",
-                summary = "The card image, invite and website are locked to the Apex owner. If you " +
-                    "are the owner, enter your Discord user ID once \u2014 it is remembered on this " +
-                    "device. Everyone else can use the card as it is.",
-                label = "Your Discord user ID",
-                position = CardPosition.Middle,
-                onValueChange = { typed ->
-                    when {
-                        typed.trim().filter { it.isDigit() }.length < 17 -> Unit
-                        ApexOwner.verify(typed) -> {
-                            ownerTick++
-                            Toast.makeText(activityContext, "Owner access unlocked", Toast.LENGTH_SHORT).show()
-                        }
-                        else -> Toast.makeText(
-                            activityContext,
-                            "That is not the owner account",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
+                onOpenWebsite = { openUrl(AerixDiscordPresence.AERIX_WEBSITE_URL) },
+                onOpenDiscord = { openUrl(AerixDiscordPresence.AERIX_DISCORD_URL) }
             )
         }
 
         MiraiTextInputSettingsCard(
             value = appId,
             title = "Discord application ID",
-            summary = "Already set to the Apex Launcher application, so nothing has to be done here. " +
+            summary = "Already set to the Aerix Launcher application, so nothing has to be done here. " +
                 "Fill this in only to publish under a custom Discord application ID.",
-            label = "Built in: 1566402542487736410 — override if you know why",
+            label = "Built in: 1563812135744839771 — override if you know why",
             position = CardPosition.Bottom,
             onValueChange = { raw ->
                 val clean = raw.filter { it.isDigit() }.take(20)
@@ -421,21 +199,16 @@ private fun DiscordRichPresenceLivePreview(
 ) {
     val accent = AerixThemeManager.currentAccent()
     val usingOfficialMcProfile = previewInGame && gameProfileMode
-    val toastContext = LocalContext.current
-    val onAboutApex = { Toast.makeText(toastContext, "Coming soon", Toast.LENGTH_SHORT).show() }
-    val onJoinDiscord = {
-        Toast.makeText(toastContext, "Discord server is pending", Toast.LENGTH_SHORT).show()
-    }
 
-    val cardHeader = if (usingOfficialMcProfile) "Playing a game" else "Playing Apex Launcher"
+    val cardHeader = if (usingOfficialMcProfile) "Playing a game" else "Playing Aerix Launcher"
     val titleLine = when {
         usingOfficialMcProfile -> "Minecraft"
         previewInGame -> "Playing Minecraft 1.21.4"
         else -> "In the launcher"
     }
     val detailsLine = when {
-        usingOfficialMcProfile -> "Playing Minecraft 1.21.4 · via Apex Launcher"
-        previewInGame -> "Apex Launcher · Survival SMP"
+        usingOfficialMcProfile -> "Playing Minecraft 1.21.4 · via Aerix Launcher"
+        previewInGame -> "Aerix Launcher · Survival SMP"
         else -> "Browsing the dashboard"
     }
     val stateLine = if (usingOfficialMcProfile) "Survival SMP (2 of 4)" else null
@@ -525,8 +298,8 @@ private fun DiscordRichPresenceLivePreview(
                             }
                     ) {
                         Image(
-                            painter = painterResource(R.drawable.ic_apex_mark),
-                            contentDescription = "Apex Cover Art",
+                            painter = painterResource(R.drawable.aerix_logo),
+                            contentDescription = "Aerix Cover Art",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(62.dp)
@@ -535,8 +308,8 @@ private fun DiscordRichPresenceLivePreview(
                         )
                         if (usingOfficialMcProfile) {
                             Image(
-                                painter = painterResource(R.drawable.ic_apex_mark),
-                                contentDescription = "Apex Badge",
+                                painter = painterResource(R.drawable.aerix_logo),
+                                contentDescription = "Aerix Badge",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .size(22.dp)
@@ -622,14 +395,14 @@ private fun DiscordRichPresenceLivePreview(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         DiscordActionButtonPreview(
-                            label = "About Apex",
+                            label = "About Aerix Launcher",
                             modifier = Modifier.weight(1f),
-                            onClick = onAboutApex
+                            onClick = onOpenWebsite
                         )
                         DiscordActionButtonPreview(
-                            label = "Join Apex Discord",
+                            label = "Join Aerix Discord",
                             modifier = Modifier.weight(1f),
-                            onClick = onJoinDiscord
+                            onClick = onOpenDiscord
                         )
                     }
                 }
@@ -639,7 +412,7 @@ private fun DiscordRichPresenceLivePreview(
         Text(
             text = if (usingOfficialMcProfile) {
                 "Tip: In Official Minecraft mode, friends tapping the game card open Minecraft's native " +
-                    "Discord Game Profile sheet. The About and Discord buttons below are placeholders for this build."
+                    "Discord Game Profile sheet, while tapping the text/buttons opens Aerix Launcher's website & Discord."
             } else {
                 "Note: Discord shows Rich Presence action buttons to friends and server members viewing your " +
                     "profile (tap any link or button above to test where it opens)."

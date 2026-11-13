@@ -81,48 +81,49 @@ data class ContributionMember(
 
 object AerixContribution {
     val ownerRed = Color(0xFFE2374E)
-    /** Accent for this fork's own maintainer entry. */
-    val forkRed = Color(0xFFFF3B4E)
+    val coOwnerBlue = Color(0xFF63C7FF)
 
     val members: List<ContributionMember> = listOf(
         ContributionMember(
-            id = "cruz",
-            name = "Cruz",
-            role = "Fork owner",
-            title = "Apex Launcher build",
-            roleColor = forkRed,
-            logoRes = R.drawable.apex_contrib_cruz,
-            duties = listOf(
-                "Owns this fork: the build, the theme and the releases.",
-                "Publishes the ApexLauncher1.0 APKs and keeps the download page current.",
-                "Reports what breaks back to the people who wrote the code."
-            )
-        ),
-        ContributionMember(
-            id = "yadavboy",
-            name = "YadavBoy",
-            role = "CEO",
-            title = "Apex Launcher",
-            roleColor = Color(0xFFFFB020),
-            logoRes = R.drawable.apex_contrib_yadavboy,
-            duties = listOf(
-                "Leads Apex Launcher and sets where the project goes next.",
-                "Decides what ships in each release and signs off on the look.",
-                "Keeps the community and the roadmap in step with the builds."
-            )
-        ),
-        ContributionMember(
             id = "entitybrian",
             name = "Entitybrian",
-            role = "Original author",
+            role = "Owner",
             title = "Developer / Programmer",
             roleColor = ownerRed,
             logoRes = R.drawable.aerix_contrib_owner,
             duties = listOf(
-                "Writes the launcher: the Apex shell, its settings and its launcher screens.",
+                "Writes the launcher: the Aerix shell, its settings and its launcher screens.",
                 "Programs the renderer backends and the plugin support that loads them.",
                 "Builds, signs and ships every release.",
                 "Answers the bug reports and fixes what they turn up."
+            )
+        ),
+        ContributionMember(
+            id = "zerx-mc",
+            name = "Zerx-mc",
+            role = "Co-owner",
+            title = "Runtime and renderer manager",
+            roleColor = coOwnerBlue,
+            logoRes = R.drawable.aerix_contrib_zerx,
+            duties = listOf(
+                "Keeps the renderers working: Proton, Emesis and the bundled GL backends.",
+                "Manages the Java runtimes the launcher installs and picks.",
+                "Tests renderer and runtime builds on real devices before they ship.",
+                "Tracks the upstream renderer projects this launcher bundles."
+            )
+        ),
+        ContributionMember(
+            id = "fire-playz",
+            name = "Fire playz",
+            role = "Co-owner",
+            title = "Social and online manager",
+            roleColor = coOwnerBlue,
+            logoRes = R.drawable.aerix_contrib_fire,
+            duties = listOf(
+                "Runs the launcher's social presence and announcements.",
+                "Handles the community: questions, reports and feedback.",
+                "Keeps the download pages and online listings up to date.",
+                "Passes what the community asks for on to the developers."
             )
         )
     )
@@ -141,7 +142,7 @@ object AerixContribution {
 fun ContributionScreen(onOpen: (ContributionMember) -> Unit) {
     AerixPage(
         title = "Contribution",
-        subtitle = "Who builds this fork, and the project it is based on"
+        subtitle = "The people who build and run Aerix Launcher"
     ) {
         Column(
             modifier = Modifier
@@ -165,14 +166,14 @@ fun ContributionScreen(onOpen: (ContributionMember) -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus),
                 verticalAlignment = Alignment.Top
             ) {
-                // Everyone other than the owner shares this row evenly; the card keeps a fixed
-                // maximum so a single entry sits centred instead of stretching.
+                // Both co-owners share the row evenly, and their cards hold two title lines either
+                // way, so the two halves line up exactly.
                 AerixContribution.members.drop(1).forEach { member ->
                     MemberColumn(
                         member = member,
                         circleSize = 76.dp,
                         modifier = Modifier.weight(1f),
-                        cardModifier = Modifier.widthIn(max = 220.dp),
+                        cardModifier = Modifier.fillMaxWidth(),
                         onOpen = onOpen
                     )
                 }
@@ -351,7 +352,7 @@ fun ContributionDetailScreen(member: ContributionMember, onBack: () -> Unit) {
                     fontWeight = FontWeight.Black
                 )
                 Text(
-                    text = "What they do in Apex Launcher",
+                    text = "What they do in Aerix Launcher",
                     color = AerixSurface.textSecondary,
                     fontSize = 11.sp
                 )

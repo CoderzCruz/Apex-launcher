@@ -178,7 +178,7 @@ fun MetaPill(text: String, @DrawableRes iconRes: Int? = null, modifier: Modifier
         shape = CircleShape,
         color = AerixSurface.panelRaised.copy(alpha = 0.27f),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
-        contentColor = AerixSurface.textPrimary
+        contentColor = Color.White
     ) {
         Row(
             modifier = Modifier.padding(horizontal = AerixSpacing.smPlus, vertical = AerixSpacing.xs),

@@ -60,7 +60,7 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 object SocialBackend {
-    private const val TAG = "ApexSocial"
+    private const val TAG = "AerixSocial"
     private const val PREFS = "aerix_social"
     private const val THIRTY_DAYS_MS = 30L * 24L * 60L * 60L * 1000L
 
@@ -3085,135 +3085,6 @@ object SocialBackend {
             refreshParties()
         }
         return ok
-    }
-
-    /* ── public chat ──────────────────────────────────────────────────────── */
-
-    /** One shared room every Apex Launcher player lands in: same title, same party. */
-    const val PUBLIC_CHAT_TITLE = "Apex Public Chat"
-
-    /** How long the shared room lives before it is recreated (the party cap is 12 hours). */
-    private const val PUBLIC_CHAT_MINUTES = 720
-
-    /** The room currently in use, remembered so the screen does not re-query on every poll. */
-    var publicChatPartyId by mutableStateOf<String?>(null)
-        private set
-
-    /**
-     * Finds the shared room, creating it when nobody has opened one yet, and joins it so the
-     * member can read and write. Returns null when the account is not signed in.
-     */
-    suspend fun openPublicChat(): SocialParty? = attempt {
-        ensureToken()
-        val me = userId ?: return@attempt null
-        refreshParties()
-
-        var room = parties.firstOrNull {
-            it.title.equals(PUBLIC_CHAT_TITLE, ignoreCase = true)
-        }
-
-        if (room == null) {
-            // First player online opens the room; everyone after simply joins it.
-            room = createParty(
-                title = PUBLIC_CHAT_TITLE,
-                instanceName = null,
-                versionId = null,
-                mcVersion = null,
-                loader = null,
-                maxMembers = 16,
-                expiryMinutes = PUBLIC_CHAT_MINUTES,
-                isPublic = true
-            )
-        }
-        val partyId = room?.id ?: return@attempt null
-        publicChatPartyId = partyId
-
-        // Join (or refresh my seat) so the room's chat is readable for this account.
-        callRaw(
-            "POST",
-            "$PROJECT_URL/rest/v1/party_members?on_conflict=party_id,member",
-            JsonArray().apply {
-                add(JsonObject().apply {
-                    addProperty("party_id", partyId)
-                    addProperty("member", me)
-                })
-            }.toString(),
-            extraHeaders = mapOf("Prefer" to "resolution=merge-duplicates,return=minimal")
-        )
-        room
-    }
-
-    /**
-     * Uploads a recorded voice note and posts it into the shared room.
-     * The clip is stored in the same media bucket the image attachments use.
-     */
-    suspend fun sendPublicChatVoice(bytes: ByteArray): Boolean {
-        if (bytes.size < 512) {
-            lastError = "Recording was too short"
-            return false
-        }
-        val url = uploadVoice(bytes) ?: return false
-        val partyId = publicChatPartyId ?: openPublicChat()?.id ?: return false
-        return sendPartyMessage(partyId, VOICE_MESSAGE_LABEL, attachmentUri = Uri.parse(url))
-    }
-
-    /** Audio upload with its own MIME type; [uploadImage] only knows image formats. */
-    suspend fun uploadVoice(bytes: ByteArray): String? = withContext(Dispatchers.IO) {
-        lastError = null
-        ensureToken()
-        val me = userId ?: myProfile?.id
-        val token = accessToken
-        if (me == null || token == null) {
-            if (lastError == null) lastError = "Sign in first"
-            return@withContext null
-        }
-        val path = "$me/voice-${System.currentTimeMillis()}.m4a"
-        try {
-            val req = Request.Builder()
-                .url("$PROJECT_URL/storage/v1/object/social-media/$path")
-                .post(bytes.toRequestBody("audio/mp4".toMediaType()))
-                .header("apikey", PUBLISHABLE_KEY)
-                .header("Authorization", "Bearer $token")
-                .header("x-upsert", "true")
-                .build()
-            SocialRealtime.restClient.newCall(req).execute().use { resp ->
-                if (resp.code !in 200..299) {
-                    lastError = serverMessage(resp.body?.string() ?: "")
-                        ?: "Voice upload failed (HTTP ${resp.code})"
-                    return@withContext null
-                }
-            }
-            lastError = null
-            "$PROJECT_URL/storage/v1/object/public/social-media/$path"
-        } catch (error: Throwable) {
-            Log.w(TAG, "Voice upload failed", error)
-            lastError = error.message ?: "Voice upload failed"
-            null
-        }
-    }
-
-    /** Body the player sees for a clip; the sound itself is the attachment. */
-    const val VOICE_MESSAGE_LABEL = "\uD83C\uDFA4 Voice message"
-
-    /** Messages of the shared room, oldest first; empty when the room is not open yet. */
-    suspend fun loadPublicChatMessages(): List<SocialMessage> {
-        val partyId = publicChatPartyId ?: openPublicChat()?.id ?: return emptyList()
-        return loadPartyMessages(partyId)
-    }
-
-    suspend fun sendPublicChatMessage(text: String): Boolean {
-        val partyId = publicChatPartyId ?: openPublicChat()?.id ?: return false
-        return sendPartyMessage(partyId, text)
-    }
-
-    /** In-game name of a message's author, when the room knows it. */
-    fun publicChatAuthorName(message: SocialMessage): String {
-        val party = parties.firstOrNull { it.id == publicChatPartyId }
-        val member = party?.members?.firstOrNull { it.userId == message.sender }
-        return member?.mcUsername?.takeIf { it.isNotBlank() }
-            ?: member?.cleanName?.takeIf { it.isNotBlank() }
-            ?: message.senderName?.takeIf { it.isNotBlank() }
-            ?: "Player"
     }
 
     suspend fun loadPartyMessages(partyId: String): List<SocialMessage> {

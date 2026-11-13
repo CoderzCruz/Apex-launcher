@@ -46,17 +46,6 @@ def getVersionName = {
     }
 }
 
-def getServiceAiKey = {
-    String key = System.getenv("APEX_SERVICE_AI_KEY")
-    if(key != null && !key.trim().isEmpty()) return key.trim()
-    File keyFile = new File("./apex_service_key.txt")
-    if(keyFile.canRead() && keyFile.isFile()) {
-        return keyFile.text.trim()
-    }
-    // No key: Apex Service still runs, it just answers from its built-in knowledge base.
-    return ""
-}
-
 def getCFApiKey = {
     String key = System.getenv("CURSEFORGE_API_KEY")
     if(key != null && !key.trim().isEmpty()) return key.trim()
@@ -146,7 +135,6 @@ android {
         versionName AERIX_VERSION_NAME
         multiDexEnabled false //important
         resValue 'string', 'curseforge_api_key', getCFApiKey()
-        resValue 'string', 'apex_service_ai_key', getServiceAiKey()
         resValue 'string', 'group_id', 'net.kdt'
     }
 
@@ -201,9 +189,9 @@ android {
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.customDebug
-            resValue "string", "app_name", "Apex Launcher 1.0"
-            resValue "string", "app_short_name", "Apex Launcher 1.0"
-            resValue "string", "aerix_app_label", "Apex Launcher 1.0"
+            resValue "string", "app_name", "Aerix Launcher (Debug)"
+            resValue "string", "app_short_name", "Aerix Launcher (Debug)"
+            resValue "string", "aerix_app_label", "Aerix Launcher (Debug)"
             resValue 'string', 'application_package', 'net.kdt.pojavlaunch.debug'
             resValue 'string', 'storageProviderAuthorities', 'net.kdt.pojavlaunch.scoped.gamefolder.debug'
         }

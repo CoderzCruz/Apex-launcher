@@ -56,7 +56,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.fragment.app.FragmentActivity
-import net.kdt.pojavlaunch.BuildConfig
 import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
 import net.kdt.pojavlaunch.aerix.bridge.AerixTransitionType
 import net.kdt.pojavlaunch.aerix.bridge.AerixWindowInsets
@@ -147,16 +146,6 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
         }
     }
 
-    // Once per version the What's New changelog opens itself, so a returning player sees what
-    // shipped. Never over the first-run tour: on a fresh install the guide comes first and the
-    // changelog waits for the next open.
-    LaunchedEffect(Unit) {
-        if (!AerixPreferences.guidePlayed) return@LaunchedEffect
-        if (AerixPreferences.whatsNewVersionShown == BuildConfig.VERSION_NAME) return@LaunchedEffect
-        AerixPreferences.saveWhatsNewVersion(BuildConfig.VERSION_NAME)
-        AerixNav.navigate(LauncherSection.WHATS_NEW)
-    }
-
     // Discord Rich Presence: the launcher is on screen, and it says which page you are on.
     // Lifecycle clear-after-1-minute on leaving the app is driven by LauncherActivity.onStart/onStop.
     LaunchedEffect(Unit) {
@@ -169,16 +158,7 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
         AerixDiscordPresence.inLauncher(section.name)
     }
 
-    // Back leaves a page first, then any other tab, and only then leaves the launcher.
-    BackHandler(enabled = true) {
-        if (AerixNav.canGoBack) {
-            AerixNav.back()
-        } else if (AerixNav.section != LauncherSection.HOME) {
-            AerixNav.navigate(LauncherSection.HOME)
-        } else {
-            activity.finish()
-        }
-    }
+    BackHandler(enabled = AerixNav.canGoBack) { AerixNav.back() }
 
     CompositionLocalProvider(LocalGuideRegistry provides guideRegistry) {
     AerixBackground {
@@ -210,16 +190,6 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
                             LauncherSection.OTHER_RELEASES -> net.kdt.pojavlaunch.aerix.ui.screens.OtherReleasesScreen(activity, navigate)
                             LauncherSection.HOME -> HomeScreen(activity, navigate)
                             LauncherSection.AERIX_CLIENT -> net.kdt.pojavlaunch.aerix.ui.screens.AerixClientScreen(activity)
-                            LauncherSection.CHATS -> net.kdt.pojavlaunch.aerix.ui.screens.ChatsScreen(
-                                onOpenSocials = { navigate(LauncherSection.SOCIALS) }
-                            )
-                            LauncherSection.DIWALI -> net.kdt.pojavlaunch.aerix.ui.screens.DiwaliSpecialScreen(
-                                onClose = { navigate(LauncherSection.HOME) },
-                                onOpenWhatsNew = { navigate(LauncherSection.WHATS_NEW) }
-                            )
-                            LauncherSection.WHATS_NEW -> net.kdt.pojavlaunch.aerix.ui.screens.WhatsNewScreen(
-                                onClose = { navigate(LauncherSection.HOME) }
-                            )
                             LauncherSection.LIBRARY -> LibraryScreen(activity)
                             LauncherSection.SOCIALS -> SocialsScreen(activity) { AerixNav.finishTo(LauncherSection.HOME) }
                             LauncherSection.DISCOVER, LauncherSection.DOWNLOADS -> DiscoverScreen(activity, navigate)

@@ -42,9 +42,6 @@ enum class FestivalEffectType {
             Festival.MID_AUTUMN to listOf(FIREFLIES),
             Festival.HALLOWEEN to listOf(BAT_SWARM),
             Festival.VALENTINES to listOf(HEARTS),
-            Festival.APEX_LAUNCH to listOf(FIREWORKS),
-            Festival.LOHRI to listOf(FIREWORKS),
-            Festival.BAISAKHI to listOf(FIREWORKS),
             Festival.QIXI to listOf(HEARTS)
         )
 
