@@ -487,6 +487,11 @@ object AerixDiscordPresence {
         val disk = readDiskState(app)
         // If `:game` already took ownership, do not schedule an exit from `:launcher`.
         if (disk?.owner == "game") return
+        // Backgrounding — HOME or switching to another app (opening Discord to check the
+        // card) must NOT clear the presence: the player wants it visible while they chat.
+        // Only a real exit (back-close / finish) falls through to the clear below; the
+        // recents-swipe, process-exit and game-handoff paths keep their own clears.
+        if ((context as? android.app.Activity)?.isFinishing != true) return
         val nowElapsed = SystemClock.elapsedRealtime()
         writeDiskState(
             app,

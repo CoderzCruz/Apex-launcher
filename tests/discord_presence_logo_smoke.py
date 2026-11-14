@@ -20,4 +20,11 @@ assert 'clickable && inGameMode && isValidHttpAssetUrl(it)' in assets
 assert 'activity.put("assets", assets)' in links
 preview = (base / 'AerixDiscordPresenceCard.kt').read_text().split('fun DiscordRichPresenceLivePreview', 1)[1]
 assert 'painterResource(R.drawable.aerix_logo)' in preview
+# Backgrounding (opening Discord) keeps the card: clear only on a real finish.
+stopped = src.split('fun onLauncherStopped(', 1)[1].split('fun prepareHandoffToGame', 1)[0]
+assert 'isFinishing != true) return' in stopped, "background switch keeps the card"
+assert 'clearAndDetach(app, onlyIfExited = true)' in stopped, "real exit still clears"
+assert 'if (handoffToGameInProgress) return' in stopped
+assert 'onAppSwipedFromRecents' in src, "recents swipe still clears"
+assert 'onProcessExiting' in src, "process exit still clears"
 print('Discord presence logo wiring passed')
