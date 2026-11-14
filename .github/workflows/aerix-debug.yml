@@ -72,6 +72,7 @@ jobs:
           python3 tests/home_v2_smoke.py
           python3 tests/apex_ai_smoke.py
           python3 tests/vortex_rules_smoke.py
+          python3 tests/vortex_mc_card_smoke.py
           mkdir -p "$RUNNER_TEMP/aerix-memory-test"
           javac -d "$RUNNER_TEMP/aerix-memory-test" \
             app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/jre/InstanceMemory.java \
