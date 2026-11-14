@@ -238,6 +238,75 @@ fun HomeScreen(activity: FragmentActivity, navigate: (LauncherSection) -> Unit) 
     }
 }
 
+/**
+ * The reference launcher's labeled sidebar menu, adapted as a Home card: Home highlighted as
+ * the red active pill, plus Install, Execute, Control Layouts and Downloads with sublabels.
+ */
+@Composable
+private fun ReferenceMenuCard(accent: Color, actions: HomeActions) {
+    Surface(
+        shape = RoundedCornerShape(AerixRadii.card),
+        color = AerixSurface.panel,
+        border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(AerixSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(AerixSpacing.tiny)
+        ) {
+            ReferenceMenuRow(R.drawable.aerix_ic_home_filled, "Home", "Dashboard", true, accent) {
+                // Already home — the row exists to mirror the reference menu.
+            }
+            ReferenceMenuRow(R.drawable.aerix_ic_cloud_download, "Install", "Install new version", false, accent, actions.explore)
+            ReferenceMenuRow(R.drawable.aerix_ic_java, "Execute", "Run jar file", false, accent, actions.runJar)
+            ReferenceMenuRow(R.drawable.aerix_ic_touch_app_outlined, "Control Layouts", "Edit your controls", false, accent, actions.controls)
+            ReferenceMenuRow(R.drawable.aerix_ic_folder_outlined, "Downloads", "View your files", false, accent, actions.fileManager)
+        }
+    }
+}
+
+@Composable
+private fun ReferenceMenuRow(
+    icon: Int,
+    label: String,
+    sublabel: String,
+    active: Boolean,
+    accent: Color,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(AerixRadii.control))
+            .background(if (active) accent else Color.Transparent)
+            .apexPress(onClick = onClick)
+            .padding(horizontal = AerixSpacing.smPlus, vertical = AerixSpacing.smTight),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = if (active) Color.White else AerixSurface.textPrimary,
+            modifier = Modifier.size(18.dp)
+        )
+        Column {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (active) Color.White else AerixSurface.textPrimary
+            )
+            Text(
+                text = sublabel,
+                style = MaterialTheme.typography.labelSmall,
+                color = if (active) Color.White.copy(alpha = 0.80f) else AerixSurface.textMuted
+            )
+        }
+    }
+}
+
 /** The reference launcher's account line: the signed-in account's kind, in plain words. */
 private fun accountTypeLabel(authType: AuthType): String = when (authType) {
     AuthType.MICROSOFT -> "Microsoft Account"
@@ -312,6 +381,8 @@ private fun CompactHomeDashboard(
                 HomeHeaderRow(actions)
             }
         }
+        // Reference-UI merge: the labeled sidebar menu, adapted as a Home card.
+        item { ReferenceMenuCard(accent, actions) }
         // Phone Home v2: the rotatable skin stage with the account pill and login quick row.
         item { PhoneSkinStage(accent, actions) }
         // The instance selector and the centred PLAY button — the launcher's main action.
@@ -393,6 +464,44 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
         border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
+            // Reference-UI header: Customize / your skin + PREVIEW chip.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = AerixSpacing.md, vertical = AerixSpacing.sm),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Customize",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = AerixSurface.textPrimary
+                    )
+                    Text(
+                        text = "your skin",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AerixSurface.textMuted
+                    )
+                }
+                Surface(
+                    shape = RoundedCornerShape(AerixRadii.control),
+                    color = Color.Transparent,
+                    border = BorderStroke(AerixSpacing.hairline, accent.copy(alpha = 0.5f))
+                ) {
+                    Text(
+                        text = "PREVIEW",
+                        fontSize = 9.sp,
+                        letterSpacing = 1.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = accent,
+                        modifier = Modifier.padding(
+                            horizontal = AerixSpacing.sm,
+                            vertical = AerixSpacing.tiny
+                        )
+                    )
+                }
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -478,6 +587,40 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
                 LoginPill("Microsoft", Modifier.weight(1f), actions.loginMicrosoft)
                 LoginPill("Ely.by", Modifier.weight(1f), actions.loginEly)
                 LoginPill("Offline", Modifier.weight(1f), actions.loginOffline)
+            }
+
+            // Reference-UI Change Skin button under the stage (opens the wardrobe in Accounts).
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(AerixSpacing.sm)
+                    .clip(RoundedCornerShape(AerixRadii.panel))
+                    .apexPress(onClick = { actions.accounts() }),
+                shape = RoundedCornerShape(AerixRadii.panel),
+                color = AerixSurface.panelRaised,
+                border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = AerixSpacing.smTight),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.aerix_ic_style_outlined),
+                        contentDescription = null,
+                        tint = accent,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(AerixSpacing.xs))
+                    Text(
+                        text = "Change Skin",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = accent
+                    )
+                }
             }
         }
     }
@@ -673,6 +816,16 @@ private fun MiddlePlayBlock(selected: AerixInstance?, accent: Color, actions: Ho
                 )
             }
         }
+
+        // Reference-UI section label above the launch cluster.
+        Text(
+            text = "QUICK ACTIONS",
+            style = MaterialTheme.typography.labelSmall,
+            letterSpacing = 1.2.sp,
+            fontWeight = FontWeight.Bold,
+            color = AerixSurface.textMuted,
+            modifier = Modifier.padding(horizontal = AerixSpacing.smPlus)
+        )
 
         // The reference launcher's LAUNCH button, merged in: gradient red face, adventure
         // sub-line and a chevron — press effect and tour anchor kept.
