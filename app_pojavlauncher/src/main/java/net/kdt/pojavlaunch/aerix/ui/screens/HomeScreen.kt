@@ -41,7 +41,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -110,9 +109,6 @@ import net.kdt.pojavlaunch.aerix.components.MetaPill
 import net.kdt.pojavlaunch.aerix.components.QuickActionTile
 import net.kdt.pojavlaunch.aerix.components.QuietEmptyState
 import net.kdt.pojavlaunch.aerix.components.apexPress
-import net.kdt.pojavlaunch.aerix.theme.ThemeMotion
-import net.kdt.pojavlaunch.aerix.theme.accentGlow
-import net.kdt.pojavlaunch.utils.jre.GameRunner
 import net.kdt.pojavlaunch.aerix.components.liquidGlass
 import net.kdt.pojavlaunch.aerix.theme.AerixMetrics
 import net.kdt.pojavlaunch.aerix.theme.AerixRadii
@@ -314,8 +310,6 @@ private fun CompactHomeDashboard(
         item { MiddlePlayBlock(selected, accent, actions) }
         // The five options: Modpacks, Mods, Settings, Contribution, Add Version.
         item { OptionsGrid(accent, actions) }
-        // The Vortex Mc ip quick-join card: art, hosting line, animated Click to Play.
-        item { VortexMcServerCard(selected, accent, actions) }
         item { TaskSummaryPanel(taskCount, accent, Modifier.fillMaxWidth().height(74.dp)) }
         item { RecentWorldsPanel(recent, selected, accent, actions, Modifier.fillMaxWidth(), lazy = false) }
     }
@@ -692,98 +686,6 @@ private fun OptionsGrid(accent: Color, actions: HomeActions) {
                 R.drawable.aerix_ic_add, "Add Version", "New instance",
                 accent, actions.create, Modifier.weight(1.6f).height(78.dp)
             )
-        }
-    }
-}
-
-/**
- * The "Vortex Mc ip" quick-join card: the owner's server art, "Sooth Hosting" below it and
- * the animated "Click to Play" button. A tap arms GameRunner's pending server address and
- * launches the selected instance — the game then joins in1.madflex.shop:19135 by itself
- * (quickPlay on 1.20+, --server/--port on older versions). With no instance selected the
- * button walks through the normal create flow instead, leaving no pending address behind.
- */
-@Composable
-private fun VortexMcServerCard(selected: AerixInstance?, accent: Color, actions: HomeActions) {
-    Surface(
-        shape = RoundedCornerShape(AerixRadii.card),
-        color = AerixSurface.panel,
-        border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Image(
-                painter = painterResource(R.drawable.vortex_mc_card),
-                contentDescription = "Vortex Mc ip",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1280f / 576f)
-                    .clip(RoundedCornerShape(topStart = AerixRadii.card, topEnd = AerixRadii.card))
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(AerixSpacing.md),
-                verticalArrangement = Arrangement.spacedBy(AerixSpacing.xs)
-            ) {
-                Text(
-                    text = "Vortex Mc ip",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = AerixSurface.textPrimary
-                )
-                Text(
-                    text = "Sooth Hosting",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = accent
-                )
-                Text(
-                    text = "Vortex Mc S2 \u00B7 in1.madflex.shop:19135",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AerixSurface.textSecondary
-                )
-                Spacer(Modifier.height(AerixSpacing.xs))
-                // Click to Play: dip-and-spring press effect plus the breathing accent glow.
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(AerixRadii.panel))
-                        .apexPress(onClick = {
-                            if (selected != null) {
-                                GameRunner.setPendingServerAddress("in1.madflex.shop:19135")
-                                actions.play()
-                            } else {
-                                actions.create()
-                            }
-                        })
-                        .accentGlow(accent, active = true, enabled = ThemeMotion.rememberEnabled())
-                        .height(44.dp),
-                    shape = RoundedCornerShape(AerixRadii.panel),
-                    color = accent,
-                    contentColor = AerixSurface.onAccent
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.aerix_ic_play_arrow_filled),
-                            contentDescription = null,
-                            tint = AerixSurface.onAccent,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(Modifier.width(AerixSpacing.xs))
-                        Text(
-                            text = "Click to Play",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = AerixSurface.onAccent
-                        )
-                    }
-                }
-            }
         }
     }
 }

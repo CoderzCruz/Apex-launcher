@@ -102,6 +102,8 @@ enum class LauncherSection {
     AI,
     /** Rules of Vortex Launcher — the page every player reads before playing v1. */
     RULES,
+    /** Vortex MC quick-join: the server art, its IP and the Click to Play button. */
+    VORTEX_MC,
     /** Pages opened on top of a section (Mirai "Create New Instance", instance settings, account sign-in). */
     CREATE_INSTANCE,
     INSTANCE_EDITOR,
@@ -188,6 +190,8 @@ fun AerixNavigationRail(
                     selectedSection == LauncherSection.HOME, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.HOME) }
                 RailIconItem(R.drawable.aerix_ic_description_outlined, "Rules",
                     selectedSection == LauncherSection.RULES, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.RULES) }
+                RailIconItem(R.drawable.aerix_ic_sports_esports_outlined, "Vortex MC",
+                    selectedSection == LauncherSection.VORTEX_MC, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.VORTEX_MC) }
                 RailIconItem(R.drawable.aerix_ic_add, stringResource(R.string.create_instance),
                     selectedSection == LauncherSection.CREATE_INSTANCE, activeAccent, expandedRail, compactRail,
                     onClick = onCreateInstance, guideKey = AerixGuideState.CREATE)

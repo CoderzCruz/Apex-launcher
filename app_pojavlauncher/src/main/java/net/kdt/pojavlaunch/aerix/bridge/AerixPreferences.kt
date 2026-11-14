@@ -44,6 +44,9 @@ object AerixPreferences {
     private const val FILE = "aerix_ui_prefs"
 
     const val KEY_COLOR_THEME = "launcherColorTheme"
+    /** Default Vortex MC server the quick-join page joins. */
+    const val DEFAULT_VORTEX_MC_SERVER = "in1.madflex.shop:19135"
+    const val KEY_VORTEX_MC_SERVER = "vortexMcServerAddress"
     /** The player's own Apex Service key; blank falls back to the CI-baked one. */
     const val KEY_GOOGLE_AI_KEY = "apexServiceAiKey"
     const val KEY_CUSTOM_COLOR = "launcherCustomColor"
@@ -92,6 +95,8 @@ object AerixPreferences {
     private var prefs: SharedPreferences? = null
 
     var colorTheme by mutableStateOf(AerixColorTheme.AERIX)
+        private set
+    var vortexMcServer by mutableStateOf(DEFAULT_VORTEX_MC_SERVER)
         private set
     /** Player-entered Gemini key for Apex Service; blank means use the baked key. */
     var googleAiKey by mutableStateOf("")
@@ -210,6 +215,8 @@ object AerixPreferences {
         festivalEffects = p.getBoolean(KEY_FESTIVAL_EFFECTS, false)
         themeMotion = p.getBoolean(KEY_THEME_MOTION, true)
         guidePlayed = p.getBoolean(KEY_GUIDE_PLAYED, false)
+        vortexMcServer = p.getString(KEY_VORTEX_MC_SERVER, DEFAULT_VORTEX_MC_SERVER)
+            ?: DEFAULT_VORTEX_MC_SERVER
         notificationPromptShown = p.getBoolean(KEY_NOTIFICATION_PROMPT_SHOWN, false)
         loadingWallpaper = p.getBoolean(KEY_LOADING_WALLPAPER, false)
         logTextSize = p.getInt(KEY_LOG_TEXT_SIZE, 15).coerceIn(5, 20)
@@ -274,6 +281,11 @@ object AerixPreferences {
     fun saveColorTheme(value: AerixColorTheme) {
         colorTheme = value
         edit { putString(KEY_COLOR_THEME, value.name) }
+    }
+
+    fun saveVortexMcServer(value: String) {
+        vortexMcServer = value.trim().ifBlank { DEFAULT_VORTEX_MC_SERVER }
+        edit { putString(KEY_VORTEX_MC_SERVER, vortexMcServer) }
     }
 
     /** The key Apex Service should actually use: the player's own if set, else the built-in one. */

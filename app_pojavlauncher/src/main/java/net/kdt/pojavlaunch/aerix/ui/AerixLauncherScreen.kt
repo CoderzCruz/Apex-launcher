@@ -80,6 +80,7 @@ import net.kdt.pojavlaunch.aerix.ui.screens.AccountsScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AddAccountScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AiScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.RulesScreen
+import net.kdt.pojavlaunch.aerix.ui.screens.VortexMcScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AerixContribution
 import net.kdt.pojavlaunch.aerix.ui.screens.ContributionDetailScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.ContributionScreen
@@ -238,6 +239,11 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
                             )
                             LauncherSection.RULES -> RulesScreen(
                                 onClose = { AerixNav.finishTo(LauncherSection.HOME) }
+                            )
+                            LauncherSection.VORTEX_MC -> VortexMcScreen(
+                                activity = activity,
+                                onClose = { AerixNav.finishTo(LauncherSection.HOME) },
+                                onNeedInstance = { AerixNav.navigate(LauncherSection.CREATE_INSTANCE) }
                             )
                         }
                     }
