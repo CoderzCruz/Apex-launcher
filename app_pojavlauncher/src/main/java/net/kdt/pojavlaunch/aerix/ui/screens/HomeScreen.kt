@@ -749,14 +749,14 @@ private fun VortexMcServerCard(selected: AerixInstance?, accent: Color, actions:
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(AerixRadii.panel))
-                        .apexPress {
+                        .apexPress(onClick = {
                             if (selected != null) {
                                 GameRunner.setPendingServerAddress("in1.madflex.shop:19135")
                                 actions.play()
                             } else {
                                 actions.create()
                             }
-                        }
+                        })
                         .accentGlow(accent, active = true, enabled = ThemeMotion.rememberEnabled())
                         .height(44.dp),
                     shape = RoundedCornerShape(AerixRadii.panel),

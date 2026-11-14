@@ -29,7 +29,7 @@ assert "R.drawable.vortex_mc_card" in card
 assert 'GameRunner.setPendingServerAddress("in1.madflex.shop:19135")' in card
 assert "actions.play()" in card and "actions.create()" in card
 # The button animates: press dip + breathing glow.
-assert ".apexPress {" in card
+assert ".apexPress(onClick = {" in card
 assert ".accentGlow(accent, active = true, enabled = ThemeMotion.rememberEnabled())" in card
 
 # ── The art ships ─────────────────────────────────────────────────────────
