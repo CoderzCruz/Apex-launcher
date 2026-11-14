@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Vortex Launcher UI strings.
+  Vortex Launcher v1 UI strings.
   Wording taken from mirai-launcher- (Zalith Launcher 2 fork):
     MiraiLauncher/src/main/res/values/strings.xml
     MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/home/MiraiHomeDashboard.kt
@@ -227,14 +227,14 @@
     <string name="aerix_settings_saturation">Saturation</string>
     <string name="aerix_settings_brightness">Brightness</string>
     <string name="aerix_settings_apply">Apply</string>
-    <string name="aerix_settings_classic_all">All Vortex Launcher settings</string>
+    <string name="aerix_settings_classic_all">All Vortex Launcher v1 settings</string>
     <string name="aerix_settings_classic_all_sub">The complete original preference tree</string>
-    <string name="aerix_settings_classic_home">Classic Vortex Launcher home</string>
+    <string name="aerix_settings_classic_home">Classic Vortex Launcher v1 home</string>
     <string name="aerix_settings_classic_home_sub">Version spinner, news, Discord, controls, .jar, logs and directory buttons</string>
 
     <!-- About -->
     <string name="aerix_about_title">About</string>
-    <string name="aerix_about_subtitle">Vortex Launcher</string>
+    <string name="aerix_about_subtitle">Vortex Launcher v1</string>
     <string name="aerix_about_version">Version %1$s</string>
     <string name="aerix_about_license">GNU General Public License v3.0</string>
     <string name="aerix_about_credits">Interface ported from Vortex / Zalith Launcher 2 (MovTery and contributors). Launcher core from PojavLauncher / MojoLauncher (PojavLauncherTeam and contributors).</string>

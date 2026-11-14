@@ -922,7 +922,7 @@ object AerixDiscordPresence {
         val usingMinecraftProfile = isMinecraftCatalogId(connectedAppId)
         val clickable = AerixPreferences.discordClickableLinks
 
-        val cardName = if (usingMinecraftProfile) "Minecraft" else "Vortex Launcher"
+        val cardName = if (usingMinecraftProfile) "Minecraft" else "Vortex Launcher v1"
         // status_display_type: 0 = Name ("Playing Minecraft"), 2 = Details ("In the launcher" / "Playing Minecraft 1.21")
         val statusDisplayType = if (usingMinecraftProfile) 0 else 2
         val effectiveDetails = if (usingMinecraftProfile && !details.contains("Vortex", ignoreCase = true)) {
@@ -963,11 +963,11 @@ object AerixDiscordPresence {
             assets.put("large_image", validPackIcon)
             assets.put("large_text", "$state · Aerix Launcher")
             assets.put("small_image", AERIX_LOGO_URL)
-            assets.put("small_text", "Vortex Launcher — Tap to join Discord")
+            assets.put("small_text", "Vortex Launcher v1 — Tap to join Discord")
         } else {
             assets.put("large_image", AERIX_LOGO_URL)
             assets.put("large_text", if (usingMinecraftProfile)
-                "Vortex Launcher — Minecraft Java Edition on Android" else "Vortex Launcher — Official Website & Info")
+                "Vortex Launcher v1 — Minecraft Java Edition on Android" else "Vortex Launcher v1 — Official Website & Info")
             if (usingMinecraftProfile) {
                 assets.put("small_image", AERIX_LOGO_URL)
                 assets.put("small_text", "Powered by Aerix Launcher")

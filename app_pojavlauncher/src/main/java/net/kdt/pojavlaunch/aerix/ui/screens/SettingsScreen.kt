@@ -664,7 +664,7 @@ private fun RendererTabContent(activity: FragmentActivity) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Vortex Launcher v${BuildConfig.VERSION_NAME} \u2022 Built by entitybrian",
+                        text = "Vortex Launcher v1 (${BuildConfig.VERSION_NAME}) \u2022 Built by entitybrian",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = AerixSurface.textPrimary
@@ -2021,7 +2021,7 @@ private fun AboutInfoTabContent(activity: FragmentActivity) {
                     AboutRowCard(
                         iconRes = R.drawable.ic_aerix_mark,
                         iconTint = Color.Unspecified,
-                        title = "Vortex Launcher",
+                        title = "Vortex Launcher v1",
                         subtitle = "Launcher Version: ${BuildConfig.VERSION_NAME}",
                         actions = {
                             AboutPillButton("Check for Updates", accent) {

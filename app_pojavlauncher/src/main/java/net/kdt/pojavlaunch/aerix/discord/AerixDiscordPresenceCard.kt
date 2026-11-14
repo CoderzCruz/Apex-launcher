@@ -208,7 +208,7 @@ private fun DiscordRichPresenceLivePreview(
     }
     val detailsLine = when {
         usingOfficialMcProfile -> "Playing Minecraft 1.21.4 · via Aerix Launcher"
-        previewInGame -> "Vortex Launcher · Survival SMP"
+        previewInGame -> "Vortex Launcher v1 · Survival SMP"
         else -> "Browsing the dashboard"
     }
     val stateLine = if (usingOfficialMcProfile) "Survival SMP (2 of 4)" else null

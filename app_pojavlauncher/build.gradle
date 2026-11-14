@@ -189,9 +189,9 @@ android {
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.customDebug
-            resValue "string", "app_name", "Vortex Launcher (Debug)"
-            resValue "string", "app_short_name", "Vortex Launcher (Debug)"
-            resValue "string", "aerix_app_label", "Vortex Launcher (Debug)"
+            resValue "string", "app_name", "Vortex Launcher v1 (Debug)"
+            resValue "string", "app_short_name", "Vortex Launcher v1 (Debug)"
+            resValue "string", "aerix_app_label", "Vortex Launcher v1 (Debug)"
             resValue 'string', 'application_package', 'net.kdt.pojavlaunch.debug'
             resValue 'string', 'storageProviderAuthorities', 'net.kdt.pojavlaunch.scoped.gamefolder.debug'
         }
@@ -211,9 +211,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.aerixRelease
-            resValue "string", "app_name", "Vortex Launcher"
-            resValue "string", "app_short_name", "Vortex Launcher"
-            resValue "string", "aerix_app_label", "Vortex Launcher"
+            resValue "string", "app_name", "Vortex Launcher v1"
+            resValue "string", "app_short_name", "Vortex Launcher v1"
+            resValue "string", "aerix_app_label", "Vortex Launcher v1"
             resValue 'string', 'application_package', 'net.kdt.pojavlaunch'
             resValue 'string', 'storageProviderAuthorities', 'net.kdt.pojavlaunch.scoped.gamefolder'
         }
@@ -226,9 +226,9 @@ android {
             initWith release
             signingConfig signingConfigs.customDebug // WIP, changeme
             applicationIdSuffix '.pub'
-            resValue "string", "app_name", "Vortex Launcher (Nightly)"
-            resValue "string", "app_short_name", "Vortex Launcher (Nightly)"
-            resValue "string", "aerix_app_label", "Vortex Launcher (Nightly)"
+            resValue "string", "app_name", "Vortex Launcher v1 (Nightly)"
+            resValue "string", "app_short_name", "Vortex Launcher v1 (Nightly)"
+            resValue "string", "aerix_app_label", "Vortex Launcher v1 (Nightly)"
             resValue 'string', 'application_package', 'net.kdt.pojavlaunch.pub'
             resValue 'string', 'storageProviderAuthorities', 'net.kdt.pojavlaunch.pub.scoped.gamefolder'
             matchingFallbacks += List.of("release")

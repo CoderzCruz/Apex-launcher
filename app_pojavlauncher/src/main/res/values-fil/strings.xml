@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App name part -->
-    <string name="app_name">Vortex Launcher (Minecraft: Java Edition for Android)</string>
-    <string name="app_short_name">Vortex Launcher</string>
+    <string name="app_name">Vortex Launcher v1 (Minecraft: Java Edition for Android)</string>
+    <string name="app_short_name">Vortex Launcher v1</string>
     <!-- Action bar part -->
     <!-- Languages list part -->
     <!-- Login strings -->
@@ -14,7 +14,7 @@
     <!-- AlertDialog title -->
     <string name="alerttitle_installmod">Pumili ng mod installer</string>
     <!-- Error messages -->
-    <string name="error_fatal">Ang Vortex Launcher ay hindi inaasahang nag-crash</string>
+    <string name="error_fatal">Ang Vortex Launcher v1 ay hindi inaasahang nag-crash</string>
     <string name="error_no_version">Walang bersyon!</string>
     <string name="error_show_more">Magpakita ng higit pa</string>
     <string name="error_show_less">Magpakita ng kaunti</string>

@@ -504,8 +504,8 @@ object AerixSkinServer {
         }
         root.add("skinDomains", domains)
         val meta = JsonObject().apply {
-            addProperty("serverName", "Vortex Launcher (local)")
-            addProperty("implementationName", "Vortex Launcher")
+            addProperty("serverName", "Vortex Launcher v1 (local)")
+            addProperty("implementationName", "Vortex Launcher v1")
             addProperty("implementationVersion", "1.6")
             addProperty("feature.no_mojang_namespace", !passThrough)
             addProperty("feature.enable_profile_key", true)

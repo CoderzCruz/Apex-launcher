@@ -22,9 +22,9 @@ gradle = (ROOT / "app_pojavlauncher/build.gradle").read_text()
 assert gradle.count('resValue "string", "app_name", "Vortex Launcher') == 3, "3 variants"
 assert gradle.count('resValue "string", "aerix_app_label", "Vortex Launcher') == 3
 assert 'Aerix Launcher (Debug)' not in gradle and '"Aerix Launcher"' not in gradle
-assert 'APP_NAME = "Vortex Launcher"' in TOOLS.read_text()
+assert 'APP_NAME = "Vortex Launcher v1"' in TOOLS.read_text()
 strings = (RES / "values/strings.xml").read_text()
-assert 'name="app_short_name">Vortex Launcher<' in strings
+assert 'name="app_short_name">Vortex Launcher v1<' in strings
 assert 'name="lazy_service_default_title">Vortex Foreground Service<' in strings
 aerix_strings = (RES / "values/aerix_strings.xml").read_text()
 assert 'name="aerix_brand" translatable="false">Vortex<' in aerix_strings
@@ -48,6 +48,19 @@ assert banner.exists(), "owner's rules banner art shipped"
 data = banner.read_bytes()
 assert data[:8] == b"\x89PNG\r\n\x1a\n"
 assert struct.unpack(">II", data[16:24]) == (2170, 725)
+
+# ── The golden V logo ships as the app icon at every density ──────────────
+for density, size in (("mdpi", 48), ("hdpi", 72), ("xhdpi", 96), ("xxhdpi", 144), ("xxxhdpi", 192)):
+    for name in ("ic_launcher.png", "ic_launcher_round.png"):
+        data = (RES / ("mipmap-" + density) / name).read_bytes()
+        assert data[:8] == b"\x89PNG\r\n\x1a\n", name
+        assert struct.unpack(">II", data[16:24]) == (size, size), f"{density}/{name}"
+adaptive = (RES / "mipmap-anydpi-v26/ic_launcher.xml").read_text()
+assert '@drawable/ic_launcher_foreground' in adaptive, "adaptive foreground = new logo"
+assert "monochrome" not in adaptive, "old aerix monochrome dropped"
+fg = (RES / "drawable-nodpi/ic_launcher_foreground.png").read_bytes()
+assert fg[:8] == b"\x89PNG\r\n\x1a\n"
+assert struct.unpack(">II", fg[16:24]) == (108, 108)
 
 # ── Upstream contract untouched (standing rule) ───────────────────────────
 policy = (APP / "java/net/kdt/pojavlaunch/aerix/bridge/LauncherUpdatePolicy.kt").read_text()
