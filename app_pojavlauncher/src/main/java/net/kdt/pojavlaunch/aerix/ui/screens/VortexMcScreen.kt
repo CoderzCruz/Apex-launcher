@@ -212,7 +212,7 @@ fun VortexMcScreen(
                 .height(48.dp),
             shape = RoundedCornerShape(AerixRadii.panel),
             color = accent,
-            contentColor = AerixSurface.onAccent
+            contentColor = Color.White
         ) {
             Row(
                 modifier = Modifier.fillMaxSize(),
@@ -222,7 +222,7 @@ fun VortexMcScreen(
                 Icon(
                     painter = painterResource(R.drawable.aerix_ic_play_arrow_filled),
                     contentDescription = null,
-                    tint = AerixSurface.onAccent,
+                    tint = Color.White,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.width(AerixSpacing.xs))
@@ -230,7 +230,7 @@ fun VortexMcScreen(
                     text = "Click to Play",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = AerixSurface.onAccent
+                    color = Color.White
                 )
             }
         }
