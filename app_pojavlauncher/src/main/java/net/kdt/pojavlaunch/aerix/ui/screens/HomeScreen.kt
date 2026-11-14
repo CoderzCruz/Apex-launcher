@@ -94,6 +94,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.aerix.bridge.AerixInstance
+import net.kdt.pojavlaunch.authenticator.AuthType
 import net.kdt.pojavlaunch.aerix.bridge.AssetType
 import net.kdt.pojavlaunch.aerix.bridge.GameDownloadTarget
 import net.kdt.pojavlaunch.aerix.bridge.PojavAccountBridge
@@ -235,6 +236,13 @@ fun HomeScreen(activity: FragmentActivity, navigate: (LauncherSection) -> Unit) 
     ) {
         CompactHomeDashboard(selected, recent, instances.size, accent, taskCount, actions)
     }
+}
+
+/** The reference launcher's account line: the signed-in account's kind, in plain words. */
+private fun accountTypeLabel(authType: AuthType): String = when (authType) {
+    AuthType.MICROSOFT -> "Microsoft Account"
+    AuthType.ELY_BY -> "Ely.by Account"
+    AuthType.LOCAL -> "Offline Account"
 }
 
 @Composable
@@ -519,10 +527,62 @@ private fun MiddlePlayBlock(selected: AerixInstance?, accent: Color, actions: Ho
         }
     }
 
+    val account = PojavAccountBridge.current
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
     ) {
+        // Profile strip — the reference launcher's account line, merged in: avatar glyph,
+        // account kind (or Add Account), and a chevron into Accounts.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AerixSpacing.smPlus),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(accent.copy(alpha = 0.16f))
+                    .border(BorderStroke(AerixSpacing.hairline, accent.copy(alpha = 0.45f))),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.aerix_ic_person_outlined),
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+            Text(
+                text = if (account != null) accountTypeLabel(account.authType) else "Add Account",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (account != null) AerixSurface.textPrimary else accent,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                painter = painterResource(R.drawable.aerix_ic_chevron_right),
+                contentDescription = null,
+                tint = AerixSurface.textMuted,
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable { actions.accounts() }
+            )
+        }
+
+        // Reference-style mini label above the instance selector.
+        Text(
+            text = "YOUR VERSION",
+            style = MaterialTheme.typography.labelSmall,
+            letterSpacing = 1.2.sp,
+            fontWeight = FontWeight.Bold,
+            color = AerixSurface.textMuted,
+            modifier = Modifier.padding(horizontal = AerixSpacing.smPlus)
+        )
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -614,7 +674,8 @@ private fun MiddlePlayBlock(selected: AerixInstance?, accent: Color, actions: Ho
             }
         }
 
-        // The centred PLAY button — press effect, and the tour still points here.
+        // The reference launcher's LAUNCH button, merged in: gradient red face, adventure
+        // sub-line and a chevron — press effect and tour anchor kept.
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -622,29 +683,50 @@ private fun MiddlePlayBlock(selected: AerixInstance?, accent: Color, actions: Ho
                 .clip(RoundedCornerShape(AerixRadii.panel))
                 .apexPress(if (selected != null) actions.play else actions.create)
                 .guideAnchor(AerixGuideState.PLAY)
-                .height(48.dp),
+                .height(52.dp),
             shape = RoundedCornerShape(AerixRadii.panel),
-            color = accent,
-            contentColor = AerixSurface.onAccent
+            color = Color.Transparent,
+            contentColor = Color.White
         ) {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(listOf(accent, accent.copy(alpha = 0.82f))),
+                        RoundedCornerShape(AerixRadii.panel)
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "PLAY",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = AerixSurface.onAccent
-                )
-                Spacer(Modifier.width(AerixSpacing.xs))
-                Icon(
-                    painter = painterResource(R.drawable.aerix_ic_play_arrow_filled),
-                    contentDescription = stringResource(R.string.aerix_home_play),
-                    tint = AerixSurface.onAccent,
-                    modifier = Modifier.size(18.dp)
-                )
+                Row(
+                    modifier = Modifier.padding(horizontal = AerixSpacing.lg),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "LAUNCH",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "START YOUR ADVENTURE",
+                            fontSize = 8.sp,
+                            letterSpacing = 1.1.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.80f)
+                        )
+                    }
+                    Icon(
+                        painter = painterResource(R.drawable.aerix_ic_chevron_right),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         }
     }

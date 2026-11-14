@@ -40,8 +40,13 @@ for label, action in (("Microsoft", "actions.loginMicrosoft"),
 
 # ── Middle PLAY + selector, tour anchor intact ────────────────────────────
 play = home[home.index("private fun MiddlePlayBlock"):home.index("private fun OptionsGrid")]
-assert '"PLAY"' in play
+assert '"LAUNCH"' in play
+assert '"START YOUR ADVENTURE"' in play, "reference sub-line merged in"
+assert "Brush.verticalGradient(listOf(accent" in play, "gradient red face"
 assert "guideAnchor(AerixGuideState.PLAY)" in play
+assert '"YOUR VERSION"' in play, "reference version label"
+assert "accountTypeLabel(account.authType)" in play, "profile strip"
+assert '"Offline Account"' in home and '"Ely.by Account"' in home
 assert "showInstanceMenu" in play
 
 # ── The five options exactly as asked ─────────────────────────────────────

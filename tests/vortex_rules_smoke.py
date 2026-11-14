@@ -53,6 +53,8 @@ assert struct.unpack(">II", data[16:24]) == (2170, 725)
 assert "Vortex Launcher v1 (Debug)" not in gradle, "debug label has no suffix"
 surface = (APP / "java/net/kdt/pojavlaunch/aerix/theme/AerixSurface.kt").read_text()
 assert "val panel = Color(0xFF000000)" in surface, "opaque black panel (owner re-asserted)"
+# All-black shell: the default wallpaper is dropped once, chip still available.
+
 assert "0x4F172B3A" not in surface
 mark = (RES / "drawable-nodpi/ic_aerix_mark.png").read_bytes()
 assert mark == (RES / "drawable-nodpi/aerix_logo.png").read_bytes(), "mark = golden V"
@@ -76,5 +78,10 @@ policy = (APP / "java/net/kdt/pojavlaunch/aerix/bridge/LauncherUpdatePolicy.kt")
 assert '"Aerix-Launcher-$plain"' in policy, "updater asset names stay upstream"
 updater = (APP / "java/net/kdt/pojavlaunch/aerix/bridge/LauncherUpdater.kt").read_text()
 assert 'userAgent = "AerixLauncher/${BuildConfig.VERSION_NAME}"' in updater
+
+prefs_src = (APP / "java/net/kdt/pojavlaunch/aerix/bridge/AerixPreferences.kt").read_text()
+assert 'KEY_VORTEX_BLACK_SHELL = "vortexBlackShellDone"' in prefs_src, "one-time flag exists"
+assert 'selectedWallpaper = "none"' in prefs_src, "wallpaper dropped for the black shell"
+assert "putBoolean(KEY_VORTEX_BLACK_SHELL, true)" in prefs_src
 
 print("Vortex rename, client removal and Rules page passed")
