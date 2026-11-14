@@ -73,7 +73,7 @@ object AerixDiscordPresence {
     const val AERIX_WEBSITE_URL = "https://entitybrian69-bit.github.io/Aerix-launcher/"
     const val AERIX_DISCORD_URL = "https://discord.gg/RS7q9KaCm6"
     const val AERIX_LOGO_URL =
-        "https://raw.githubusercontent.com/entitybrian69-bit/Aerix-launcher/4a3b1c37a8d4838eaa5cb8933610db7fb6efdec5/assets/aerix-logo.png"
+        "https://raw.githubusercontent.com/CoderzCruz/Apex-launcher/arena/a426cc08-apex-launcher/assets/aerix-logo.png"
 
     /** Verified Discord catalog IDs for Minecraft's native Game Profile sheet. */
     const val MINECRAFT_PRIMARY_APP_ID = 1402418491272986635L

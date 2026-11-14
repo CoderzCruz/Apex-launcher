@@ -49,6 +49,15 @@ data = banner.read_bytes()
 assert data[:8] == b"\x89PNG\r\n\x1a\n"
 assert struct.unpack(">II", data[16:24]) == (2170, 725)
 
+# ── No "(Debug)" in the label, panels are opaque black, mark == golden V ──
+assert "Vortex Launcher v1 (Debug)" not in gradle, "debug label has no suffix"
+surface = (APP / "java/net/kdt/pojavlaunch/aerix/theme/AerixSurface.kt").read_text()
+assert "val panel = Color(0xFF000000)" in surface, "panel is opaque black"
+assert "0x4F172B3A" not in surface, "translucent panel gone"
+mark = (RES / "drawable-nodpi/ic_aerix_mark.png").read_bytes()
+assert mark == (RES / "drawable-nodpi/aerix_logo.png").read_bytes(), "mark = golden V"
+assert mark == (ROOT / "assets/aerix-logo.png").read_bytes()
+
 # ── The golden V logo ships as the app icon at every density ──────────────
 for density, size in (("mdpi", 48), ("hdpi", 72), ("xhdpi", 96), ("xxhdpi", 144), ("xxxhdpi", 192)):
     for name in ("ic_launcher.png", "ic_launcher_round.png"):
