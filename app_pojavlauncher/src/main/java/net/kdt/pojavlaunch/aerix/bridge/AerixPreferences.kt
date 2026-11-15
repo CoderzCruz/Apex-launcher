@@ -47,8 +47,8 @@ object AerixPreferences {
     /** Default Vortex MC server the quick-join page joins. */
     const val DEFAULT_VORTEX_MC_SERVER = "in1.madflex.shop:19135"
     const val KEY_VORTEX_MC_SERVER = "vortexMcServerAddress"
-    /** One-time flag: the owner wants an all-black shell (wallpaper dropped once). */
-    const val KEY_VORTEX_BLACK_SHELL = "vortexBlackShellDone"
+    /** One-time flag: transparent shell restored (the wallpaper comes back after the black era). */
+    const val KEY_VORTEX_TRANSPARENT_DONE = "vortexTransparentDone"
     /** The player's own Apex Service key; blank falls back to the CI-baked one. */
     const val KEY_GOOGLE_AI_KEY = "apexServiceAiKey"
     const val KEY_CUSTOM_COLOR = "launcherCustomColor"
@@ -208,13 +208,16 @@ object AerixPreferences {
         fullScreen = p.getBoolean(KEY_FULL_SCREEN, true)
         animateSpeed = p.getInt(KEY_ANIMATE_SPEED, DEFAULT_ANIMATE_SPEED).coerceIn(0, 10)
         selectedWallpaper = p.getString(KEY_SELECTED_WALLPAPER, DEFAULT_WALLPAPER) ?: DEFAULT_WALLPAPER
-        // One-time migration: the owner asked for everything black — drop the wallpaper on
-        // the first run after this update. The Background chip still picks one back later.
-        if (!p.getBoolean(KEY_VORTEX_BLACK_SHELL, false)) {
-            selectedWallpaper = "none" // AerixThemeManager.WALLPAPER_NONE
+        // One-time transparent restore: after the all-black shell era the wallpaper comes back
+        // (once only — a later manual "none" choice is respected).
+        if (!p.getBoolean(KEY_VORTEX_TRANSPARENT_DONE, false)) {
+            val restoreWallpaper = selectedWallpaper == "none"
+            if (restoreWallpaper) {
+                selectedWallpaper = DEFAULT_WALLPAPER
+            }
             edit {
-                putString(KEY_SELECTED_WALLPAPER, "none")
-                putBoolean(KEY_VORTEX_BLACK_SHELL, true)
+                if (restoreWallpaper) putString(KEY_SELECTED_WALLPAPER, DEFAULT_WALLPAPER)
+                putBoolean(KEY_VORTEX_TRANSPARENT_DONE, true)
             }
         }
         lastSection = p.getString(KEY_LAST_SECTION, "HOME") ?: "HOME"

@@ -29,16 +29,12 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -54,7 +50,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,7 +61,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.kdt.pojavlaunch.R
@@ -124,8 +118,6 @@ fun AerixNavigationRail(
     selectedSection: LauncherSection,
     onNavigate: (LauncherSection) -> Unit,
     onCreateInstance: () -> Unit,
-    onRunJar: () -> Unit,
-    onControls: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val account = PojavAccountBridge.current
@@ -134,18 +126,19 @@ fun AerixNavigationRail(
     val configuration = LocalConfiguration.current
     // Short screens (landscape phones): tighten the rail so every entry stays visible.
     val compactRail = configuration.screenHeightDp < AERIX_COMPACT_HEIGHT_THRESHOLD_DP
-    val expandedRail = configuration.screenWidthDp >= 500
+    val expandedRail = configuration.screenWidthDp >= 900 && !compactRail
 
     Row(modifier = modifier.fillMaxHeight()) {
         Surface(
             modifier = Modifier
-                .width(if (expandedRail) 152.dp else AerixMetrics.navigationRailWidth)
+                .width(if (expandedRail) AerixMetrics.expandedNavigationRailWidth else AerixMetrics.navigationRailWidth)
                 .fillMaxHeight()
-                // The crimson bar hugs the left edge - only the end side keeps a gap, so the
+                // The pill sits against the left edge - only the end side keeps a gap, so the
                 // pages own the rest of the width.
-                .padding(start = 2.dp, end = AerixSpacing.xs, top = AerixSpacing.smPlus, bottom = AerixSpacing.smPlus),
-            shape = RoundedCornerShape(AerixRadii.panel),
-            color = Color.Black,
+                .padding(start = 2.dp, end = AerixSpacing.xs, top = AerixSpacing.smPlus, bottom = AerixSpacing.smPlus)
+                .liquidGlass(shape = CircleShape, tint = AerixSurface.glassTint, strength = 0.94f, elevation = AerixMetrics.glassRailElevation),
+            shape = CircleShape,
+            color = Color.Transparent,
             contentColor = Color.White
         ) {
             Column(
@@ -153,8 +146,8 @@ fun AerixNavigationRail(
                     .fillMaxHeight()
                     .verticalScroll(scrollState)
                     .padding(vertical = if (compactRail) AerixSpacing.xs else AerixSpacing.smPlus),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(if (compactRail) AerixSpacing.xs else AerixSpacing.xs)
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(if (compactRail) AerixSpacing.xs else AerixSpacing.sm)
             ) {
                 // Aerix monogram and wordmark establish a persistent brand anchor.
                 Column(
@@ -162,15 +155,21 @@ fun AerixNavigationRail(
                         .clip(RoundedCornerShape(AerixRadii.panelSmall))
                         .clickable(role = Role.Button) { onNavigate(LauncherSection.HOME) }
                         .semantics { contentDescription = "Vortex Home" }
-                        .padding(start = AerixSpacing.sm, top = AerixSpacing.xxs, bottom = AerixSpacing.xxs),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(AerixSpacing.zero)
+                        .padding(vertical = AerixSpacing.xs),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(AerixSpacing.xxs)
                 ) {
                     Box(
                         modifier = Modifier
                             .size(if (compactRail) 32.dp else 38.dp)
                             .clip(RoundedCornerShape(AerixRadii.control))
-                            .background(Color.White.copy(alpha = 0.10f)),
+                            .background(activeAccent.copy(alpha = 0.12f))
+                            .liquidGlass(
+                                shape = RoundedCornerShape(AerixRadii.control),
+                                tint = activeAccent,
+                                strength = 0.82f,
+                                elevation = AerixMetrics.glassSubtleElevation
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -181,52 +180,43 @@ fun AerixNavigationRail(
                         )
                     }
                     if (expandedRail) {
-                        Text(text = "VORTEX", fontSize = 9.5.sp, letterSpacing = 1.3.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                        Text(text = "VORTEX", fontSize = 8.sp, letterSpacing = 1.1.sp, fontWeight = FontWeight.ExtraBold, color = AerixSurface.textSecondary)
                     }
                 }
 
                 Spacer(Modifier.height(if (compactRail) AerixSpacing.zero else AerixSpacing.xs))
 
                 RailIconItem(R.drawable.aerix_ic_home_filled, stringResource(R.string.aerix_nav_home),
-                    selectedSection == LauncherSection.HOME, activeAccent, expandedRail, compactRail, sublabel = "Dashboard") { onNavigate(LauncherSection.HOME) }
+                    selectedSection == LauncherSection.HOME, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.HOME) }
                 RailIconItem(R.drawable.aerix_ic_description_outlined, "Rules",
-                    selectedSection == LauncherSection.RULES, activeAccent, expandedRail, compactRail, sublabel = "Read the rules") { onNavigate(LauncherSection.RULES) }
+                    selectedSection == LauncherSection.RULES, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.RULES) }
                 RailIconItem(R.drawable.aerix_ic_sports_esports_outlined, "Vortex MC",
-                    selectedSection == LauncherSection.VORTEX_MC, activeAccent, expandedRail, compactRail, sublabel = "Quick join server") { onNavigate(LauncherSection.VORTEX_MC) }
-                RailIconItem(R.drawable.aerix_ic_add, "New instance",
+                    selectedSection == LauncherSection.VORTEX_MC, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.VORTEX_MC) }
+                RailIconItem(R.drawable.aerix_ic_add, stringResource(R.string.create_instance),
                     selectedSection == LauncherSection.CREATE_INSTANCE, activeAccent, expandedRail, compactRail,
-                    onClick = onCreateInstance, guideKey = AerixGuideState.CREATE, sublabel = "Set up a new install")
+                    onClick = onCreateInstance, guideKey = AerixGuideState.CREATE)
                 RailIconItem(R.drawable.aerix_ic_dashboard_filled, stringResource(R.string.aerix_nav_library),
                     librarySelected(selectedSection), activeAccent, expandedRail, compactRail,
-                    onClick = { onNavigate(LauncherSection.LIBRARY) }, guideKey = AerixGuideState.LIBRARY, sublabel = "Your instances")
-                RailIconItem(R.drawable.aerix_ic_java, "Execute",
-                    false, activeAccent, expandedRail, compactRail,
-                    onClick = onRunJar, sublabel = "Run jar file")
-                RailIconItem(R.drawable.aerix_ic_touch_app_outlined, "Control Layouts",
-                    false, activeAccent, expandedRail, compactRail,
-                    onClick = onControls, sublabel = "Edit your controls")
+                    onClick = { onNavigate(LauncherSection.LIBRARY) }, guideKey = AerixGuideState.LIBRARY)
                 // Socials is not a rail entry: it opens from the Home dashboard and brings its own
                 // sidebar, so it is not listed next to the launcher's own sections.
                 RailIconItem(R.drawable.aerix_ic_public, stringResource(R.string.aerix_nav_discover),
-                    discoverSelected(selectedSection), activeAccent, expandedRail, compactRail, sublabel = "Install new versions") { onNavigate(LauncherSection.DISCOVER) }
-                RailIconItem(R.drawable.aerix_ic_folder_outlined, "Downloads",
-                    selectedSection == LauncherSection.FILES, activeAccent, expandedRail, compactRail,
-                    onClick = { onNavigate(LauncherSection.FILES) }, sublabel = "View your files")
-                RailIconItem(R.drawable.aerix_ic_rocket_launch_filled, "Other releases",
-                    selectedSection == LauncherSection.OTHER_RELEASES, activeAccent, expandedRail, compactRail, sublabel = "More launcher apps") { onNavigate(LauncherSection.OTHER_RELEASES) }
+                    discoverSelected(selectedSection), activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.DISCOVER) }
+                RailIconItem(R.drawable.aerix_ic_rocket_launch_filled, "Our other new releases",
+                    selectedSection == LauncherSection.OTHER_RELEASES, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.OTHER_RELEASES) }
                 RailIconItem(R.drawable.aerix_ic_format_paint_outlined, stringResource(R.string.aerix_nav_wallpapers),
                     wallpapersSelected(selectedSection), activeAccent, expandedRail, compactRail,
-                    onClick = { onNavigate(LauncherSection.WALLPAPERS) }, guideKey = AerixGuideState.WALLPAPERS, sublabel = "Change your background")
+                    onClick = { onNavigate(LauncherSection.WALLPAPERS) }, guideKey = AerixGuideState.WALLPAPERS)
 
-                HorizontalDivider(modifier = Modifier.width(if (expandedRail) 104.dp else 28.dp).padding(vertical = AerixSpacing.xxs), color = Color.White.copy(alpha = 0.12f))
+                HorizontalDivider(modifier = Modifier.width(28.dp).padding(vertical = AerixSpacing.xxs), color = AerixSurface.borderSoft)
 
                 RailIconItem(R.drawable.aerix_ic_settings_filled, stringResource(R.string.aerix_nav_settings),
                     settingsSelected(selectedSection), activeAccent, expandedRail, compactRail,
-                    onClick = { onNavigate(LauncherSection.SETTINGS) }, guideKey = AerixGuideState.SETTINGS, sublabel = "Launcher options")
+                    onClick = { onNavigate(LauncherSection.SETTINGS) }, guideKey = AerixGuideState.SETTINGS)
 
                 RailIconItem(R.drawable.aerix_ic_group_outlined, stringResource(R.string.aerix_nav_contribution),
                     selectedSection == LauncherSection.CONTRIBUTION || selectedSection == LauncherSection.CONTRIBUTION_DETAIL,
-                    activeAccent, expandedRail, compactRail, sublabel = "The team") { onNavigate(LauncherSection.CONTRIBUTION) }
+                    activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.CONTRIBUTION) }
 
                 AccountAvatarRailButton(
                     account = account,
@@ -269,26 +259,21 @@ private fun RailIconItem(
     compact: Boolean,
     /** Names this item for the first-run guide, so the tour can point at it. */
     guideKey: String? = null,
-    /** Reference-sidebar secondary line, shown under the label in the expanded (wide) rail. */
-    sublabel: String? = null,
     onClick: () -> Unit
 ) {
-    // Hover + selection share one animated fill: a soft white wash on the black bar.
-    // With the animated theme on, the accent can breathe; off, the states stay flat.
+    // The selected item uses the current theme accent; icon, fill and border update together.
+    val selectedContentColor = MaterialTheme.colorScheme.onPrimary
+    // With the animated theme on, the selected item's accent breathes and carries a glow. Off, it
     // is the identical flat accent as before - and no animation is started for unselected items.
     val motionOn = ThemeMotion.rememberEnabled()
     val liveAccent = ThemeMotion.rememberPulse(accentColor, selected, motionOn)
-    val interactionSource = remember { MutableInteractionSource() }
-    val hovered by interactionSource.collectIsHoveredAsState()
     val containerColor by animateColorAsState(
-        targetValue = if (selected) Color.White.copy(alpha = 0.10f)
-            else if (hovered) Color.White.copy(alpha = 0.06f)
-            else Color.Transparent,
+        targetValue = if (selected) liveAccent else AerixSurface.panel,
         animationSpec = tween(140),
         label = "railContainerColor"
     )
     val iconTint by animateColorAsState(
-        targetValue = Color.White,
+        targetValue = if (selected) selectedContentColor else AerixSurface.textSecondary,
         animationSpec = tween(140),
         label = "railIconTint"
     )
@@ -306,46 +291,27 @@ private fun RailIconItem(
     Box(
         modifier = Modifier
             .then(if (guideKey != null) Modifier.guideAnchor(guideKey) else Modifier)
-            .then(if (expanded) Modifier.fillMaxWidth().height(48.dp) else Modifier.size(width = itemWidth, height = itemHeight))
+            .size(width = itemWidth, height = itemHeight)
             .clip(itemShape)
             .background(containerColor)
-            .accentGlow(liveAccent, false, motionOn)
-            .accentRing(liveAccent, itemShape, false, motionOn, AerixSpacing.hairline)
-            .border(BorderStroke(AerixSpacing.hairline, Color.Transparent), itemShape)
-            .hoverable(interactionSource)
+            .accentGlow(liveAccent, selected, motionOn)
+            .accentRing(liveAccent, itemShape, selected, motionOn, AerixSpacing.hairline)
+            .border(BorderStroke(AerixSpacing.hairline, if (selected) liveAccent else AerixSurface.borderSoft), itemShape)
             .clickable(role = Role.Tab, onClick = onClick)
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center
     ) {
         if (expanded) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = AerixSpacing.sm, vertical = AerixSpacing.xs),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.xxs)
-            ) {
-                Icon(painter = painterResource(iconRes), contentDescription = label, tint = iconTint, modifier = Modifier.size(18.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                    Text(
-                        text = label,
-                        color = Color.White,
-                        fontSize = 11.sp,
-                        fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    if (sublabel != null) {
-                        Text(
-                            text = sublabel,
-                            color = if (selected) Color.White.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.72f),
-                            fontSize = 8.5.sp,
-                            fontWeight = FontWeight.Medium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Icon(painter = painterResource(iconRes), contentDescription = label, tint = iconTint, modifier = Modifier.size(19.dp))
+                Text(
+                    text = label,
+                    color = if (selected) iconTint else AerixSurface.textSecondary,
+                    fontSize = 8.sp,
+                    lineHeight = 9.sp,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                    maxLines = 1
+                )
             }
         } else {
             Icon(painter = painterResource(iconRes), contentDescription = label, tint = iconTint, modifier = Modifier.size(if (compact) 18.dp else 21.dp))
@@ -363,7 +329,7 @@ private fun AccountAvatarRailButton(
 ) {
     val activeAccent = AerixThemeManager.currentAccent()
     val ringColor by animateColorAsState(
-        targetValue = if (selected) Color.White.copy(alpha = 0.85f) else Color.Transparent,
+        targetValue = if (selected) activeAccent else AerixSurface.borderSoft,
         animationSpec = tween(150),
         label = "accountAvatarRing"
     )
@@ -381,7 +347,8 @@ private fun AccountAvatarRailButton(
             modifier = Modifier
                 .size(if (compact) 32.dp else 36.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.08f))
+                .background(AerixSurface.panel)
+                .liquidGlass(shape = CircleShape, tint = activeAccent, strength = if (selected) 0.82f else 0.34f, elevation = AerixMetrics.glassSelectedElevation)
                 .border(width = if (selected) 2.dp else AerixSpacing.hairline, color = ringColor, shape = CircleShape),
             contentAlignment = Alignment.Center
         ) {
@@ -395,7 +362,7 @@ private fun AccountAvatarRailButton(
         if (expanded) {
             Text(
                 text = accountsLabel,
-                color = Color.White,
+                color = if (selected) activeAccent else AerixSurface.textSecondary,
                 fontSize = 8.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1
