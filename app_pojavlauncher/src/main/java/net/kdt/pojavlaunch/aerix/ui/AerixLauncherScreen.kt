@@ -79,6 +79,7 @@ import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
 import net.kdt.pojavlaunch.aerix.theme.AerixSurface
 import net.kdt.pojavlaunch.aerix.theme.AerixThemeManager
 import net.kdt.pojavlaunch.aerix.ui.screens.AboutScreen
+import net.kdt.pojavlaunch.aerix.ui.screens.AerixClientScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AerixMusicScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AccountsScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AddAccountScreen
