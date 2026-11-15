@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,11 +33,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.launch
+import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.aerix.bridge.PojavInstanceBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavLaunchBridge
 import net.kdt.pojavlaunch.aerix.client.AerixClientInstaller
@@ -67,6 +71,73 @@ fun AerixClientScreen(activity: FragmentActivity) {
         title = "Vortex Client",
         subtitle = null
     ) {
+        // Crimson hero strip: brand tile + feature chips.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(AerixRadii.card))
+                .background(
+                    Brush.linearGradient(
+                        listOf(Color(0x59DC2626), Color(0x2D152536), Color(0x40B01B2B))
+                    )
+                )
+                .border(
+                    1.dp,
+                    Brush.horizontalGradient(
+                        listOf(Color(0xE0DC2626), Color(0x40DC2626), Color(0xE0DC2626))
+                    ),
+                    RoundedCornerShape(AerixRadii.card)
+                )
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Brush.linearGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B)))),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.aerix_ic_rocket_launch_filled),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                Column {
+                    Text(
+                        text = "Crimson Performance Edition",
+                        color = Color.White,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf("FPS Boost", "Wavey Capes", "HUD").forEach { chip ->
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(999.dp))
+                                    .background(Color.White.copy(alpha = 0.12f))
+                                    .border(0.9.dp, Color.White.copy(alpha = 0.28f), RoundedCornerShape(999.dp))
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = chip,
+                                    color = Color.White,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Active download progress banner in Liquid Glass
         if (AerixClientInstaller.isInstalling) {
             GlassPanel(
@@ -176,6 +247,20 @@ fun AerixClientScreen(activity: FragmentActivity) {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(34.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Brush.linearGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B)))),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.aerix_ic_rocket_launch_filled),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                             Text(
                                 text = "Minecraft ${spec.mcVersion}",
                                 color = Color.White,
@@ -191,12 +276,23 @@ fun AerixClientScreen(activity: FragmentActivity) {
                                         .border(0.9.dp, accent.copy(alpha = 0.65f), badgeShape)
                                         .padding(horizontal = 8.dp, vertical = 2.dp)
                                 ) {
-                                    Text(
-                                        text = "INSTALLED",
-                                        color = Color.White,
-                                        fontSize = 9.sp,
-                                        fontWeight = FontWeight.ExtraBold
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(6.dp)
+                                                .clip(RoundedCornerShape(999.dp))
+                                                .background(accent)
+                                        )
+                                        Text(
+                                            text = "INSTALLED",
+                                            color = Color.White,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.ExtraBold
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -271,8 +367,8 @@ fun AerixClientScreen(activity: FragmentActivity) {
                             Text(
                                 text = when {
                                     isThisDownloading -> "Downloading..."
-                                    installed == null -> "Download"
-                                    else -> "Re-download"
+                                    installed == null -> "\u2193 Download"
+                                    else -> "\u21bb Re-download"
                                 },
                                 color = Color.White,
                                 fontSize = 12.sp,
@@ -321,7 +417,7 @@ fun AerixClientScreen(activity: FragmentActivity) {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = if (preparingLaunchVer == spec.mcVersion) "Syncing..." else "Launch",
+                                    text = if (preparingLaunchVer == spec.mcVersion) "Syncing..." else "\u25b6 Launch",
                                     color = Color.White,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.ExtraBold

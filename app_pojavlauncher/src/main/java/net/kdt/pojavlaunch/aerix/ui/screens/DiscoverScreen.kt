@@ -96,6 +96,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.SolidColor
@@ -853,27 +854,54 @@ internal fun ResultProjectLayout(
         shape = RoundedCornerShape(AerixRadii.cardSmall),
         color = AerixSurface.panelRaised,
         contentColor = Color.White,
-        border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft),
+        border = BorderStroke(
+            AerixSpacing.hairline,
+            if (isInstalled) AerixSurface.borderHighlight else AerixSurface.borderSoft
+        ),
         onClick = onClick
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(AerixSpacing.md),
-            verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
-        ) {
-            // Top Row: 40dp Icon + Bold Title + Download Count Pill
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // Crimson gradient hairline across the card top.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .background(
+                        Brush.horizontalGradient(
+                            if (isInstalled) {
+                                listOf(Color(0xFFDC2626), Color(0x66DC2626), Color(0xFFB01B2B))
+                            } else {
+                                listOf(Color(0x55DC2626), Color(0x14152536), Color(0x55DC2626))
+                            }
+                        )
+                    )
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(AerixSpacing.md),
+                verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+            ) {
+                // Top Row: gradient-ringed icon + bold title + download pill
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
             ) {
-                AerixImageWell(
-                    image = icon,
-                    fallback = R.drawable.aerix_ic_extension_outlined,
-                    size = 40.dp,
-                    radius = AerixRadii.controlSmall
-                )
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(AerixRadii.controlSmall + 2.dp))
+                        .background(Brush.linearGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B))))
+                        .padding(2.dp)
+                ) {
+                    AerixImageWell(
+                        image = icon,
+                        fallback = R.drawable.aerix_ic_extension_outlined,
+                        size = 40.dp,
+                        radius = AerixRadii.controlSmall
+                    )
+                }
 
                 Text(
                     modifier = Modifier.weight(1f),
@@ -888,7 +916,7 @@ internal fun ResultProjectLayout(
                 val downloadsText = remember(project.downloads) { formatDownloadCount(project.downloads) }
                 Surface(
                     shape = RoundedCornerShape(AerixRadii.control),
-                    color = AerixSurface.panel
+                    color = accent.copy(alpha = 0.16f)
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = AerixSpacing.sm, vertical = AerixSpacing.tiny),
@@ -899,7 +927,7 @@ internal fun ResultProjectLayout(
                             modifier = Modifier.size(12.dp),
                             painter = painterResource(R.drawable.aerix_ic_download_2_outlined),
                             contentDescription = null,
-                            tint = AerixSurface.textSecondary
+                            tint = accent
                         )
                         Text(
                             text = downloadsText,
@@ -931,7 +959,13 @@ internal fun ResultProjectLayout(
                 Surface(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(AerixRadii.control),
-                    color = AerixSurface.panel
+                    color = AerixSurface.panel,
+                    border = BorderStroke(
+                        AerixSpacing.hairline,
+                        Brush.horizontalGradient(
+                            listOf(Color(0x73DC2626), Color(0x40DC2626), Color(0x73DC2626))
+                        )
+                    )
                 ) {
                     Text(
                         text = primaryBadgeText,
@@ -955,9 +989,19 @@ internal fun ResultProjectLayout(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp),
+                    .height(40.dp)
+                    .clip(RoundedCornerShape(AerixRadii.controlSmall))
+                    .background(
+                        if (isInstalled) {
+                            Brush.horizontalGradient(
+                                listOf(AerixSurface.accentContainer, AerixSurface.accentContainer)
+                            )
+                        } else {
+                            Brush.horizontalGradient(listOf(accent, Color(0xFFB01B2B)))
+                        }
+                    ),
                 shape = RoundedCornerShape(AerixRadii.controlSmall),
-                color = if (isInstalled) AerixSurface.accentContainer else accent,
+                color = Color.Transparent,
                 contentColor = if (isInstalled) accent else AerixSurface.onAccent,
                 onClick = onClick
             ) {
@@ -972,6 +1016,7 @@ internal fun ResultProjectLayout(
                     )
                 }
             }
+        }
         }
     }
 }

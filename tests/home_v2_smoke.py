@@ -98,6 +98,10 @@ assert (ROOT / "app_pojavlauncher/src/main/res/drawable/aerix_ic_music_note.xml"
 assert "Brush.horizontalGradient" in music, "music screen premium gradients"
 assert "MusicTransportButton" in music, "circular transport controls"
 assert "MusicEqBar" in music, "live equalizer bars"
+discover = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/DiscoverScreen.kt").read_text()
+assert "Brush.horizontalGradient" in discover and "borderHighlight" in discover, "premium mod cards"
+client = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/AerixClientScreen.kt").read_text()
+assert "Crimson Performance Edition" in client and "FPS Boost" in client, "client hero strip"
 assert "selectedRed = Color(0xFFDC2626)" in rail, "opened section icon turns red"
 assert ".height(300.dp)" in home, "bigger skin stage"
 assert '"Welcome to Vortex Launcher"' in home, "welcome bubble"
