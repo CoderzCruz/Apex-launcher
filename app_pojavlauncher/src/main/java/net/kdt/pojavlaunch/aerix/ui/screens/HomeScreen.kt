@@ -242,72 +242,7 @@ fun HomeScreen(activity: FragmentActivity, navigate: (LauncherSection) -> Unit) 
  * The reference launcher's labeled sidebar menu, adapted as a Home card: Home highlighted as
  * the red active pill, plus Install, Execute, Control Layouts and Downloads with sublabels.
  */
-@Composable
-private fun ReferenceMenuCard(accent: Color, actions: HomeActions) {
-    Surface(
-        shape = RoundedCornerShape(AerixRadii.card),
-        color = AerixSurface.panel,
-        border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(AerixSpacing.sm),
-            verticalArrangement = Arrangement.spacedBy(AerixSpacing.tiny)
-        ) {
-            ReferenceMenuRow(R.drawable.aerix_ic_home_filled, "Home", "Dashboard", true, accent) {
-                // Already home — the row exists to mirror the reference menu.
-            }
-            ReferenceMenuRow(R.drawable.aerix_ic_cloud_download, "Install", "Install new version", false, accent, actions.explore)
-            ReferenceMenuRow(R.drawable.aerix_ic_java, "Execute", "Run jar file", false, accent, actions.runJar)
-            ReferenceMenuRow(R.drawable.aerix_ic_touch_app_outlined, "Control Layouts", "Edit your controls", false, accent, actions.controls)
-            ReferenceMenuRow(R.drawable.aerix_ic_folder_outlined, "Downloads", "View your files", false, accent, actions.fileManager)
-        }
-    }
-}
-
-@Composable
-private fun ReferenceMenuRow(
-    icon: Int,
-    label: String,
-    sublabel: String,
-    active: Boolean,
-    accent: Color,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(AerixRadii.control))
-            .background(if (active) accent else Color.Transparent)
-            .apexPress(onClick = onClick)
-            .padding(horizontal = AerixSpacing.smPlus, vertical = AerixSpacing.smTight),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
-    ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            tint = if (active) Color.White else AerixSurface.textPrimary,
-            modifier = Modifier.size(18.dp)
-        )
-        Column {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = if (active) Color.White else AerixSurface.textPrimary
-            )
-            Text(
-                text = sublabel,
-                style = MaterialTheme.typography.labelSmall,
-                color = if (active) Color.White.copy(alpha = 0.80f) else AerixSurface.textMuted
-            )
-        }
-    }
-}
-
-/** The reference launcher's account line: the signed-in account's kind, in plain words. */
+/** The signed-in account's kind, in plain words. */
 private fun accountTypeLabel(authType: AuthType): String = when (authType) {
     AuthType.MICROSOFT -> "Microsoft Account"
     AuthType.ELY_BY -> "Ely.by Account"
@@ -381,8 +316,6 @@ private fun CompactHomeDashboard(
                 HomeHeaderRow(actions)
             }
         }
-        // Reference-UI merge: the labeled sidebar menu, adapted as a Home card.
-        item { ReferenceMenuCard(accent, actions) }
         // Phone Home v2: the rotatable skin stage with the account pill and login quick row.
         item { PhoneSkinStage(accent, actions) }
         // The instance selector and the centred PLAY button — the launcher's main action.
@@ -457,6 +390,20 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
     val flingScope = rememberCoroutineScope()
     val dollVelocityTracker = remember(account?.username) { VelocityTracker() }
     var dollFlingJob by remember(account?.username) { mutableStateOf<Job?>(null) }
+    var skinDragging by remember(account?.username) { mutableStateOf(false) }
+    // Idle turn: while nothing is dragging or flinging, the character slowly rotates on stage so
+    // the skin always feels alive (the reference UI's smooth auto-spin).
+    LaunchedEffect(Unit) {
+        var last = withFrameNanos { it }
+        while (true) {
+            val now = withFrameNanos { it }
+            val dt = ((now - last) / 1_000_000_000f).coerceIn(0f, 0.05f)
+            last = now
+            if (!skinDragging && dollFlingJob == null) {
+                dollAzimuth = (dollAzimuth + dt * 12f).mod(360f)
+            }
+        }
+    }
 
     Surface(
         shape = RoundedCornerShape(AerixRadii.card),
@@ -514,11 +461,13 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
                     .pointerInput(account?.username) {
                         detectHorizontalDragGestures(
                             onDragStart = {
+                                skinDragging = true
                                 dollFlingJob?.cancel()
                                 dollFlingJob = null
                                 dollVelocityTracker.resetTracking()
                             },
                             onDragEnd = {
+                                skinDragging = false
                                 val releaseVelocity = dollVelocityTracker.calculateVelocity().x * DOLL_DRAG_DEG_PER_PX
                                 dollFlingJob?.cancel()
                                 if (abs(releaseVelocity) < DOLL_FLING_MIN_VELOCITY) {
@@ -540,6 +489,7 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
                                 }
                             },
                             onDragCancel = {
+                                skinDragging = false
                                 dollFlingJob?.cancel()
                                 dollFlingJob = null
                             },

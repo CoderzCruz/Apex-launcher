@@ -24,6 +24,7 @@
 package net.kdt.pojavlaunch.aerix.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
@@ -61,6 +62,8 @@ import net.kdt.pojavlaunch.aerix.bridge.AerixTransitionType
 import net.kdt.pojavlaunch.aerix.bridge.AerixWindowInsets
 import net.kdt.pojavlaunch.aerix.bridge.PojavAccountBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavInstanceEditorBridge
+import net.kdt.pojavlaunch.aerix.bridge.PojavNavigator
+import net.kdt.pojavlaunch.contracts.OpenDocumentWithExtension
 import net.kdt.pojavlaunch.aerix.components.AerixBackground
 import net.kdt.pojavlaunch.aerix.discord.AerixDiscordPresence
 import net.kdt.pojavlaunch.aerix.social.SocialBackend
@@ -173,10 +176,15 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
                 // The social space has its own sidebar and takes the whole window; every other
                 // section keeps the launcher's rail.
                 if (section != LauncherSection.SOCIALS) {
+                    val jarLauncher = rememberLauncherForActivityResult(OpenDocumentWithExtension("jar")) { uri ->
+                        if (uri != null) PojavNavigator.runJar(activity, uri)
+                    }
                     AerixNavigationRail(
                         selectedSection = section,
                         onNavigate = navigate,
-                        onCreateInstance = { AerixNav.navigate(LauncherSection.CREATE_INSTANCE) }
+                        onCreateInstance = { AerixNav.navigate(LauncherSection.CREATE_INSTANCE) },
+                        onRunJar = { if (PojavNavigator.canRunJar(activity)) jarLauncher.launch(null) },
+                        onControls = { PojavNavigator.openCustomControls(activity) }
                     )
                 }
                 Box(
