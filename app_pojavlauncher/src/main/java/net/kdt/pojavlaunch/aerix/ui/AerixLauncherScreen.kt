@@ -221,6 +221,7 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
                                 }
                             }
                             LauncherSection.ACCOUNTS -> AccountsScreen(activity)
+                            LauncherSection.CLIENT -> AerixClientScreen(activity)
                             LauncherSection.ABOUT -> AboutScreen(activity)
                             LauncherSection.CREATE_INSTANCE -> CreateInstanceScreen(activity) {
                                 AerixNav.finishTo(LauncherSection.LIBRARY)

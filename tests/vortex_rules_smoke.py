@@ -29,12 +29,13 @@ assert 'name="lazy_service_default_title">Vortex Foreground Service<' in strings
 aerix_strings = (RES / "values/aerix_strings.xml").read_text()
 assert 'name="aerix_brand" translatable="false">Vortex<' in aerix_strings
 
-# ── The Aerix Client page is gone from navigation ─────────────────────────
+# ── Vortex Client is hosted again as its own rail section (old id gone) ───
 rail = RAIL.read_text()
-assert "AERIX_CLIENT" not in rail, "no client entry in the rail"
+assert "AERIX_CLIENT" not in rail, "legacy client id stays gone"
+assert 'RailIconItem(R.drawable.ic_px_fps, "Vortex Client"' in rail, "client rail entry"
 assert '"Rules"' in rail and "LauncherSection.RULES" in rail
 launcher = LAUNCHER.read_text()
-assert "AerixClientScreen" not in launcher, "client page not hosted"
+assert "LauncherSection.CLIENT -> AerixClientScreen(" in launcher, "client page hosted"
 assert "LauncherSection.RULES -> RulesScreen(" in launcher
 
 # ── Rules page: banner art, big heading, Discord invite ───────────────────

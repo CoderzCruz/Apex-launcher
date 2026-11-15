@@ -56,6 +56,59 @@ import net.kdt.pojavlaunch.instances.Instances
  * Transparent backdrop over the launcher's live wallpaper, showing ONLY `Aerix Client`
  * and Liquid Glass client version download / launch cards below it.
  */
+/** One showcase tile: crimson icon square + title + one-liner. */
+@Composable
+private fun ClientFeatureTile(
+    iconRes: Int,
+    title: String,
+    body: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(AerixRadii.cardSmall))
+            .background(AerixSurface.panelRaised)
+            .border(AerixSpacing.hairline, AerixSurface.borderSoft, RoundedCornerShape(AerixRadii.cardSmall))
+            .padding(horizontal = 10.dp, vertical = 9.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(30.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(Brush.linearGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B)))),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(iconRes),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+            Column {
+                Text(
+                    text = title,
+                    color = Color.White,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    maxLines = 1
+                )
+                Text(
+                    text = body,
+                    color = Color.White.copy(alpha = 0.64f),
+                    fontSize = 9.sp,
+                    maxLines = 2
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun AerixClientScreen(activity: FragmentActivity) {
     LaunchedEffect(Unit) {
@@ -71,24 +124,24 @@ fun AerixClientScreen(activity: FragmentActivity) {
         title = "Vortex Client",
         subtitle = null
     ) {
-        // Crimson hero strip: brand tile + feature chips.
+        // Big showcase hero (Feather/RKMC-style client landing).
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(AerixRadii.card))
                 .background(
                     Brush.linearGradient(
-                        listOf(Color(0x59DC2626), Color(0x2D152536), Color(0x40B01B2B))
+                        listOf(Color(0x80DC2626), Color(0x2D152536), Color(0x59B01B2B))
                     )
                 )
                 .border(
                     1.dp,
                     Brush.horizontalGradient(
-                        listOf(Color(0xE0DC2626), Color(0x40DC2626), Color(0xE0DC2626))
+                        listOf(Color(0xE0DC2626), Color(0x55DC2626), Color(0xE0DC2626))
                     ),
                     RoundedCornerShape(AerixRadii.card)
                 )
-                .padding(horizontal = 16.dp, vertical = 14.dp)
+                .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -96,45 +149,76 @@ fun AerixClientScreen(activity: FragmentActivity) {
             ) {
                 Box(
                     modifier = Modifier
-                        .size(46.dp)
-                        .clip(RoundedCornerShape(14.dp))
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(15.dp))
                         .background(Brush.linearGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B)))),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.aerix_ic_rocket_launch_filled),
+                        painter = painterResource(R.drawable.ic_px_fps),
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(28.dp)
                     )
                 }
                 Column {
                     Text(
-                        text = "Crimson Performance Edition",
+                        text = "VORTEX CLIENT",
                         color = Color.White,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.ExtraBold
+                        fontSize = 21.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 1.6.sp
                     )
-                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = "Java Edition client for Android — free forever",
+                        color = Color.White.copy(alpha = 0.78f),
+                        fontSize = 11.sp
+                    )
+                    Spacer(Modifier.height(6.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        listOf("FPS Boost", "Wavey Capes", "HUD").forEach { chip ->
+                        listOf("FPS Boost", "Capes", "HUD", "Gyro").forEach { chip ->
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(999.dp))
                                     .background(Color.White.copy(alpha = 0.12f))
                                     .border(0.9.dp, Color.White.copy(alpha = 0.28f), RoundedCornerShape(999.dp))
-                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                                    .padding(horizontal = 7.dp, vertical = 2.dp)
                             ) {
                                 Text(
                                     text = chip,
                                     color = Color.White,
-                                    fontSize = 9.sp,
+                                    fontSize = 8.5.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
                         }
                     }
                 }
+            }
+        }
+
+        // Feature showcase — 2 × 3 tiles.
+        Column(verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+            ) {
+                ClientFeatureTile(R.drawable.ic_px_fps, "FPS Boost", "Optimised frames", Modifier.weight(1f))
+                ClientFeatureTile(R.drawable.aerix_ic_person_outlined, "Capes & Cosmetics", "WaveyCapes in-game", Modifier.weight(1f))
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+            ) {
+                ClientFeatureTile(R.drawable.aerix_ic_dashboard_outlined, "Custom HUD", "CPS, coords & armor", Modifier.weight(1f))
+                ClientFeatureTile(R.drawable.aerix_ic_touch_app_outlined, "Gyro Aim", "Motion controls", Modifier.weight(1f))
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+            ) {
+                ClientFeatureTile(R.drawable.aerix_ic_update, "One-tap Sync", "Updates before launch", Modifier.weight(1f))
+                ClientFeatureTile(R.drawable.aerix_ic_format_paint_outlined, "Dark Theme", "Custom menu & panorama", Modifier.weight(1f))
             }
         }
 
