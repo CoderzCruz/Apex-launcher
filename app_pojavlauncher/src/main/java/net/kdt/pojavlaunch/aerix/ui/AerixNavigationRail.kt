@@ -231,9 +231,6 @@ fun AerixNavigationRail(
                     settingsSelected(selectedSection), activeAccent, expandedRail, compactRail,
                     onClick = { onNavigate(LauncherSection.SETTINGS) }, guideKey = AerixGuideState.SETTINGS)
 
-                RailIconItem(R.drawable.aerix_ic_group_outlined, stringResource(R.string.aerix_nav_contribution),
-                    selectedSection == LauncherSection.CONTRIBUTION || selectedSection == LauncherSection.CONTRIBUTION_DETAIL,
-                    activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.CONTRIBUTION) }
 
                 AccountAvatarRailButton(
                     account = account,

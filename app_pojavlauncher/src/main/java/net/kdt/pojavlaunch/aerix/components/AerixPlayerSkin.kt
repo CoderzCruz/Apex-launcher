@@ -110,6 +110,7 @@ class AerixPlayerSkin(private val context: Context) {
 
     fun loadWebView(viewContext: Context, onPageFinished: () -> Unit): WebView {
         val view = WebView(viewContext).apply {
+            setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
             settings.apply {
                 javaScriptEnabled = true
                 domStorageEnabled = true
@@ -249,7 +250,8 @@ fun AerixSkinPreview3D(
     interactionEnabled: Boolean = false,
     isVisible: Boolean = true,
     useClientCape: Boolean = false,
-    showOfficialCape: Boolean = false
+    showOfficialCape: Boolean = false,
+    cameraDistance: Int = 60
 ) {
     val context = LocalContext.current
     val playerSkin = remember { AerixPlayerSkin(context.applicationContext) }
@@ -259,7 +261,7 @@ fun AerixSkinPreview3D(
     var webglPainted by remember { mutableStateOf(false) }
     var fallbackBody by remember { mutableStateOf<ImageBitmap?>(null) }
     var skinLoadTrigger by remember { mutableIntStateOf(0) }
-    val cameraAngles = remember { Channel<Pair<Int, Int>>(Channel.CONFLATED) }
+    val cameraAngles = remember { Channel<Triple<Int, Int, Int>>(Channel.CONFLATED) }
 
     DisposableEffect(playerSkin) {
         playerSkin.viewerReadyCallback = {
@@ -359,14 +361,14 @@ fun AerixSkinPreview3D(
             if (!ready) return@LaunchedEffect
             playerSkin.setRenderPaused(true)
         }
-        LaunchedEffect(ready, azimuth, pitch, isVisible) {
+        LaunchedEffect(ready, azimuth, pitch, cameraDistance, isVisible) {
             if (!ready || !isVisible) return@LaunchedEffect
-            cameraAngles.trySend(azimuth to pitch)
+            cameraAngles.trySend(Triple(azimuth, pitch, cameraDistance))
         }
         LaunchedEffect(ready, isVisible) {
             if (!ready || !isVisible) return@LaunchedEffect
-            for ((azimuthDeg, pitchDeg) in cameraAngles) {
-                playerSkin.setAzimuthAndPitch(azimuthDeg, pitchDeg)
+            for ((azimuthDeg, pitchDeg, distance) in cameraAngles) {
+                playerSkin.setAzimuthAndPitch(azimuthDeg, pitchDeg, distance)
                 delay(16)
             }
         }

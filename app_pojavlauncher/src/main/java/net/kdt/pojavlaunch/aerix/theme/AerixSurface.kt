@@ -30,13 +30,13 @@ import androidx.compose.ui.unit.dp
 
 object AerixSurface {
     val canvas = Color(0xFF07131D)
-    val panel = Color(0x2E172B3A)
-    val panelRaised = Color(0x38223B4E)
-    val panelTrack = Color(0x2B344F63)
-    val panelGlassTint = Color(0x2622445A)
-    val border = Color(0xFFDC2626)
-    val borderSoft = Color(0xFFDC2626)
-    val borderHighlight = Color(0xFFDC2626)
+    val panel = Color(0x2D152536)
+    val panelRaised = Color(0x371E3348)
+    val panelTrack = Color(0x2A2A4154)
+    val panelGlassTint = Color(0x241D3B50)
+    val border = Color(0xB3DC2626)
+    val borderSoft = Color(0x73DC2626)
+    val borderHighlight = Color(0xE0DC2626)
     val glassTint = Color(0xFF2B5063)
     val glassBlue = Color(0xFF91E9FF)
     val glassViolet = Color(0xFFB7A9FF)
@@ -46,7 +46,7 @@ object AerixSurface {
     val glassShadow = Color(0x66000610)
 
     /** Static fallback used to define the built-in Aerix palette and wallpaper presets. */
-    val accentDefault = Color(0xFF8DEFE0)
+    val accentDefault = Color(0xFFDC2626)
 
     /** Current launcher accent; UI controls use this instead of a baked-in color. */
     val accent: Color
@@ -55,16 +55,16 @@ object AerixSurface {
         @Composable get() = accent
     val onAction: Color
         @Composable get() = onAccent
-    val accentSecondary = Color(0xFFC1B5FF)
-    val accentGlow = Color(0x668DEFE0)
-    val accentContainerDefault = Color(0x5539C8C1)
+    val accentSecondary = Color(0xFFFF6B75)
+    val accentGlow = Color(0x66DC2626)
+    val accentContainerDefault = Color(0x55DC2626)
     val accentContainer: Color
         @Composable get() = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.33f)
-    val onAccentDefault = Color(0xFF06201D)
+    val onAccentDefault = Color(0xFFFFFFFF)
     val onAccent: Color
         @Composable get() = MaterialTheme.colorScheme.onPrimary
-    val onAccentContainer = Color(0xFFBDFAF3)
-    val accentLight = Color(0xFF006D73)
+    val onAccentContainer = Color(0xFFFFD9DC)
+    val accentLight = Color(0xFFB01B2B)
     val lightPanel = Color(0xFFFCFEFF)
     val lightTextPrimary = Color(0xFF14212B)
     val errorDarkContainer = Color(0xFF7A2635)

@@ -30,6 +30,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -145,15 +147,19 @@ fun isAnimationId(id: String): Boolean = id.startsWith("anim_")
 @Composable
 fun AnimatedScene(animation: AerixAnimation, motion: Boolean, modifier: Modifier = Modifier) {
     val transition = rememberInfiniteTransition(label = "scene")
-    val time by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 40_000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "sceneTime"
-    )
+    val time by if (motion) {
+        transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 40_000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "sceneTime"
+        )
+    } else {
+        remember { mutableStateOf(0f) }
+    }
     Box(modifier) {
         Canvas(Modifier.fillMaxSize()) {
             drawScene(animation, if (motion) time else 0f)

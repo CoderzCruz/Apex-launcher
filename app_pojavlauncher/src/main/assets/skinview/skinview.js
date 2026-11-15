@@ -22,7 +22,7 @@ try {
         width: getWidth(),
         height: getHeight()
     });
-    skinViewer.pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    skinViewer.pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
     skinViewer.renderPaused = true;
     container.appendChild(skinViewer.canvas);
 } catch (err) {

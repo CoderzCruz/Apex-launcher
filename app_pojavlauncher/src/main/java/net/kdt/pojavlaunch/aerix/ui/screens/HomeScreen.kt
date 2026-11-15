@@ -50,6 +50,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -166,7 +167,6 @@ private class HomeActions(
     // The Home v2 extras: the five-option grid, the login quick row, and the header entries.
     val mods: () -> Unit,
     val settings: () -> Unit,
-    val contribution: () -> Unit,
     val ai: () -> Unit,
     val background: () -> Unit,
     val loginMicrosoft: () -> Unit,
@@ -217,7 +217,6 @@ fun HomeScreen(activity: FragmentActivity, navigate: (LauncherSection) -> Unit) 
         // Home v2: Mods opens Discover on its Mods tab; the rest land on their sections or flows.
         mods = { AerixDownloadRequest.open(AssetType.MOD, navigate) },
         settings = { navigate(LauncherSection.SETTINGS) },
-        contribution = { navigate(LauncherSection.CONTRIBUTION) },
         ai = { navigate(LauncherSection.AI) },
         background = { navigate(LauncherSection.WALLPAPERS) },
         loginMicrosoft = { PojavAuthBridge.openLogin(activity, PojavAuth.MICROSOFT) },
@@ -305,8 +304,10 @@ private fun CompactHomeDashboard(
     taskCount: Int,
     actions: HomeActions
 ) {
+    val listState = rememberLazyListState()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
+        state = listState,
         contentPadding = PaddingValues(bottom = AerixSpacing.xxl),
         verticalArrangement = Arrangement.spacedBy(AerixSpacing.md)
     ) {
@@ -317,7 +318,7 @@ private fun CompactHomeDashboard(
             }
         }
         // Phone Home v2: the rotatable skin stage with the account pill and login quick row.
-        item { PhoneSkinStage(accent, actions, selected) }
+        item { PhoneSkinStage(accent, actions, selected, previewVisible = !listState.isScrollInProgress) }
         // The instance selector and the centred PLAY button — the launcher's main action.
         item { MiddlePlayBlock(selected, accent, actions) }
         // The five options: Modpacks, Mods, Settings, Contribution, Add Version.
@@ -384,7 +385,7 @@ private fun HeaderChip(label: String, icon: Int, modifier: Modifier = Modifier, 
  * Tapping the stage opens Accounts; dragging spins the model.
  */
 @Composable
-private fun PhoneSkinStage(accent: Color, actions: HomeActions, selected: AerixInstance?) {
+private fun PhoneSkinStage(accent: Color, actions: HomeActions, selected: AerixInstance?, previewVisible: Boolean = true) {
     val account = PojavAccountBridge.current
     var dollAzimuth by remember(account?.username) { mutableFloatStateOf(28f) }
     val flingScope = rememberCoroutineScope()
@@ -438,7 +439,7 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions, selected: AerixI
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(280.dp)
+                    .height(300.dp)
                     .padding(top = AerixSpacing.smCompact, start = AerixSpacing.sm, end = AerixSpacing.sm)
                     .clip(RoundedCornerShape(AerixRadii.control))
                     .pointerInput(actions) {
@@ -488,10 +489,32 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions, selected: AerixI
                     account = account,
                     azimuth = dollAzimuth.roundToInt(),
                     interactionEnabled = false,
+                    isVisible = previewVisible,
+                    cameraDistance = 52,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(bottom = AerixSpacing.mdPlus)
                 )
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = AerixSpacing.sm),
+                    shape = RoundedCornerShape(999.dp),
+                    color = AerixSurface.canvas.copy(alpha = 0.82f),
+                    border = BorderStroke(AerixSpacing.hairline, AerixSurface.border)
+                ) {
+                    Text(
+                        text = "Welcome to Vortex Launcher",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.4.sp,
+                        color = AerixSurface.textPrimary,
+                        modifier = Modifier.padding(
+                            horizontal = AerixSpacing.smPlus,
+                            vertical = AerixSpacing.tiny
+                        )
+                    )
+                }
                 Surface(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -850,10 +873,6 @@ private fun OptionsGrid(accent: Color, actions: HomeActions) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
         ) {
-            QuickActionTile(
-                R.drawable.aerix_ic_group_outlined, "Contribution", "The team",
-                accent, actions.contribution, Modifier.weight(1f).height(78.dp)
-            )
             QuickActionTile(
                 R.drawable.aerix_ic_add, "Add Version", "New instance",
                 accent, actions.create, Modifier.weight(1.6f).height(78.dp)

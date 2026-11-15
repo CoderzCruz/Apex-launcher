@@ -228,7 +228,7 @@ fun AerixMusicScreen() {
                 .apexPress(onClick = { addLauncher.launch(null) }),
             shape = RoundedCornerShape(AerixRadii.panel),
             color = red.copy(alpha = 0.16f),
-            border = BorderStroke(AerixSpacing.hairline, red)
+            border = BorderStroke(AerixSpacing.hairline, red.copy(alpha = 0.7f))
         ) {
             Box(
                 modifier = Modifier.padding(vertical = AerixSpacing.sm, horizontal = AerixSpacing.md),
@@ -254,7 +254,7 @@ fun AerixMusicScreen() {
             Surface(
                 shape = RoundedCornerShape(AerixRadii.panel),
                 color = AerixSurface.panel,
-                border = BorderStroke(AerixSpacing.hairline, red)
+                border = BorderStroke(AerixSpacing.hairline, red.copy(alpha = 0.7f))
             ) {
                 Column(
                     modifier = Modifier
@@ -302,7 +302,7 @@ fun AerixMusicScreen() {
                     color = if (active) red.copy(alpha = 0.14f) else Color.Transparent,
                     border = BorderStroke(
                         AerixSpacing.hairline,
-                        if (active) red else AerixSurface.borderSoft
+                        if (active) red.copy(alpha = 0.7f) else AerixSurface.borderSoft
                     )
                 ) {
                     Row(

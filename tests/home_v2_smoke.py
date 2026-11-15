@@ -16,7 +16,7 @@ home = HOME.read_text()
 
 # ── The compact dashboard orders the v2 sections ──────────────────────────
 compact = home[home.index("private fun CompactHomeDashboard"):home.index("private fun HomeHeaderRow")]
-for section in ("HomeHeaderRow(actions)", "PhoneSkinStage(accent, actions, selected)",
+for section in ("HomeHeaderRow(actions)", "PhoneSkinStage(accent, actions, selected, previewVisible",
                 "MiddlePlayBlock(selected, accent, actions)", "OptionsGrid(accent, actions)"):
     assert section in compact, section
 # Replaced pieces are gone from the phone dashboard.
@@ -55,10 +55,10 @@ assert "showInstanceMenu" in play
 # ── The five options exactly as asked ─────────────────────────────────────
 # (WideHomeDashboard sits earlier in the file; the grid ends where QuickTiles begins.)
 grid = home[home.index("private fun OptionsGrid"):home.index("private fun QuickTiles")]
-for label in ("Modpacks", "Mods", "Settings", "Contribution", "Add Version"):
+for label in ("Modpacks", "Mods", "Settings", "Add Version"):
     assert f'"{label}"' in grid, label
 assert "actions.mods" in grid and "AerixDownloadRequest.open(AssetType.MOD" in home
-assert "actions.contribution" in grid and "actions.create" in grid
+assert "actions.create" in grid and "actions.contribution" not in grid, "contribution removed"
 
 # ── Header entries: AI, background, import ────────────────────────────────
 header = home[home.index("private fun HomeHeaderRow"):home.index("private fun HeaderChip")]
@@ -82,7 +82,7 @@ for label in ('"Execute"', '"Control Layouts"', '"Downloads"'):
 assert "onClick = onRunJar" in rail and "onClick = onControls" in rail
 launcher = (APP / "java/net/kdt/pojavlaunch/aerix/ui/AerixLauncherScreen.kt").read_text()
 assert "onRunJar = {" in launcher and "onControls = {" in launcher, "rail actions wired"
-assert "item { PhoneSkinStage(accent, actions, selected) }" in compact, "stage now leads the dashboard"
+assert "item { PhoneSkinStage(accent, actions, selected, previewVisible" in compact, "stage now leads the dashboard"
 assert '"Customize"' in home and '"your skin"' in home and '"PREVIEW"' in home, "stage header"
 assert '"Change Skin"' in home and "actions.accounts()" in home, "change-skin button"
 assert '"QUICK ACTIONS"' in home, "reference section label"
@@ -96,14 +96,18 @@ assert '"Music"' in rail and "aerix_ic_music_note" in rail, "rail music entry"
 assert "LauncherSection.MUSIC -> AerixMusicScreen()" in launcher, "section routed"
 assert (ROOT / "app_pojavlauncher/src/main/res/drawable/aerix_ic_music_note.xml").exists(), "music icon asset"
 assert "selectedRed = Color(0xFFDC2626)" in rail, "opened section icon turns red"
-assert ".height(280.dp)" in home, "bigger skin stage"
+assert ".height(300.dp)" in home, "bigger skin stage"
+assert '"Welcome to Vortex Launcher"' in home, "welcome bubble"
+assert "cameraDistance = 52" in home, "closer camera, bigger skin"
+assert "aerix_nav_contribution" not in rail, "contribution gone from rail"
 prefs2 = (APP / "java/net/kdt/pojavlaunch/aerix/bridge/AerixPreferences.kt").read_text()
 assert "AerixTransitionType.SLICE_IN.name" in prefs2, "smooth default section swap"
 surface2 = (APP / "java/net/kdt/pojavlaunch/aerix/theme/AerixSurface.kt").read_text()
-assert "val panel = Color(0x2E172B3A)" in surface2, "deeper transparent panels"
-assert "val border = Color(0xFFDC2626)" in surface2, "music-red outlines"
-assert "val borderSoft = Color(0xFFDC2626)" in surface2, "soft outlines match"
-assert "val borderHighlight = Color(0xFFDC2626)" in surface2, "highlight outlines match"
+assert "val panel = Color(0x2D152536)" in surface2, "refreshed transparent panels"
+assert "val border = Color(0xB3DC2626)" in surface2, "light red outlines"
+assert "val borderSoft = Color(0x73DC2626)" in surface2, "soft outlines match"
+assert "val borderHighlight = Color(0xE0DC2626)" in surface2, "highlight outlines match"
+assert "val accentDefault = Color(0xFFDC2626)" in surface2, "accent red like the screenshots"
 assert "Color.White.copy(alpha = 0.30f)" not in home, "LAUNCH outline switched to red"
 
 print("Home v2: stage, login row, middle PLAY, five options, header and press effects passed")

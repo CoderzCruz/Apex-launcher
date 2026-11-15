@@ -87,7 +87,7 @@ object AerixPreferences {
     /** Attach modpack art, clickable info URLs, and action buttons to Discord Rich Presence cards. */
     const val KEY_DISCORD_CLICKABLE_LINKS = "aerixDiscordClickableLinks"
 
-    const val DEFAULT_CUSTOM_COLOR = 0xFF8DEFE0.toInt()
+    const val DEFAULT_CUSTOM_COLOR = 0xFFDC2626.toInt()
     const val DEFAULT_BACKGROUND_OPACITY = 60
     const val DEFAULT_ANIMATE_SPEED = 3
     const val DEFAULT_WALLPAPER = "wp_01_lush_caves"

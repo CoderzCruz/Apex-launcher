@@ -124,11 +124,6 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
                 AerixNav.settingsTab = AerixNav.TAB_ABOUT
                 AerixNav.navigate(LauncherSection.SETTINGS)
             }
-            // Opening the rail entry always lands on the team list, never on someone's page.
-            LauncherSection.CONTRIBUTION -> {
-                AerixContribution.openedId = null
-                AerixNav.navigate(LauncherSection.CONTRIBUTION)
-            }
             LauncherSection.DOWNLOADS -> AerixNav.navigate(LauncherSection.DISCOVER)
             LauncherSection.CONTENT -> AerixNav.navigate(LauncherSection.INSTANCE_EDITOR)
             else -> AerixNav.navigate(target)
