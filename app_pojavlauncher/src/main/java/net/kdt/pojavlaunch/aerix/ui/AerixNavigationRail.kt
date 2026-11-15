@@ -141,7 +141,7 @@ fun AerixNavigationRail(
                 // pages own the rest of the width.
                 .padding(start = 2.dp, end = AerixSpacing.xs, top = AerixSpacing.smPlus, bottom = AerixSpacing.smPlus),
             shape = RoundedCornerShape(AerixRadii.panel),
-            color = activeAccent,
+            color = Color.Black,
             contentColor = Color.White
         ) {
             Column(
@@ -158,15 +158,15 @@ fun AerixNavigationRail(
                         .clip(RoundedCornerShape(AerixRadii.panelSmall))
                         .clickable(role = Role.Button) { onNavigate(LauncherSection.HOME) }
                         .semantics { contentDescription = "Vortex Home" }
-                        .padding(start = AerixSpacing.sm, top = AerixSpacing.xs, bottom = AerixSpacing.xs),
+                        .padding(start = AerixSpacing.sm, top = AerixSpacing.xxs, bottom = AerixSpacing.xxs),
                     horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(AerixSpacing.xxs)
+                    verticalArrangement = Arrangement.spacedBy(AerixSpacing.zero)
                 ) {
                     Box(
                         modifier = Modifier
                             .size(if (compactRail) 32.dp else 38.dp)
                             .clip(RoundedCornerShape(AerixRadii.control))
-                            .background(Color.White.copy(alpha = 0.16f)),
+                            .background(Color.White.copy(alpha = 0.10f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -214,7 +214,7 @@ fun AerixNavigationRail(
                     wallpapersSelected(selectedSection), activeAccent, expandedRail, compactRail,
                     onClick = { onNavigate(LauncherSection.WALLPAPERS) }, guideKey = AerixGuideState.WALLPAPERS, sublabel = "Change your background")
 
-                HorizontalDivider(modifier = Modifier.width(if (expandedRail) 104.dp else 28.dp).padding(vertical = AerixSpacing.xxs), color = Color.White.copy(alpha = 0.28f))
+                HorizontalDivider(modifier = Modifier.width(if (expandedRail) 104.dp else 28.dp).padding(vertical = AerixSpacing.xxs), color = Color.White.copy(alpha = 0.12f))
 
                 RailIconItem(R.drawable.aerix_ic_settings_filled, stringResource(R.string.aerix_nav_settings),
                     settingsSelected(selectedSection), activeAccent, expandedRail, compactRail,
@@ -275,12 +275,12 @@ private fun RailIconItem(
     val motionOn = ThemeMotion.rememberEnabled()
     val liveAccent = ThemeMotion.rememberPulse(accentColor, selected, motionOn)
     val containerColor by animateColorAsState(
-        targetValue = if (selected) Color.White else Color.Transparent,
+        targetValue = if (selected) Color.White.copy(alpha = 0.10f) else Color.Transparent,
         animationSpec = tween(140),
         label = "railContainerColor"
     )
     val iconTint by animateColorAsState(
-        targetValue = if (selected) accentColor else Color.White,
+        targetValue = Color.White,
         animationSpec = tween(140),
         label = "railIconTint"
     )
@@ -301,9 +301,9 @@ private fun RailIconItem(
             .then(if (expanded) Modifier.fillMaxWidth().height(48.dp) else Modifier.size(width = itemWidth, height = itemHeight))
             .clip(itemShape)
             .background(containerColor)
-            .accentGlow(liveAccent, selected, motionOn)
-            .accentRing(liveAccent, itemShape, selected, motionOn, AerixSpacing.hairline)
-            .border(BorderStroke(AerixSpacing.hairline, if (selected) Color.Transparent else Color.White.copy(alpha = 0.18f)), itemShape)
+            .accentGlow(liveAccent, false, motionOn)
+            .accentRing(liveAccent, itemShape, false, motionOn, AerixSpacing.hairline)
+            .border(BorderStroke(AerixSpacing.hairline, Color.Transparent), itemShape)
             .clickable(role = Role.Tab, onClick = onClick)
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center
@@ -314,13 +314,13 @@ private fun RailIconItem(
                     .fillMaxWidth()
                     .padding(horizontal = AerixSpacing.sm, vertical = AerixSpacing.xs),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.xxs)
             ) {
                 Icon(painter = painterResource(iconRes), contentDescription = label, tint = iconTint, modifier = Modifier.size(18.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                     Text(
                         text = label,
-                        color = if (selected) accentColor else Color.White,
+                        color = Color.White,
                         fontSize = 11.sp,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
                         maxLines = 1,
@@ -329,7 +329,7 @@ private fun RailIconItem(
                     if (sublabel != null) {
                         Text(
                             text = sublabel,
-                            color = if (selected) accentColor.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.72f),
+                            color = if (selected) Color.White.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.72f),
                             fontSize = 8.5.sp,
                             fontWeight = FontWeight.Medium,
                             maxLines = 1,
@@ -354,7 +354,7 @@ private fun AccountAvatarRailButton(
 ) {
     val activeAccent = AerixThemeManager.currentAccent()
     val ringColor by animateColorAsState(
-        targetValue = if (selected) Color.White else Color.White.copy(alpha = 0.35f),
+        targetValue = if (selected) Color.White.copy(alpha = 0.85f) else Color.Transparent,
         animationSpec = tween(150),
         label = "accountAvatarRing"
     )
@@ -372,7 +372,7 @@ private fun AccountAvatarRailButton(
             modifier = Modifier
                 .size(if (compact) 32.dp else 36.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.16f))
+                .background(Color.White.copy(alpha = 0.08f))
                 .border(width = if (selected) 2.dp else AerixSpacing.hairline, color = ringColor, shape = CircleShape),
             contentAlignment = Alignment.Center
         ) {

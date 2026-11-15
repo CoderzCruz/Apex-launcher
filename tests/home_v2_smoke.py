@@ -73,7 +73,8 @@ assert home.count(".apexPress(") >= 3, "home actions carry the press effect"
 # ── Reference-UI merge: crimson left sidebar, stage header, Change Skin, QUICK ACTIONS ──
 rail = (APP / "java/net/kdt/pojavlaunch/aerix/ui/AerixNavigationRail.kt").read_text()
 assert "ReferenceMenuCard" not in home, "the sidebar replaces the home menu card"
-assert "color = activeAccent" in rail, "crimson sidebar surface"
+assert "color = Color.Black" in rail, "black sidebar surface"
+assert "color = activeAccent" not in rail, "crimson removed"
 assert "RoundedCornerShape(AerixRadii.panel)" in rail, "rounded sidebar bar"
 assert "screenWidthDp >= 500" in rail, "labels show on the phone's landscape width"
 for label, sub in (
