@@ -34,6 +34,7 @@ import com.discord.socialsdk.rpc.IDiscordRpcCallback
 import com.discord.socialsdk.rpc.IDiscordRpcConnection
 import com.discord.socialsdk.rpc.IDiscordRpcService
 import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
+import net.kdt.pojavlaunch.aerix.bridge.PojavAccountBridge
 import net.kdt.pojavlaunch.aerix.social.SocialBackend
 import net.kdt.pojavlaunch.aerix.social.SocialNotificationReceiver
 import org.json.JSONArray
@@ -71,7 +72,7 @@ object AerixDiscordPresence {
 
     /** Official clickable destinations & artwork for Aerix Rich Presence cards. */
     const val AERIX_WEBSITE_URL = "https://entitybrian69-bit.github.io/Aerix-launcher/"
-    const val AERIX_DISCORD_URL = "https://discord.gg/RS7q9KaCm6"
+    const val AERIX_DISCORD_URL = "https://discord.gg/wpjAVkf2V"
     const val AERIX_LOGO_URL =
         "https://raw.githubusercontent.com/CoderzCruz/Apex-launcher/arena/a426cc08-apex-launcher/assets/aerix-logo.png"
 
@@ -314,6 +315,13 @@ object AerixDiscordPresence {
 
     private fun isMinecraftCatalogId(id: Long): Boolean =
         id == MINECRAFT_PRIMARY_APP_ID || id == MINECRAFT_LEGACY_APP_ID
+
+    /** mc-heads face for the signed-in account so the badge shows the player's own skin. */
+    private fun currentSkinAvatarUrl(): String? = runCatching {
+        PojavAccountBridge.ensureLoaded()
+        val name = PojavAccountBridge.current?.username?.takeIf { it.isNotBlank() }
+        if (name != null) "https://mc-heads.net/avatar/$name/64" else null
+    }.getOrNull()
 
     private fun resolveDesiredAppId(): Long? {
         val baseId = DiscordAppId.asLong(appContext) ?: return null
@@ -933,7 +941,7 @@ object AerixDiscordPresence {
         // status_display_type: 0 = Name ("Playing Minecraft"), 2 = Details ("In the launcher" / "Playing Minecraft 1.21")
         val statusDisplayType = if (usingMinecraftProfile) 0 else 2
         val effectiveDetails = if (usingMinecraftProfile && !details.contains("Vortex", ignoreCase = true)) {
-            "$details · via Aerix Launcher"
+            "$details · via Vortex Launcher"
         } else {
             details
         }
@@ -968,16 +976,16 @@ object AerixDiscordPresence {
         val validPackIcon = activeModpackIconUrl?.takeIf { clickable && inGameMode && isValidHttpAssetUrl(it) }
         if (validPackIcon != null) {
             assets.put("large_image", validPackIcon)
-            assets.put("large_text", "$state · Aerix Launcher")
-            assets.put("small_image", AERIX_LOGO_URL)
+            assets.put("large_text", "$state · Vortex Launcher")
+            assets.put("small_image", currentSkinAvatarUrl() ?: AERIX_LOGO_URL)
             assets.put("small_text", "Vortex Launcher v1 — Tap to join Discord")
         } else {
             assets.put("large_image", AERIX_LOGO_URL)
             assets.put("large_text", if (usingMinecraftProfile)
                 "Vortex Launcher v1 — Minecraft Java Edition on Android" else "Vortex Launcher v1 — Official Website & Info")
             if (usingMinecraftProfile) {
-                assets.put("small_image", AERIX_LOGO_URL)
-                assets.put("small_text", "Powered by Aerix Launcher")
+                assets.put("small_image", currentSkinAvatarUrl() ?: AERIX_LOGO_URL)
+                assets.put("small_text", "Powered by Vortex Launcher")
             }
         }
         if (clickable) {
@@ -989,12 +997,12 @@ object AerixDiscordPresence {
                 val buttons = JSONArray()
                     .put(
                         JSONObject()
-                            .put("label", "About Aerix Launcher")
+                            .put("label", "About Vortex")
                             .put("url", AERIX_WEBSITE_URL)
                     )
                     .put(
                         JSONObject()
-                            .put("label", "Join Aerix Discord")
+                            .put("label", "Join Vortex Discord")
                             .put("url", AERIX_DISCORD_URL)
                     )
                 activity.put("buttons", buttons)

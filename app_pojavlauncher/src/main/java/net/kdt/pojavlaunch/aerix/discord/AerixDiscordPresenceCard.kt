@@ -19,6 +19,7 @@
 package net.kdt.pojavlaunch.aerix.discord
 
 import android.content.Intent
+import android.widget.Toast
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -64,6 +65,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
+import net.kdt.pojavlaunch.aerix.bridge.PojavAccountBridge
 import net.kdt.pojavlaunch.aerix.components.CardPosition
 import net.kdt.pojavlaunch.aerix.components.MiraiSettingsCard
 import net.kdt.pojavlaunch.aerix.components.MiraiSwitchSettingsCard
@@ -111,7 +113,7 @@ fun DiscordPresenceSettingsCard() {
         MiraiSwitchSettingsCard(
             position = CardPosition.Top,
             title = "Discord Rich Presence",
-            summary = "Show what you are doing in Aerix Launcher on your Discord profile, " +
+            summary = "Show what you are doing in Vortex Launcher on your Discord profile, " +
                 "and clear when you leave the app or close the game.",
             checked = enabled,
             onCheckedChange = { on ->
@@ -128,10 +130,10 @@ fun DiscordPresenceSettingsCard() {
         MiraiSwitchSettingsCard(
             position = CardPosition.Middle,
             title = "Official Minecraft Game Profile in-game",
-            summary = "Hybrid mode: shows the clickable Aerix Launcher card while in the launcher, " +
+            summary = "Hybrid mode: shows the clickable Vortex Launcher card while in the launcher, " +
                 "and switches to Minecraft's verified Discord ID while playing so tapping your " +
-                "presence opens Minecraft's official full Game Profile sheet (\u201Cvia Aerix Launcher\u201D). " +
-                "Turn off to keep \u201CAerix Launcher\u201D as the card title everywhere.",
+                "presence opens Minecraft's official full Game Profile sheet (\u201Cvia Vortex Launcher\u201D). " +
+                "Turn off to keep \u201CVortex Launcher\u201D as the card title everywhere.",
             checked = gameProfileMode,
             enabled = enabled,
             onCheckedChange = { on ->
@@ -145,8 +147,8 @@ fun DiscordPresenceSettingsCard() {
             position = CardPosition.Middle,
             title = "Modpack art, clickable info links & buttons",
             summary = "Show modpack cover artwork, make the headline & status clickable " +
-                "(opening the official Aerix website & Discord), and display \u201CAbout Aerix Launcher\u201D " +
-                "+ \u201CJoin Aerix Discord\u201D buttons on your profile card.",
+                "(opening the official website & Discord), and display \u201CAbout Vortex\u201D " +
+                "+ \u201CJoin Vortex Discord\u201D buttons on your profile card.",
             checked = clickableLinks,
             enabled = enabled,
             onCheckedChange = { on ->
@@ -174,7 +176,7 @@ fun DiscordPresenceSettingsCard() {
         MiraiTextInputSettingsCard(
             value = appId,
             title = "Discord application ID",
-            summary = "Already set to the Aerix Launcher application, so nothing has to be done here. " +
+            summary = "Already set to the Vortex Launcher application, so nothing has to be done here. " +
                 "Fill this in only to publish under a custom Discord application ID.",
             label = "Built in: 1563812135744839771 — override if you know why",
             position = CardPosition.Bottom,
@@ -198,16 +200,23 @@ private fun DiscordRichPresenceLivePreview(
     onOpenDiscord: () -> Unit
 ) {
     val accent = AerixThemeManager.currentAccent()
+    val previewContext = LocalContext.current
+    val previewAccount = remember {
+        runCatching {
+            PojavAccountBridge.ensureLoaded()
+            PojavAccountBridge.current
+        }.getOrNull()
+    }
     val usingOfficialMcProfile = previewInGame && gameProfileMode
 
-    val cardHeader = if (usingOfficialMcProfile) "Playing a game" else "Playing Aerix Launcher"
+    val cardHeader = if (usingOfficialMcProfile) "Playing a game" else "Playing Vortex Launcher"
     val titleLine = when {
         usingOfficialMcProfile -> "Minecraft"
         previewInGame -> "Playing Minecraft 1.21.4"
         else -> "In the launcher"
     }
     val detailsLine = when {
-        usingOfficialMcProfile -> "Playing Minecraft 1.21.4 · via Aerix Launcher"
+        usingOfficialMcProfile -> "Playing Minecraft 1.21.4 · via Vortex Launcher"
         previewInGame -> "Vortex Launcher v1 · Survival SMP"
         else -> "Browsing the dashboard"
     }
@@ -307,18 +316,34 @@ private fun DiscordRichPresenceLivePreview(
                                 .background(Color(0xFF1E1F22))
                         )
                         if (usingOfficialMcProfile) {
-                            Image(
-                                painter = painterResource(R.drawable.aerix_logo),
-                                contentDescription = "Vortex Badge",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(22.dp)
-                                    .align(Alignment.BottomEnd)
-                                    .offset(x = 4.dp, y = 4.dp)
-                                    .clip(CircleShape)
-                                    .border(2.dp, Color(0xFF111214), CircleShape)
-                                    .let { mod -> if (clickableLinks) mod.clickable(onClick = onOpenDiscord) else mod }
-                            )
+                            val badgeFace = previewAccount?.face
+                            if (badgeFace != null) {
+                                Image(
+                                    bitmap = badgeFace,
+                                    contentDescription = "Your skin",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(22.dp)
+                                        .align(Alignment.BottomEnd)
+                                        .offset(x = 4.dp, y = 4.dp)
+                                        .clip(CircleShape)
+                                        .border(2.dp, Color(0xFF111214), CircleShape)
+                                        .let { mod -> if (clickableLinks) mod.clickable(onClick = onOpenDiscord) else mod }
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(R.drawable.aerix_logo),
+                                    contentDescription = "Vortex Badge",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(22.dp)
+                                        .align(Alignment.BottomEnd)
+                                        .offset(x = 4.dp, y = 4.dp)
+                                        .clip(CircleShape)
+                                        .border(2.dp, Color(0xFF111214), CircleShape)
+                                        .let { mod -> if (clickableLinks) mod.clickable(onClick = onOpenDiscord) else mod }
+                                )
+                            }
                         }
                     }
 
@@ -395,12 +420,14 @@ private fun DiscordRichPresenceLivePreview(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         DiscordActionButtonPreview(
-                            label = "About Aerix Launcher",
+                            label = "About Vortex",
                             modifier = Modifier.weight(1f),
-                            onClick = onOpenWebsite
+                            onClick = {
+                                Toast.makeText(previewContext, "Website will Not Ready", Toast.LENGTH_SHORT).show()
+                            }
                         )
                         DiscordActionButtonPreview(
-                            label = "Join Aerix Discord",
+                            label = "Join Vortex Discord",
                             modifier = Modifier.weight(1f),
                             onClick = onOpenDiscord
                         )
@@ -412,7 +439,7 @@ private fun DiscordRichPresenceLivePreview(
         Text(
             text = if (usingOfficialMcProfile) {
                 "Tip: In Official Minecraft mode, friends tapping the game card open Minecraft's native " +
-                    "Discord Game Profile sheet, while tapping the text/buttons opens Aerix Launcher's website & Discord."
+                    "Discord Game Profile sheet, while tapping the text/buttons opens Vortex's website & Discord."
             } else {
                 "Note: Discord shows Rich Presence action buttons to friends and server members viewing your " +
                     "profile (tap any link or button above to test where it opens)."

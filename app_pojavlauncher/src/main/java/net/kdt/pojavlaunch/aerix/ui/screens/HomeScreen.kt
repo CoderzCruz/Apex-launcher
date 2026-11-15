@@ -63,6 +63,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -495,14 +505,38 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions, selected: AerixI
                         .fillMaxSize()
                         .padding(bottom = AerixSpacing.mdPlus)
                 )
-                Surface(
+                var welcomeShown by remember { mutableStateOf(false) }
+                LaunchedEffect(Unit) { welcomeShown = true }
+                val welcomeBob by rememberInfiniteTransition(label = "welcomeBob").animateFloat(
+                    initialValue = 0f,
+                    targetValue = 4f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(2400, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "welcomeBobValue"
+                )
+                AnimatedVisibility(
+                    visible = welcomeShown,
+                    enter = fadeIn(tween(450)) +
+                        slideInVertically(tween(550)) { -it / 2 } +
+                        scaleIn(tween(550), initialScale = 0.85f),
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .padding(top = AerixSpacing.sm),
-                    shape = RoundedCornerShape(999.dp),
-                    color = AerixSurface.canvas.copy(alpha = 0.82f),
-                    border = BorderStroke(AerixSpacing.hairline, AerixSurface.border)
+                        .padding(top = AerixSpacing.sm)
+                        .offset(y = welcomeBob.dp)
                 ) {
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = AerixSurface.canvas.copy(alpha = 0.82f),
+                        border = BorderStroke(
+                            AerixSpacing.hairline,
+                            Brush.horizontalGradient(
+                                listOf(Color(0xFFDC2626), Color(0x99DC2626), Color(0xFFDC2626))
+                            )
+                        ),
+                        shadowElevation = AerixSpacing.xs
+                    ) {
                     Text(
                         text = "Welcome to Vortex Launcher",
                         style = MaterialTheme.typography.labelSmall,
@@ -514,6 +548,7 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions, selected: AerixI
                             vertical = AerixSpacing.tiny
                         )
                     )
+                    }
                 }
                 Surface(
                     modifier = Modifier

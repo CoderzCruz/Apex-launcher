@@ -15,11 +15,17 @@ assert logo == (root / 'app_pojavlauncher/src/main/res/drawable-nodpi/aerix_logo
 activity = src.split('private fun sendActivity()', 1)[1].split('private fun send(frame:', 1)[0]
 assets, links = activity.split('val assets = JSONObject()', 1)[1].split('if (clickable) {', 1)
 assert 'assets.put("large_image", AERIX_LOGO_URL)' in assets
-assert 'assets.put("small_image", AERIX_LOGO_URL)' in assets
+assert 'assets.put("small_image", currentSkinAvatarUrl() ?: AERIX_LOGO_URL)' in assets, "skin badge with logo fallback"
 assert 'clickable && inGameMode && isValidHttpAssetUrl(it)' in assets
 assert 'activity.put("assets", assets)' in links
 preview = (base / 'AerixDiscordPresenceCard.kt').read_text().split('fun DiscordRichPresenceLivePreview', 1)[1]
 assert 'painterResource(R.drawable.aerix_logo)' in preview
+assert 'https://discord.gg/wpjAVkf2V' in src, "our Discord invite"
+assert '"About Vortex"' in preview and '"Join Vortex Discord"' in preview, "renamed buttons"
+assert 'Website will Not Ready' in preview, "about button shows not-ready toast"
+assert 'badgeFace' in preview, "skin replaces the badge logo"
+assert 'via Vortex Launcher' in preview, "via line renamed"
+assert 'mc-heads.net/avatar/' in src, "real card badge uses the skin face"
 # Backgrounding (opening Discord) keeps the card: clear only on a real finish.
 stopped = src.split('fun onLauncherStopped(', 1)[1].split('fun prepareHandoffToGame', 1)[0]
 assert 'isFinishing != true) return' in stopped, "background switch keeps the card"
