@@ -40,6 +40,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -284,7 +285,7 @@ fun AerixMusicScreen() {
                     .background(Brush.horizontalGradient(listOf(red, redDeep))),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
+                Icon(
                     painter = painterResource(R.drawable.aerix_ic_music_note),
                     contentDescription = null,
                     tint = Color.White,
@@ -339,7 +340,7 @@ fun AerixMusicScreen() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(AerixSpacing.xs)
                 ) {
-                    Image(
+                    Icon(
                         painter = painterResource(R.drawable.aerix_ic_music_note),
                         contentDescription = null,
                         tint = AerixSurface.textMuted,
@@ -456,8 +457,10 @@ fun AerixMusicScreen() {
                     color = if (active) Color(0x22DC2626) else AerixSurface.panel,
                     border = BorderStroke(
                         AerixSpacing.hairline,
-                        if (active) Brush.horizontalGradient(listOf(Color(0xE0DC2626), Color(0x73DC2626)))
-                        else AerixSurface.borderSoft
+                        Brush.horizontalGradient(
+                            if (active) listOf(Color(0xE0DC2626), Color(0x73DC2626))
+                            else listOf(AerixSurface.borderSoft, AerixSurface.borderSoft)
+                        )
                     )
                 ) {
                     Row(
