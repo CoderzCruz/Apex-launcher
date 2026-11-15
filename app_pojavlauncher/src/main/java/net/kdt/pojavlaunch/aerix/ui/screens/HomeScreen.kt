@@ -63,16 +63,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -84,7 +81,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -516,38 +515,53 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions, selected: AerixI
                     ),
                     label = "welcomeBobValue"
                 )
-                AnimatedVisibility(
-                    visible = welcomeShown,
-                    enter = fadeIn(tween(450)) +
-                        slideInVertically(tween(550)) { -it / 2 } +
-                        scaleIn(tween(550), initialScale = 0.85f),
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = AerixSpacing.sm)
-                        .offset(y = welcomeBob.dp)
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(999.dp),
-                        color = AerixSurface.canvas.copy(alpha = 0.82f),
-                        border = BorderStroke(
-                            AerixSpacing.hairline,
-                            Brush.horizontalGradient(
-                                listOf(Color(0xFFDC2626), Color(0x99DC2626), Color(0xFFDC2626))
-                            )
-                        ),
-                        shadowElevation = AerixSpacing.xs
+                val welcomeAlpha by animateFloatAsState(
+                    targetValue = if (welcomeShown) 1f else 0f,
+                    animationSpec = tween(450),
+                    label = "welcomeAlpha"
+                )
+                val welcomeSlide by animateFloatAsState(
+                    targetValue = if (welcomeShown) 0f else -28f,
+                    animationSpec = tween(550),
+                    label = "welcomeSlide"
+                )
+                val welcomeScale by animateFloatAsState(
+                    targetValue = if (welcomeShown) 1f else 0.85f,
+                    animationSpec = tween(550),
+                    label = "welcomeScale"
+                )
+                if (welcomeAlpha > 0.01f) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = AerixSpacing.sm)
+                            .offset(y = (welcomeBob + welcomeSlide).dp)
+                            .alpha(welcomeAlpha)
+                            .scale(welcomeScale)
                     ) {
-                    Text(
-                        text = "Welcome to Vortex Launcher",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.4.sp,
-                        color = AerixSurface.textPrimary,
-                        modifier = Modifier.padding(
-                            horizontal = AerixSpacing.smPlus,
-                            vertical = AerixSpacing.tiny
-                        )
-                    )
+                        Surface(
+                            shape = RoundedCornerShape(999.dp),
+                            color = AerixSurface.canvas.copy(alpha = 0.82f),
+                            border = BorderStroke(
+                                AerixSpacing.hairline,
+                                Brush.horizontalGradient(
+                                    listOf(Color(0xFFDC2626), Color(0x99DC2626), Color(0xFFDC2626))
+                                )
+                            ),
+                            shadowElevation = AerixSpacing.xs
+                        ) {
+                            Text(
+                                text = "Welcome to Vortex Launcher",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.4.sp,
+                                color = AerixSurface.textPrimary,
+                                modifier = Modifier.padding(
+                                    horizontal = AerixSpacing.smPlus,
+                                    vertical = AerixSpacing.tiny
+                                )
+                            )
+                        }
                     }
                 }
                 Surface(

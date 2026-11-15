@@ -98,7 +98,7 @@ assert (ROOT / "app_pojavlauncher/src/main/res/drawable/aerix_ic_music_note.xml"
 assert "selectedRed = Color(0xFFDC2626)" in rail, "opened section icon turns red"
 assert ".height(300.dp)" in home, "bigger skin stage"
 assert '"Welcome to Vortex Launcher"' in home, "welcome bubble"
-assert "AnimatedVisibility" in home, "welcome bubble animates"
+assert "welcomeAlpha" in home and "welcomeBob" in home, "welcome bubble animates"
 assert "cameraDistance = 52" in home, "closer camera, bigger skin"
 assert "aerix_nav_contribution" not in rail, "contribution gone from rail"
 prefs2 = (APP / "java/net/kdt/pojavlaunch/aerix/bridge/AerixPreferences.kt").read_text()
