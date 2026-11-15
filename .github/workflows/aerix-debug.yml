@@ -41,7 +41,7 @@ concurrency:
 env:
   # One APK for every phone: the debug build carries both ARM architectures, so it installs
   # anywhere without a second file to choose between.
-  APK_NAME: Aerix-Launcher-debug.apk
+  APK_NAME: Vortex Launcher v1.apk
   APK_PATH: app_pojavlauncher/build/outputs/apk/noruntime/debug/app_pojavlauncher-noruntime-debug.apk
 
 jobs:
@@ -221,7 +221,10 @@ jobs:
           set -euo pipefail
           TAG="debug-latest"
           SHORT="${GITHUB_SHA:0:7}"
-          STAMPED_NAME="Aerix-Launcher-debug-$SHORT.apk"
+          STAMPED_NAME="Vortex Launcher v1-$SHORT.apk"
+          # GitHub download links need %20 for the spaces in the asset names.
+          APK_NAME_URL="${APK_NAME// /%20}"
+          STAMPED_NAME_URL="${STAMPED_NAME// /%20}"
           BUILT_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
           STAGE="$(mktemp -d)"
           cp "$APK_PATH" "$STAGE/$APK_NAME"
@@ -244,8 +247,8 @@ jobs:
           {
             echo "Side-by-side testing build (\`net.kdt.pojavlaunch.debug\`) — installs next to the public launcher without touching its data."
             echo ""
-            echo "- **Direct download:** [\`$APK_NAME\`](https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/$APK_NAME)"
-            echo "- **Commit-stamped download (avoids browser filename cache):** [\`$STAMPED_NAME\`](https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/$STAMPED_NAME)"
+            echo "- **Direct download:** [\`$APK_NAME\`](https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/$APK_NAME_URL)"
+            echo "- **Commit-stamped download (avoids browser filename cache):** [\`$STAMPED_NAME\`](https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/$STAMPED_NAME_URL)"
             echo "- **Branch:** \`$GITHUB_REF_NAME\`"
             echo "- **Commit:** \`$SHORT\` (\`$GITHUB_SHA\`)"
             echo "- **versionCode:** \`$VERSION_CODE\`"
@@ -257,12 +260,14 @@ jobs:
           # always sorts debug-latest below every public v* release and never touches the website.
           ANCHOR_SHA="cadb0ab12ff45b582927361b703df878b37e0221"
           if gh release view "$TAG" > /dev/null 2>&1; then
-            # Prune previous commit-stamped APKs so only the latest pair remains on debug-latest.
-            for old_asset in $(gh release view "$TAG" --json assets --jq '.assets[].name' | grep -E '^Aerix-Launcher-debug-[0-9a-f]+\.apk$' || true); do
+            # Prune previous stamped APKs and the legacy Aerix-named assets so only the
+            # latest "Vortex Launcher v1" pair remains on debug-latest. Asset names contain
+            # spaces, so read them line-by-line instead of word-splitting.
+            while IFS= read -r old_asset; do
               if [ "$old_asset" != "$STAMPED_NAME" ]; then
                 gh release delete-asset "$TAG" "$old_asset" --yes || true
               fi
-            done
+            done < <(gh release view "$TAG" --json assets --jq '.assets[].name' | grep -E '^(Aerix-Launcher-debug|Vortex Launcher v1-[0-9a-f]+)' || true)
             gh release upload "$TAG" --clobber \
               "$STAGE/$APK_NAME" \
               "$STAGE/$STAMPED_NAME" \
@@ -271,13 +276,13 @@ jobs:
             gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" -f sha="$ANCHOR_SHA" -F force=true > /dev/null 2>&1 || true
             gh release edit "$TAG" \
               --prerelease \
-              --title "Aerix Debug Build (latest)" \
+              --title "Vortex Launcher v1 (debug)" \
               --notes-file "$STAGE/RELEASE_NOTES.md"
           else
             gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$ANCHOR_SHA" > /dev/null 2>&1 || true
             gh release create "$TAG" \
               --prerelease \
-              --title "Aerix Debug Build (latest)" \
+              --title "Vortex Launcher v1 (debug)" \
               --notes-file "$STAGE/RELEASE_NOTES.md" \
               "$STAGE/$APK_NAME" \
               "$STAGE/$STAMPED_NAME" \
@@ -285,4 +290,4 @@ jobs:
               "$STAGE/DEBUG_BUILD.txt"
           fi
           rm -rf "$STAGE"
-          echo "::notice title=debug-apk::https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/$APK_NAME (versionCode $VERSION_CODE, from $SHORT)"
+          echo "::notice title=debug-apk::https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/$APK_NAME_URL (versionCode $VERSION_CODE, from $SHORT)"
