@@ -101,6 +101,9 @@ prefs2 = (APP / "java/net/kdt/pojavlaunch/aerix/bridge/AerixPreferences.kt").rea
 assert "AerixTransitionType.SLICE_IN.name" in prefs2, "smooth default section swap"
 surface2 = (APP / "java/net/kdt/pojavlaunch/aerix/theme/AerixSurface.kt").read_text()
 assert "val panel = Color(0x2E172B3A)" in surface2, "deeper transparent panels"
-assert "0x78FF4D5E" in surface2 and "0x48FF4D5E" in surface2, "red outlines"
+assert "val border = Color(0xFFDC2626)" in surface2, "music-red outlines"
+assert "val borderSoft = Color(0xFFDC2626)" in surface2, "soft outlines match"
+assert "val borderHighlight = Color(0xFFDC2626)" in surface2, "highlight outlines match"
+assert "Color.White.copy(alpha = 0.30f)" not in home, "LAUNCH outline switched to red"
 
 print("Home v2: stage, login row, middle PLAY, five options, header and press effects passed")

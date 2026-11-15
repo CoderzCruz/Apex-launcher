@@ -535,7 +535,7 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions, selected: AerixI
                         shape = RoundedCornerShape(AerixRadii.panel),
                         color = Color.Transparent,
                         contentColor = Color.White,
-                        border = BorderStroke(AerixSpacing.hairline, Color.White.copy(alpha = 0.30f))
+                        border = BorderStroke(AerixSpacing.hairline, AerixSurface.border)
                     ) {
                         Box(
                             modifier = Modifier

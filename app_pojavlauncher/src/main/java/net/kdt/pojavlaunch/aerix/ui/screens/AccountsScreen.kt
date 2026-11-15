@@ -1045,7 +1045,7 @@ private fun AccountSkinWardrobeView(
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = Color(0xFF151924),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+                    border = BorderStroke(1.dp, AerixSurface.border),
                     modifier = Modifier
                         .size(38.dp)
                         .clip(RoundedCornerShape(12.dp))
@@ -1080,7 +1080,7 @@ private fun AccountSkinWardrobeView(
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = Color(0xFF151924),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                border = BorderStroke(1.dp, AerixSurface.border),
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .clickable { AerixNav.navigate(LauncherSection.ADD_ACCOUNT) }
@@ -1126,7 +1126,7 @@ private fun AccountSkinWardrobeView(
                 Surface(
                     shape = RoundedCornerShape(18.dp),
                     color = Color(0xFF121620).copy(alpha = 0.94f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                    border = BorderStroke(1.dp, AerixSurface.border),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -1232,7 +1232,7 @@ private fun AccountSkinWardrobeView(
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
                                     color = Color(0xFF0B0E15),
-                                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.07f)),
+                                    border = BorderStroke(1.dp, AerixSurface.border),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(8.dp))
@@ -1329,7 +1329,7 @@ private fun AccountSkinWardrobeView(
                 Surface(
                     shape = RoundedCornerShape(18.dp),
                     color = Color(0xFF121620).copy(alpha = 0.94f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                    border = BorderStroke(1.dp, AerixSurface.border),
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
@@ -1358,7 +1358,7 @@ private fun AccountSkinWardrobeView(
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
                                     color = Color(0xFF1B2230),
-                                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+                                    border = BorderStroke(1.dp, AerixSurface.border),
                                     modifier = Modifier
                                         .size(28.dp)
                                         .clip(RoundedCornerShape(8.dp))
@@ -1376,7 +1376,7 @@ private fun AccountSkinWardrobeView(
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
                                     color = Color(0xFF1B2230),
-                                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+                                    border = BorderStroke(1.dp, AerixSurface.border),
                                     modifier = Modifier
                                         .size(28.dp)
                                         .clip(RoundedCornerShape(8.dp))
@@ -1422,7 +1422,7 @@ private fun AccountSkinWardrobeView(
                         Surface(
                             shape = RoundedCornerShape(10.dp),
                             color = Color(0xFF0B0E15),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                            border = BorderStroke(1.dp, AerixSurface.border),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(10.dp))
@@ -1474,7 +1474,7 @@ private fun AccountSkinWardrobeView(
             Surface(
                 shape = RoundedCornerShape(18.dp),
                 color = Color(0xFF121620).copy(alpha = 0.94f),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                border = BorderStroke(1.dp, AerixSurface.border),
                 modifier = Modifier
                     .weight(0.44f)
                     .fillMaxHeight()
@@ -1490,7 +1490,7 @@ private fun AccountSkinWardrobeView(
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = Color(0xFF0B0E15),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                        border = BorderStroke(1.dp, AerixSurface.border),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -1589,7 +1589,7 @@ private fun AccountSkinWardrobeView(
                             Surface(
                                 shape = CircleShape,
                                 color = Color(0xFF1B2230).copy(alpha = 0.85f),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                                border = BorderStroke(1.dp, AerixSurface.border),
                                 modifier = Modifier.size(30.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
@@ -1604,7 +1604,7 @@ private fun AccountSkinWardrobeView(
                             Surface(
                                 shape = CircleShape,
                                 color = Color(0xFF1B2230).copy(alpha = 0.85f),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                                border = BorderStroke(1.dp, AerixSurface.border),
                                 modifier = Modifier.size(30.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
@@ -1664,7 +1664,7 @@ private fun AccountSkinWardrobeView(
                             OutlinedButton(
                                 onClick = { launchCapePicker() },
                                 shape = RoundedCornerShape(12.dp),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)),
+                                border = BorderStroke(1.dp, AerixSurface.border),
                                 colors = ButtonDefaults.outlinedButtonColors(
                                     containerColor = Color(0xFF181E2C),
                                     contentColor = Color.White
@@ -1694,7 +1694,7 @@ private fun AccountSkinWardrobeView(
                                     PojavAccountBridge.resetSkinAndCape(activity, account)
                                 },
                                 shape = RoundedCornerShape(12.dp),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)),
+                                border = BorderStroke(1.dp, AerixSurface.border),
                                 colors = ButtonDefaults.outlinedButtonColors(
                                     containerColor = Color(0xFF181E2C),
                                     contentColor = Color.White.copy(alpha = 0.85f)
@@ -1767,7 +1767,7 @@ private fun SkinPresetGridCard(
         color = if (equipped) Color(0xFF182436) else Color(0xFF171C28),
         border = BorderStroke(
             width = if (equipped) 1.5.dp else 1.dp,
-            color = if (equipped) accent else Color.White.copy(alpha = 0.08f)
+            color = if (equipped) accent else AerixSurface.border
         ),
         modifier = Modifier
             .fillMaxWidth()

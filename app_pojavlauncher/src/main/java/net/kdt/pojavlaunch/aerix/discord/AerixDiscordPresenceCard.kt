@@ -461,7 +461,7 @@ private fun DiscordActionButtonPreview(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),
         color = Color(0xFF2B2D31),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+        border = BorderStroke(1.dp, AerixSurface.border)
     ) {
         Box(
             modifier = Modifier
