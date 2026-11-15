@@ -94,4 +94,14 @@ assert '"Customize"' in home and '"your skin"' in home and '"PREVIEW"' in home, 
 assert '"Change Skin"' in home and "actions.accounts()" in home, "change-skin button"
 assert '"QUICK ACTIONS"' in home, "reference section label"
 
+# ── Premium black+pink pass: zoom, hover, selected login states, sidebar polish ──
+assert "dollScale" in home and "Zoom in" in home and "Zoom out" in home, "skin zoom controls"
+assert home.count("collectIsHoveredAsState") >= 1, "top-chip hover state"
+assert "selected = account?.authType == AuthType.MICROSOFT" in home, "login selected state"
+assert ".height(46.dp)" in home, "equal header chip heights"
+assert "collectIsHoveredAsState" in rail, "sidebar hover state"
+assert "152.dp" in rail, "sidebar widened so labels fit"
+assert '"New instance"' in rail and '"Other releases"' in rail, "unclipped rail labels"
+assert "accentGlow(accent, active = true" in home, "subtle pink glow on stage + LAUNCH"
+
 print("Home v2: stage, login row, middle PLAY, five options, header and press effects passed")

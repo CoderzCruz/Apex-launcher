@@ -29,6 +29,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -135,7 +138,7 @@ fun AerixNavigationRail(
     Row(modifier = modifier.fillMaxHeight()) {
         Surface(
             modifier = Modifier
-                .width(if (expandedRail) 140.dp else AerixMetrics.navigationRailWidth)
+                .width(if (expandedRail) 152.dp else AerixMetrics.navigationRailWidth)
                 .fillMaxHeight()
                 // The crimson bar hugs the left edge - only the end side keeps a gap, so the
                 // pages own the rest of the width.
@@ -150,7 +153,7 @@ fun AerixNavigationRail(
                     .verticalScroll(scrollState)
                     .padding(vertical = if (compactRail) AerixSpacing.xs else AerixSpacing.smPlus),
                 horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(if (compactRail) AerixSpacing.xs else AerixSpacing.sm)
+                verticalArrangement = Arrangement.spacedBy(if (compactRail) AerixSpacing.xs else AerixSpacing.xs)
             ) {
                 // Aerix monogram and wordmark establish a persistent brand anchor.
                 Column(
@@ -189,7 +192,7 @@ fun AerixNavigationRail(
                     selectedSection == LauncherSection.RULES, activeAccent, expandedRail, compactRail, sublabel = "Read the rules") { onNavigate(LauncherSection.RULES) }
                 RailIconItem(R.drawable.aerix_ic_sports_esports_outlined, "Vortex MC",
                     selectedSection == LauncherSection.VORTEX_MC, activeAccent, expandedRail, compactRail, sublabel = "Quick join server") { onNavigate(LauncherSection.VORTEX_MC) }
-                RailIconItem(R.drawable.aerix_ic_add, stringResource(R.string.create_instance),
+                RailIconItem(R.drawable.aerix_ic_add, "New instance",
                     selectedSection == LauncherSection.CREATE_INSTANCE, activeAccent, expandedRail, compactRail,
                     onClick = onCreateInstance, guideKey = AerixGuideState.CREATE, sublabel = "Set up a new install")
                 RailIconItem(R.drawable.aerix_ic_dashboard_filled, stringResource(R.string.aerix_nav_library),
@@ -208,7 +211,7 @@ fun AerixNavigationRail(
                 RailIconItem(R.drawable.aerix_ic_folder_outlined, "Downloads",
                     selectedSection == LauncherSection.FILES, activeAccent, expandedRail, compactRail,
                     onClick = { onNavigate(LauncherSection.FILES) }, sublabel = "View your files")
-                RailIconItem(R.drawable.aerix_ic_rocket_launch_filled, "Our other new releases",
+                RailIconItem(R.drawable.aerix_ic_rocket_launch_filled, "Other releases",
                     selectedSection == LauncherSection.OTHER_RELEASES, activeAccent, expandedRail, compactRail, sublabel = "More launcher apps") { onNavigate(LauncherSection.OTHER_RELEASES) }
                 RailIconItem(R.drawable.aerix_ic_format_paint_outlined, stringResource(R.string.aerix_nav_wallpapers),
                     wallpapersSelected(selectedSection), activeAccent, expandedRail, compactRail,
@@ -269,13 +272,17 @@ private fun RailIconItem(
     sublabel: String? = null,
     onClick: () -> Unit
 ) {
-    // The selected item uses the current theme accent; icon, fill and border update together.
-// With the animated theme on, the selected item's accent breathes and carries a glow. Off, it
+    // Hover + selection share one animated fill: a soft white wash on the black bar.
+    // With the animated theme on, the accent can breathe; off, the states stay flat.
     // is the identical flat accent as before - and no animation is started for unselected items.
     val motionOn = ThemeMotion.rememberEnabled()
     val liveAccent = ThemeMotion.rememberPulse(accentColor, selected, motionOn)
+    val interactionSource = remember { MutableInteractionSource() }
+    val hovered by interactionSource.collectIsHoveredAsState()
     val containerColor by animateColorAsState(
-        targetValue = if (selected) Color.White.copy(alpha = 0.10f) else Color.Transparent,
+        targetValue = if (selected) Color.White.copy(alpha = 0.10f)
+            else if (hovered) Color.White.copy(alpha = 0.06f)
+            else Color.Transparent,
         animationSpec = tween(140),
         label = "railContainerColor"
     )
@@ -304,6 +311,7 @@ private fun RailIconItem(
             .accentGlow(liveAccent, false, motionOn)
             .accentRing(liveAccent, itemShape, false, motionOn, AerixSpacing.hairline)
             .border(BorderStroke(AerixSpacing.hairline, Color.Transparent), itemShape)
+            .hoverable(interactionSource)
             .clickable(role = Role.Tab, onClick = onClick)
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center

@@ -32,6 +32,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.animation.core.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -74,6 +81,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -118,6 +126,7 @@ import net.kdt.pojavlaunch.aerix.guide.guideAnchor
 import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
 import net.kdt.pojavlaunch.aerix.theme.AerixSurface
 import net.kdt.pojavlaunch.aerix.theme.AerixThemeManager
+import net.kdt.pojavlaunch.aerix.theme.ThemeMotion
 import net.kdt.pojavlaunch.aerix.ui.AerixNav
 import net.kdt.pojavlaunch.aerix.ui.LauncherSection
 import net.kdt.pojavlaunch.contracts.OpenDocumentWithExtension
@@ -347,16 +356,35 @@ private fun HomeHeaderRow(actions: HomeActions) {
 @Composable
 private fun HeaderChip(label: String, icon: Int, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val accent = AerixThemeManager.currentAccent()
+    val interactionSource = remember { MutableInteractionSource() }
+    val hovered by interactionSource.collectIsHoveredAsState()
+    val chipBg by animateColorAsState(
+        targetValue = if (hovered) accent.copy(alpha = 0.12f) else AerixSurface.panel,
+        animationSpec = tween(160),
+        label = "headerChipBg"
+    )
+    val chipBorder by animateColorAsState(
+        targetValue = if (hovered) accent.copy(alpha = 0.8f) else AerixSurface.borderSoft,
+        animationSpec = tween(160),
+        label = "headerChipBorder"
+    )
+    val iconScale by animateFloatAsState(
+        targetValue = if (hovered) 1.15f else 1f,
+        animationSpec = tween(160),
+        label = "headerChipIcon"
+    )
     Surface(
         modifier = modifier
+            .height(46.dp)
             .clip(RoundedCornerShape(AerixRadii.control))
+            .hoverable(interactionSource)
             .apexPress(onClick),
         shape = RoundedCornerShape(AerixRadii.control),
-        color = AerixSurface.panel,
-        border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
+        color = chipBg,
+        border = BorderStroke(AerixSpacing.hairline, chipBorder)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = AerixSpacing.md, vertical = AerixSpacing.smTight),
+            modifier = Modifier.padding(horizontal = AerixSpacing.md),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -364,7 +392,7 @@ private fun HeaderChip(label: String, icon: Int, modifier: Modifier = Modifier, 
                 painter = painterResource(icon),
                 contentDescription = null,
                 tint = accent,
-                modifier = Modifier.size(14.dp)
+                modifier = Modifier.size(15.dp).scale(iconScale)
             )
             Spacer(Modifier.width(AerixSpacing.xs))
             Text(
@@ -391,6 +419,13 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
     val dollVelocityTracker = remember(account?.username) { VelocityTracker() }
     var dollFlingJob by remember(account?.username) { mutableStateOf<Job?>(null) }
     var skinDragging by remember(account?.username) { mutableStateOf(false) }
+    // Pinch / button zoom for the skin (0.6x .. 2.6x), smoothly animated onto the preview.
+    var dollScale by remember(account?.username) { mutableFloatStateOf(1.15f) }
+    val dollScaleAnimated by animateFloatAsState(
+        targetValue = dollScale,
+        animationSpec = tween(170),
+        label = "dollScale"
+    )
     // Idle turn: while nothing is dragging or flinging, the character slowly rotates on stage so
     // the skin always feels alive (the reference UI's smooth auto-spin).
     LaunchedEffect(Unit) {
@@ -406,6 +441,7 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
     }
 
     Surface(
+        modifier = Modifier.accentGlow(accent, active = true, enabled = ThemeMotion.rememberEnabled()),
         shape = RoundedCornerShape(AerixRadii.card),
         color = AerixSurface.panel,
         border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
@@ -422,6 +458,7 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
                     Text(
                         text = "Customize",
                         style = MaterialTheme.typography.titleSmall,
+                        letterSpacing = 0.5.sp,
                         fontWeight = FontWeight.Bold,
                         color = AerixSurface.textPrimary
                     )
@@ -452,7 +489,7 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(240.dp)
+                    .height(300.dp)
                     .padding(top = AerixSpacing.smCompact, start = AerixSpacing.sm, end = AerixSpacing.sm)
                     .clip(RoundedCornerShape(AerixRadii.control))
                     .pointerInput(actions) {
@@ -499,15 +536,48 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
                             }
                         )
                     },
+                    .pointerInput(account?.username) {
+                        awaitEachGesture {
+                            var lastPinch = 0f
+                            do {
+                                val event = awaitPointerEvent()
+                                val active = event.changes.filter { it.pressed }
+                                if (active.size >= 2) {
+                                    val distance = (active[0].position - active[1].position).getDistance()
+                                    if (lastPinch > 0f && distance > 0f) {
+                                        val factor = distance / lastPinch
+                                        if (abs(factor - 1f) > 0.004f) {
+                                            dollScale = (dollScale * factor).coerceIn(0.6f, 2.6f)
+                                            event.changes.forEach { change -> change.consume() }
+                                        }
+                                    }
+                                    lastPinch = distance
+                                } else {
+                                    lastPinch = 0f
+                                }
+                            } while (event.changes.any { it.pressed })
+                        }
+                    },
                 contentAlignment = Alignment.Center
             ) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = AerixSpacing.sm, end = AerixSpacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(AerixSpacing.xs)
+                ) {
+                    ZoomChip("+", "Zoom in") { dollScale = (dollScale * 1.2f).coerceAtMost(2.6f) }
+                    ZoomChip("\u2212", "Zoom out") { dollScale = (dollScale / 1.2f).coerceAtLeast(0.6f) }
+                    ZoomChip("\u21BB", "Reset zoom") { dollScale = 1.15f }
+                }
                 AerixSkinPreview3D(
                     account = account,
                     azimuth = dollAzimuth.roundToInt(),
                     interactionEnabled = false,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(bottom = AerixSpacing.mdPlus)
+                        .scale(dollScaleAnimated)
+                        .padding(bottom = AerixSpacing.smPlus)
                 )
                 Surface(
                     modifier = Modifier
@@ -534,9 +604,9 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
                     .padding(AerixSpacing.sm),
                 horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
             ) {
-                LoginPill("Microsoft", Modifier.weight(1f), actions.loginMicrosoft)
-                LoginPill("Ely.by", Modifier.weight(1f), actions.loginEly)
-                LoginPill("Offline", Modifier.weight(1f), actions.loginOffline)
+                LoginPill("Microsoft", Modifier.weight(1f), actions.loginMicrosoft, selected = account?.authType == AuthType.MICROSOFT)
+                LoginPill("Ely.by", Modifier.weight(1f), actions.loginEly, selected = account?.authType == AuthType.ELY_BY)
+                LoginPill("Offline", Modifier.weight(1f), actions.loginOffline, selected = account?.authType == AuthType.LOCAL)
             }
 
             // Reference-UI Change Skin button under the stage (opens the wardrobe in Accounts).
@@ -577,15 +647,46 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
 }
 
 @Composable
-private fun LoginPill(label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun ZoomChip(glyph: String, contentDescription: String, onClick: () -> Unit) {
+    val accent = AerixThemeManager.currentAccent()
+    Surface(
+        modifier = Modifier
+            .size(30.dp)
+            .apexPress(onClick = onClick),
+        shape = CircleShape,
+        color = AerixSurface.canvas.copy(alpha = 0.85f),
+        border = BorderStroke(AerixSpacing.hairline, accent.copy(alpha = 0.55f)),
+        contentColor = accent
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = glyph,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = accent
+            )
+        }
+    }
+}
+
+@Composable
+private fun LoginPill(
+    label: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    selected: Boolean = false
+) {
     val accent = AerixThemeManager.currentAccent()
     Surface(
         modifier = modifier
             .clip(RoundedCornerShape(AerixRadii.panel))
             .apexPress(onClick),
         shape = RoundedCornerShape(AerixRadii.panel),
-        color = accent.copy(alpha = 0.14f),
-        border = BorderStroke(AerixSpacing.hairline, accent.copy(alpha = 0.5f))
+        color = if (selected) accent.copy(alpha = 0.22f) else AerixSurface.panelRaised,
+        border = BorderStroke(
+            if (selected) 1.5.dp else AerixSpacing.hairline,
+            if (selected) accent.copy(alpha = 0.9f) else AerixSurface.borderSoft
+        )
     ) {
         Box(
             modifier = Modifier
@@ -597,7 +698,7 @@ private fun LoginPill(label: String, modifier: Modifier = Modifier, onClick: () 
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = accent,
+                color = if (selected) Color.White else AerixSurface.textPrimary,
                 maxLines = 1
             )
         }
@@ -783,6 +884,7 @@ private fun MiddlePlayBlock(selected: AerixInstance?, accent: Color, actions: Ho
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = AerixSpacing.smPlus)
+                .accentGlow(accent, active = true, enabled = ThemeMotion.rememberEnabled())
                 .clip(RoundedCornerShape(AerixRadii.panel))
                 .apexPress(if (selected != null) actions.play else actions.create)
                 .guideAnchor(AerixGuideState.PLAY)
