@@ -29,7 +29,7 @@ object ClientSettingsTransfer {
     fun importSettings(context: Context, text: String) {
         require(text.length <= 250_000) { "Settings file is too large" }
         val root = JSONObject(text)
-        require(root.optString("format") == "AerixClientSettings" && root.optInt("version") == 1) { "Not a supported Aerix settings file" }
+        require(root.optString("format") == "AerixClientSettings" && root.optInt("version") == 1) { "Not a supported Vortex settings file" }
         val client = root.getJSONObject("client")
         val values = mutableMapOf<String, Any>()
         val allKeys = client.keys().asSequence().toList()

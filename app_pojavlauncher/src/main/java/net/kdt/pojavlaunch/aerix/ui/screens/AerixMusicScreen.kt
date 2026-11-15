@@ -15,14 +15,28 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -39,11 +53,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.aerix.components.apexPress
 import net.kdt.pojavlaunch.aerix.theme.AerixRadii
 import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
@@ -174,34 +192,78 @@ object AerixMusicPlayer {
 
 /** Small pill control used by the transport row. */
 @Composable
-private fun MusicPillButton(label: String, accent: Color, onClick: () -> Unit) {
+private fun MusicTransportButton(
+    glyph: String,
+    accent: Color,
+    primary: Boolean = false,
+    onClick: () -> Unit
+) {
+    val d = if (primary) 52.dp else 42.dp
     Surface(
         modifier = Modifier
-            .clip(RoundedCornerShape(AerixRadii.control))
+            .size(d)
+            .clip(CircleShape)
             .apexPress(onClick = onClick),
-        shape = RoundedCornerShape(AerixRadii.control),
-        color = accent.copy(alpha = 0.16f),
-        border = BorderStroke(AerixSpacing.hairline, accent.copy(alpha = 0.7f))
+        shape = CircleShape,
+        color = if (primary) accent else accent.copy(alpha = 0.16f),
+        border = BorderStroke(AerixSpacing.hairline, accent.copy(alpha = if (primary) 1f else 0.7f)),
+        shadowElevation = if (primary) 4.dp else 0.dp
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.padding(horizontal = AerixSpacing.md, vertical = AerixSpacing.xs)
-        )
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = glyph,
+                fontSize = if (primary) 20.sp else 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
     }
+}
+
+@Composable
+private fun MusicEqBar(heightFraction: Float, accent: Color) {
+    Box(
+        modifier = Modifier
+            .width(4.dp)
+            .height((4f + 10f * heightFraction).dp)
+            .clip(RoundedCornerShape(2.dp))
+            .background(accent)
+    )
 }
 
 @Composable
 fun AerixMusicScreen() {
     val context = LocalContext.current
     val red = Color(0xFFDC2626)
+    val redDeep = Color(0xFFB01B2B)
     val addLauncher = rememberLauncherForActivityResult(OpenAudioDocument()) { uri ->
         if (uri != null) AerixMusicPlayer.addSong(context, uri)
     }
     LaunchedEffect(Unit) { AerixMusicPlayer.load(context) }
     val songs = AerixMusicPlayer.songs
+
+    val eqTransition = rememberInfiniteTransition(label = "musicEq")
+    val eq1 by eqTransition.animateFloat(
+        initialValue = 0.15f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(430, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "eq1"
+    )
+    val eq2 by eqTransition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(560, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "eq2"
+    )
+    val eq3 by eqTransition.animateFloat(
+        initialValue = 0.1f,
+        targetValue = 0.9f,
+        animationSpec = infiniteRepeatable(tween(340, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "eq3"
+    )
 
     Column(
         modifier = Modifier
@@ -210,85 +272,177 @@ fun AerixMusicScreen() {
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
     ) {
-        Text(
-            text = "Music",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = AerixSurface.textPrimary
-        )
-        Text(
-            text = "Pick songs and keep listening — playback continues while you play Minecraft.",
-            style = MaterialTheme.typography.labelMedium,
-            color = AerixSurface.textSecondary
-        )
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(AerixRadii.panel))
-                .apexPress(onClick = { addLauncher.launch(null) }),
-            shape = RoundedCornerShape(AerixRadii.panel),
-            color = red.copy(alpha = 0.16f),
-            border = BorderStroke(AerixSpacing.hairline, red.copy(alpha = 0.7f))
+        // Hero header: gradient icon tile + title/subtitle.
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
         ) {
             Box(
-                modifier = Modifier.padding(vertical = AerixSpacing.sm, horizontal = AerixSpacing.md),
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(RoundedCornerShape(AerixRadii.panel))
+                    .background(Brush.horizontalGradient(listOf(red, redDeep))),
                 contentAlignment = Alignment.Center
             ) {
+                Image(
+                    painter = painterResource(R.drawable.aerix_ic_music_note),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Column {
                 Text(
-                    text = "+ Add songs",
-                    style = MaterialTheme.typography.labelLarge,
+                    text = "Music",
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = AerixSurface.textPrimary
+                )
+                Text(
+                    text = "Pick songs and keep listening — playback continues while you play Minecraft.",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = AerixSurface.textSecondary
                 )
             }
         }
 
-        if (songs.isEmpty()) {
+        // Premium gradient add button.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(AerixRadii.panel))
+                .background(Brush.horizontalGradient(listOf(red, redDeep)))
+                .apexPress(onClick = { addLauncher.launch(null) })
+                .padding(vertical = AerixSpacing.smPlus, horizontal = AerixSpacing.md),
+            contentAlignment = Alignment.Center
+        ) {
             Text(
-                text = "No songs yet — tap \u201c+ Add songs\u201d.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = AerixSurface.textMuted
+                text = "+ Add songs",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                letterSpacing = 0.6.sp
             )
-        } else {
-            val currentTitle = songs.getOrNull(AerixMusicPlayer.currentIndex)?.title
+        }
+
+        if (songs.isEmpty()) {
             Surface(
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(AerixRadii.panel),
                 color = AerixSurface.panel,
-                border = BorderStroke(AerixSpacing.hairline, red.copy(alpha = 0.7f))
+                border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(AerixSpacing.smPlus),
+                        .padding(vertical = AerixSpacing.md, horizontal = AerixSpacing.md),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(AerixSpacing.xs)
                 ) {
-                    Text(
-                        text = "NOW PLAYING",
-                        fontSize = 9.sp,
-                        letterSpacing = 1.4.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = red
+                    Image(
+                        painter = painterResource(R.drawable.aerix_ic_music_note),
+                        contentDescription = null,
+                        tint = AerixSurface.textMuted,
+                        modifier = Modifier.size(28.dp)
                     )
                     Text(
+                        text = "No songs yet — tap \u201c+ Add songs\u201d.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = AerixSurface.textMuted
+                    )
+                }
+            }
+        } else {
+            val currentTitle = songs.getOrNull(AerixMusicPlayer.currentIndex)?.title
+            val playing = AerixMusicPlayer.isPlaying
+
+            // Now Playing hero card: red gradient, live equalizer, circular transport.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(AerixRadii.panel))
+                    .background(Brush.horizontalGradient(listOf(Color(0x40DC2626), Color(0x2D152536))))
+                    .border(
+                        AerixSpacing.hairline,
+                        Brush.horizontalGradient(listOf(Color(0xE0DC2626), Color(0x73DC2626))),
+                        RoundedCornerShape(AerixRadii.panel)
+                    )
+                    .padding(AerixSpacing.smPlus)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.xs)
+                    ) {
+                        if (playing) {
+                            Box(
+                                modifier = Modifier
+                                    .size(7.dp)
+                                    .clip(CircleShape)
+                                    .background(red)
+                            )
+                        }
+                        Text(
+                            text = "NOW PLAYING",
+                            fontSize = 9.sp,
+                            letterSpacing = 1.4.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = red
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        if (playing) {
+                            Row(
+                                modifier = Modifier.height(14.dp),
+                                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                MusicEqBar(eq1, red)
+                                MusicEqBar(eq2, red)
+                                MusicEqBar(eq3, red)
+                            }
+                        }
+                    }
+                    Text(
                         text = currentTitle ?: "Nothing yet",
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = AerixSurface.textPrimary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm),
+                        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.md),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        MusicPillButton("Prev", red) { AerixMusicPlayer.prev(context) }
-                        MusicPillButton(if (AerixMusicPlayer.isPlaying) "Pause" else "Play", red) {
+                        MusicTransportButton("\u23EE", red) { AerixMusicPlayer.prev(context) }
+                        MusicTransportButton(if (playing) "\u23F8" else "\u25B6", red, primary = true) {
                             AerixMusicPlayer.toggle()
                         }
-                        MusicPillButton("Next", red) { AerixMusicPlayer.next(context) }
+                        MusicTransportButton("\u23ED", red) { AerixMusicPlayer.next(context) }
                     }
                 }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "LIBRARY",
+                    fontSize = 9.sp,
+                    letterSpacing = 1.4.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = red
+                )
+                Text(
+                    text = "${songs.size} songs",
+                    fontSize = 10.sp,
+                    color = AerixSurface.textMuted
+                )
             }
 
             songs.forEachIndexed { index, song ->
@@ -299,10 +453,11 @@ fun AerixMusicScreen() {
                         .clip(RoundedCornerShape(AerixRadii.control))
                         .apexPress(onClick = { AerixMusicPlayer.playAt(context, index) }),
                     shape = RoundedCornerShape(AerixRadii.control),
-                    color = if (active) red.copy(alpha = 0.14f) else Color.Transparent,
+                    color = if (active) Color(0x22DC2626) else AerixSurface.panel,
                     border = BorderStroke(
                         AerixSpacing.hairline,
-                        if (active) red.copy(alpha = 0.7f) else AerixSurface.borderSoft
+                        if (active) Brush.horizontalGradient(listOf(Color(0xE0DC2626), Color(0x73DC2626)))
+                        else AerixSurface.borderSoft
                     )
                 ) {
                     Row(
@@ -313,26 +468,45 @@ fun AerixMusicScreen() {
                         horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "${index + 1}",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (active) red else AerixSurface.textMuted
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(26.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (active) red else AerixSurface.panelRaised),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "${index + 1}",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (active) Color.White else AerixSurface.textMuted
+                            )
+                        }
                         Text(
                             text = song.title,
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
-                            color = AerixSurface.textPrimary,
+                            color = if (active) Color.White else AerixSurface.textPrimary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f)
                         )
-                        Text(
-                            text = if (active && AerixMusicPlayer.isPlaying) "playing" else "",
-                            fontSize = 10.sp,
-                            color = red
-                        )
+                        if (active && playing) {
+                            Row(
+                                modifier = Modifier.height(12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                MusicEqBar(eq1, red)
+                                MusicEqBar(eq2, red)
+                            }
+                        } else {
+                            Text(
+                                text = if (active) "paused" else "",
+                                fontSize = 10.sp,
+                                color = red
+                            )
+                        }
                     }
                 }
             }

@@ -177,8 +177,7 @@ private val settingTabItems = listOf(
     SettingTabItem(AerixNav.TAB_LAUNCHER, R.drawable.aerix_ic_setting_launcher, "Launcher"),
     SettingTabItem(AerixNav.TAB_CONTROLS, R.drawable.aerix_ic_videogame_asset_outlined, "Controls"),
     SettingTabItem(AerixNav.TAB_CONTROL_MANAGER, R.drawable.aerix_ic_dashboard_outlined, "Layouts"),
-    SettingTabItem(AerixNav.TAB_GAMEPAD, R.drawable.aerix_ic_sports_esports_outlined, "Gamepad"),
-    SettingTabItem(AerixNav.TAB_ABOUT, R.drawable.aerix_ic_info_outlined, "About")
+    SettingTabItem(AerixNav.TAB_GAMEPAD, R.drawable.aerix_ic_sports_esports_outlined, "Gamepad")
 )
 
 private data class RendererStackOption(
@@ -2040,7 +2039,7 @@ private fun AboutInfoTabContent(activity: FragmentActivity) {
                         iconRes = R.drawable.aerix_img_avatar_entitybrian,
                         iconTint = Color.Unspecified,
                         title = "entitybrian",
-                        subtitle = "Owner and maintainer of Aerix Launcher.",
+                        subtitle = "Owner and maintainer of Vortex Launcher.",
                         actions = {
                             AboutPillButton("GitHub profile", accent) {
                                 PojavNavigator.openUrl(activity, "https://github.com/entitybrian69-bit")

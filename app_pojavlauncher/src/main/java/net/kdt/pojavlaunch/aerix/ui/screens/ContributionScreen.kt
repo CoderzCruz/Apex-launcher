@@ -1,5 +1,5 @@
 /*
- * Aerix Launcher UI layer for PojavLauncher.
+ * Vortex Launcher UI layer for PojavLauncher.
  * The Contribution page: everyone behind the launcher, and a page for each of them.
  *
  * Layout follows the sketch supplied with the request: the owner sits centred on top, the two
@@ -92,7 +92,7 @@ object AerixContribution {
             roleColor = ownerRed,
             logoRes = R.drawable.aerix_contrib_owner,
             duties = listOf(
-                "Writes the launcher: the Aerix shell, its settings and its launcher screens.",
+                "Writes the launcher: the Vortex shell, its settings and its launcher screens.",
                 "Programs the renderer backends and the plugin support that loads them.",
                 "Builds, signs and ships every release.",
                 "Answers the bug reports and fixes what they turn up."
@@ -142,7 +142,7 @@ object AerixContribution {
 fun ContributionScreen(onOpen: (ContributionMember) -> Unit) {
     AerixPage(
         title = "Contribution",
-        subtitle = "The people who build and run Aerix Launcher"
+        subtitle = "The people who build and run Vortex Launcher"
     ) {
         Column(
             modifier = Modifier
@@ -352,7 +352,7 @@ fun ContributionDetailScreen(member: ContributionMember, onBack: () -> Unit) {
                     fontWeight = FontWeight.Black
                 )
                 Text(
-                    text = "What they do in Aerix Launcher",
+                    text = "What they do in Vortex Launcher",
                     color = AerixSurface.textSecondary,
                     fontSize = 11.sp
                 )

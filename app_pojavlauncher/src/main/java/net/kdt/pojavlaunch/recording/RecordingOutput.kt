@@ -40,9 +40,9 @@ internal class RecordingOutput(private val context: Context) {
                 ContentValues().apply {
                     put(MediaStore.Video.Media.DISPLAY_NAME, name)
                     put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-                    put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/Aerix")
+                    put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/Vortex")
                     put(MediaStore.Video.Media.IS_PENDING, 1)
-                })) { "Cannot create recording in Movies/Aerix" }
+                })) { "Cannot create recording in Movies/Vortex" }
             check(recovery.edit().putString("pending_uri", uri.toString()).commit()) { "Cannot track pending recording" }
             descriptor = requireNotNull(context.contentResolver.openFileDescriptor(uri!!, "rw"))
             return MediaMuxer(descriptor!!.fileDescriptor, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
@@ -67,7 +67,7 @@ internal class RecordingOutput(private val context: Context) {
                 put(MediaStore.Video.Media.IS_PENDING, 0)
             }, null, null) > 0) { "Cannot publish recording" }
             recovery.edit().remove("pending_uri").commit()
-            return "Movies/Aerix/$name"
+            return "Movies/Vortex/$name"
         }
         val path = requireNotNull(file).absolutePath
         MediaScannerConnection.scanFile(context, arrayOf(path), arrayOf("video/mp4"), null)

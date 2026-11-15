@@ -86,7 +86,7 @@ object SocialNotificationHelper {
             "Socials Background Listener",
             NotificationManager.IMPORTANCE_MIN
         ).apply {
-            description = "Keeps Aerix Socials connected for instant message alerts while closed"
+            description = "Keeps Vortex Socials connected for instant message alerts while closed"
             setSound(null, null)
             enableVibration(false)
             setShowBadge(false)

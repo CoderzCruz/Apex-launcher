@@ -751,8 +751,8 @@ private fun ProfileCosmeticsPage(activity: FragmentActivity, onBack: () -> Unit)
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Cape", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AerixSurface.textPrimary)
                 Text(
-                    if (selectedClient) "Aerix Client uses the selected Client cape below. An imported cape is used by other instances."
-                    else "Import a cape for this account, or choose an Aerix Client cape below.",
+                    if (selectedClient) "Vortex Client uses the selected Client cape below. An imported cape is used by other instances."
+                    else "Import a cape for this account, or choose a Vortex Client cape below.",
                     fontSize = 11.sp, color = AerixSurface.textSecondary
                 )
                 SocialButton("Import cape PNG", filled = false) {
@@ -760,7 +760,7 @@ private fun ProfileCosmeticsPage(activity: FragmentActivity, onBack: () -> Unit)
                     runCatching { capePicker.launch(arrayOf("image/png")) }
                         .onFailure { capeTarget = null; Toast.makeText(activity, "Unable to open file picker", Toast.LENGTH_SHORT).show() }
                 }
-                Text("Aerix Client capes", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AerixSurface.textPrimary)
+                Text("Vortex Client capes", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AerixSurface.textPrimary)
                 AerixClientCosmetics.capes.chunked(2).forEach { row ->
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         row.forEach { cape ->

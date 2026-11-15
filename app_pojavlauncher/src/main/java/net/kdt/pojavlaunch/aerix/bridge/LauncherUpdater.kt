@@ -338,6 +338,6 @@ internal object LauncherUpdater {
         if (!awaitingPermission) return
         awaitingPermission = false
         if (Build.VERSION.SDK_INT < 26 || context.packageManager.canRequestPackageInstalls()) install(context)
-        else error = "Allow Aerix to install app updates, then tap Install again."
+        else error = "Allow Vortex to install app updates, then tap Install again."
     }
 }

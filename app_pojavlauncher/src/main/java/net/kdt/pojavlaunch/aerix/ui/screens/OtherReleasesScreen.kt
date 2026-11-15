@@ -131,7 +131,7 @@ private fun TeamReleaseCard(activity: FragmentActivity, project: TeamRelease, na
                 if (opening) { CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp); Spacer(Modifier.width(12.dp)) }
                 Text(if (opening) "Opening CurseForge project…" else "View & download in Discover")
             }
-            Text("Opens this exact project in Aerix's CurseForge detail page. Review live files and choose your Minecraft instance before installing.",
+            Text("Opens this exact project in Vortex's CurseForge detail page. Review live files and choose your Minecraft instance before installing.",
                 style = MaterialTheme.typography.bodyMedium, color = AerixSurface.textSecondary)
         }
     }

@@ -85,3 +85,23 @@ assert 'KEY_VORTEX_TRANSPARENT_DONE = "vortexTransparentDone"' in prefs_src, "on
 assert "selectedWallpaper = DEFAULT_WALLPAPER" in prefs_src, "wallpaper comes back after the black era"
 
 print("Vortex rename, client removal and Rules page passed")
+
+# ── Settings About tab removed; user-facing copy fully rebranded ────────
+settings = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.kt").read_text()
+assert "SettingTabItem(AerixNav.TAB_ABOUT" not in settings, "Settings About tab removed"
+for rel, banned in [
+    ("java/net/kdt/pojavlaunch/recording/RecordingOutput.kt", "Movies/Aerix"),
+    ("java/net/kdt/pojavlaunch/recording/RecorderController.kt", "Movies/Aerix"),
+    ("java/net/kdt/pojavlaunch/aerix/ui/screens/FirstRunNotificationPopup.kt", "Aerix Launcher notifies"),
+    ("java/net/kdt/pojavlaunch/aerix/ui/screens/ContributionScreen.kt", "Aerix Launcher"),
+    ("java/net/kdt/pojavlaunch/aerix/bridge/PojavInstanceBridge.kt", "Exported by Aerix Launcher"),
+    ("java/net/kdt/pojavlaunch/aerix/ui/screens/SocialProfileScreen.kt", "Aerix Client capes"),
+    ("java/net/kdt/pojavlaunch/aerix/client/AerixClientInputBridge.kt", "Aerix Client \u00b7"),
+    ("java/net/kdt/pojavlaunch/aerix/client/AerixClientOverlayView.kt", "Enable Aerix gyroscope"),
+    ("java/net/kdt/pojavlaunch/aerix/ui/screens/LauncherUpdateDialog.kt", "A new Aerix is ready"),
+    ("java/net/kdt/pojavlaunch/aerix/client/AerixClientPackGenerator.kt", "Powered by Aerix Launcher"),
+    ("java/net/kdt/pojavlaunch/aerix/client/AerixClientStore.kt", 'CLIENT_INSTANCE_NAME = "Aerix Client'),
+    ("java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.kt", "maintainer of Aerix Launcher"),
+]:
+    body = (APP / rel).read_text()
+    assert banned not in body, f"{rel} still contains {banned!r}"
