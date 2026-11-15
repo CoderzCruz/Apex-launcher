@@ -27,4 +27,10 @@ assert 'clearAndDetach(app, onlyIfExited = true)' in stopped, "real exit still c
 assert 'if (handoffToGameInProgress) return' in stopped
 assert 'onAppSwipedFromRecents' in src, "recents swipe still clears"
 assert 'onProcessExiting' in src, "process exit still clears"
+
+# Minecraft game profile in-game: catalog first, retried every session.
+prefs2 = (root / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/bridge/AerixPreferences.kt").read_text()
+assert "discordGameProfileMode = p.getBoolean(KEY_DISCORD_GAME_PROFILE_MODE, true)" in prefs2, "game profile on by default"
+assert "MINECRAFT_PRIMARY_APP_ID" in src, "Minecraft catalog id"
+assert src.count("rejectedAppIds.clear()") >= 2, "catalog retried each game session"
 print('Discord presence logo wiring passed')

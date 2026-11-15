@@ -79,6 +79,7 @@ import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
 import net.kdt.pojavlaunch.aerix.theme.AerixSurface
 import net.kdt.pojavlaunch.aerix.theme.AerixThemeManager
 import net.kdt.pojavlaunch.aerix.ui.screens.AboutScreen
+import net.kdt.pojavlaunch.aerix.ui.screens.AerixMusicScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AccountsScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AddAccountScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AiScreen
@@ -206,6 +207,7 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
                             LauncherSection.FILES -> FileManagerScreen(activity)
                             LauncherSection.LOGS -> LogScreen(activity)
                             LauncherSection.WALLPAPERS -> WallpapersScreen()
+                            LauncherSection.MUSIC -> AerixMusicScreen()
                             LauncherSection.SETTINGS -> SettingsScreen(
                                 activity = activity,
                                 tabKey = AerixNav.settingsTab,

@@ -92,6 +92,8 @@ enum class LauncherSection {
     CONTENT,
     FILES,
     WALLPAPERS,
+    /** Music player — songs keep playing while you play Minecraft. */
+    MUSIC,
     LOGS,
     SETTINGS,
     /** The team page, between Settings and the account entry. */
@@ -219,6 +221,10 @@ fun AerixNavigationRail(
                     wallpapersSelected(selectedSection), activeAccent, expandedRail, compactRail,
                     onClick = { onNavigate(LauncherSection.WALLPAPERS) }, guideKey = AerixGuideState.WALLPAPERS)
 
+                RailIconItem(R.drawable.aerix_ic_music_note, "Music",
+                    selectedSection == LauncherSection.MUSIC, activeAccent, expandedRail, compactRail,
+                    onClick = { onNavigate(LauncherSection.MUSIC) })
+
                 HorizontalDivider(modifier = Modifier.width(28.dp).padding(vertical = AerixSpacing.xxs), color = AerixSurface.borderSoft)
 
                 RailIconItem(R.drawable.aerix_ic_settings_filled, stringResource(R.string.aerix_nav_settings),
@@ -277,9 +283,9 @@ private fun RailIconItem(
     // With the animated theme on, the selected item's accent breathes and carries a glow. Off, it
     // is the identical flat accent as before - and no animation is started for unselected items.
     val motionOn = ThemeMotion.rememberEnabled()
-    val liveAccent = ThemeMotion.rememberPulse(accentColor, selected, motionOn)
+    val selectedRed = Color(0xFFDC2626)
     val containerColor by animateColorAsState(
-        targetValue = if (selected) liveAccent else AerixSurface.panel,
+        targetValue = if (selected) selectedRed else AerixSurface.panel,
         animationSpec = tween(140),
         label = "railContainerColor"
     )
@@ -305,9 +311,9 @@ private fun RailIconItem(
             .size(width = itemWidth, height = itemHeight)
             .clip(itemShape)
             .background(containerColor)
-            .accentGlow(liveAccent, selected, motionOn)
-            .accentRing(liveAccent, itemShape, selected, motionOn, AerixSpacing.hairline)
-            .border(BorderStroke(AerixSpacing.hairline, if (selected) liveAccent else AerixSurface.borderSoft), itemShape)
+            .accentGlow(selectedRed, selected, motionOn)
+            .accentRing(selectedRed, itemShape, selected, motionOn, AerixSpacing.hairline)
+            .border(BorderStroke(AerixSpacing.hairline, if (selected) selectedRed else AerixSurface.borderSoft), itemShape)
             .clickable(role = Role.Tab, onClick = onClick)
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center

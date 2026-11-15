@@ -317,7 +317,7 @@ private fun CompactHomeDashboard(
             }
         }
         // Phone Home v2: the rotatable skin stage with the account pill and login quick row.
-        item { PhoneSkinStage(accent, actions) }
+        item { PhoneSkinStage(accent, actions, selected) }
         // The instance selector and the centred PLAY button — the launcher's main action.
         item { MiddlePlayBlock(selected, accent, actions) }
         // The five options: Modpacks, Mods, Settings, Contribution, Add Version.
@@ -384,7 +384,7 @@ private fun HeaderChip(label: String, icon: Int, modifier: Modifier = Modifier, 
  * Tapping the stage opens Accounts; dragging spins the model.
  */
 @Composable
-private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
+private fun PhoneSkinStage(accent: Color, actions: HomeActions, selected: AerixInstance?) {
     val account = PojavAccountBridge.current
     var dollAzimuth by remember(account?.username) { mutableFloatStateOf(28f) }
     val flingScope = rememberCoroutineScope()
@@ -438,7 +438,7 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(240.dp)
+                    .height(280.dp)
                     .padding(top = AerixSpacing.smCompact, start = AerixSpacing.sm, end = AerixSpacing.sm)
                     .clip(RoundedCornerShape(AerixRadii.control))
                     .pointerInput(actions) {
@@ -509,6 +509,75 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
                         maxLines = 1,
                         modifier = Modifier.padding(horizontal = AerixSpacing.smPlus, vertical = AerixSpacing.tiny)
                     )
+                }
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = AerixSpacing.md, bottom = AerixSpacing.xs),
+                    verticalArrangement = Arrangement.spacedBy(AerixSpacing.xxs),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Reference-UI section label above the launch cluster.
+                    Text(
+                        text = "QUICK ACTIONS",
+                        style = MaterialTheme.typography.labelSmall,
+                        letterSpacing = 1.2.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AerixSurface.textMuted
+                    )
+                    Surface(
+                        modifier = Modifier
+                            .width(152.dp)
+                            .clip(RoundedCornerShape(AerixRadii.panel))
+                            .apexPress(if (selected != null) actions.play else actions.create)
+                            .guideAnchor(AerixGuideState.PLAY)
+                            .height(52.dp),
+                        shape = RoundedCornerShape(AerixRadii.panel),
+                        color = Color.Transparent,
+                        contentColor = Color.White,
+                        border = BorderStroke(AerixSpacing.hairline, Color.White.copy(alpha = 0.30f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.verticalGradient(listOf(Color(0xFFB92736), Color(0xFF7C101B))),
+                                    RoundedCornerShape(AerixRadii.panel)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = AerixSpacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = "LAUNCH",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color.White
+                                    )
+                                    Text(
+                                        text = "START YOUR ADVENTURE",
+                                        fontSize = 8.sp,
+                                        letterSpacing = 1.1.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White.copy(alpha = 0.80f)
+                                    )
+                                }
+                                Icon(
+                                    painter = painterResource(R.drawable.aerix_ic_chevron_right),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             }
             Row(
@@ -750,71 +819,6 @@ private fun MiddlePlayBlock(selected: AerixInstance?, accent: Color, actions: Ho
             }
         }
 
-        // Reference-UI section label above the launch cluster.
-        Text(
-            text = "QUICK ACTIONS",
-            style = MaterialTheme.typography.labelSmall,
-            letterSpacing = 1.2.sp,
-            fontWeight = FontWeight.Bold,
-            color = AerixSurface.textMuted,
-            modifier = Modifier.padding(horizontal = AerixSpacing.smPlus)
-        )
-
-        // The reference launcher's LAUNCH button, merged in: gradient red face, adventure
-        // sub-line and a chevron — press effect and tour anchor kept.
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = AerixSpacing.smPlus)
-                .clip(RoundedCornerShape(AerixRadii.panel))
-                .apexPress(if (selected != null) actions.play else actions.create)
-                .guideAnchor(AerixGuideState.PLAY)
-                .height(52.dp),
-            shape = RoundedCornerShape(AerixRadii.panel),
-            color = Color.Transparent,
-            contentColor = Color.White
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(listOf(accent, accent.copy(alpha = 0.82f))),
-                        RoundedCornerShape(AerixRadii.panel)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = AerixSpacing.lg),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "LAUNCH",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White
-                        )
-                        Text(
-                            text = "START YOUR ADVENTURE",
-                            fontSize = 8.sp,
-                            letterSpacing = 1.1.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.80f)
-                        )
-                    }
-                    Icon(
-                        painter = painterResource(R.drawable.aerix_ic_chevron_right),
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-        }
     }
 }
 

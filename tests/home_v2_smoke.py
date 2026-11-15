@@ -16,7 +16,7 @@ home = HOME.read_text()
 
 # ── The compact dashboard orders the v2 sections ──────────────────────────
 compact = home[home.index("private fun CompactHomeDashboard"):home.index("private fun HomeHeaderRow")]
-for section in ("HomeHeaderRow(actions)", "PhoneSkinStage(accent, actions)",
+for section in ("HomeHeaderRow(actions)", "PhoneSkinStage(accent, actions, selected)",
                 "MiddlePlayBlock(selected, accent, actions)", "OptionsGrid(accent, actions)"):
     assert section in compact, section
 # Replaced pieces are gone from the phone dashboard.
@@ -40,11 +40,14 @@ for label, action in (("Microsoft", "actions.loginMicrosoft"),
 
 # ── Middle PLAY + selector, tour anchor intact ────────────────────────────
 play = home[home.index("private fun MiddlePlayBlock"):home.index("private fun OptionsGrid")]
-assert '"LAUNCH"' in play
-assert '"START YOUR ADVENTURE"' in play, "reference sub-line merged in"
-assert "Brush.verticalGradient(listOf(accent" in play, "gradient red face"
-assert "guideAnchor(AerixGuideState.PLAY)" in play
-assert '"YOUR VERSION"' in play, "reference version label"
+assert '"LAUNCH"' not in play, "LAUNCH moved into the skin stage"
+assert '"LAUNCH"' in home
+assert '"START YOUR ADVENTURE"' in home, "sub-line moved with the button"
+assert "Brush.verticalGradient(listOf(Color(0xFFB92736)" in home, "dark-red LAUNCH face"
+assert "Brush.verticalGradient(listOf(accent" not in home, "old accent LAUNCH gradient gone"
+assert "guideAnchor(AerixGuideState.PLAY)" in home, "tour anchor followed the button"
+assert '"QUICK ACTIONS"' in home, "label moved with the cluster"
+assert '"YOUR VERSION"' in play, "version label stays in the play block"
 assert "accountTypeLabel(account.authType)" in play, "profile strip"
 assert '"Offline Account"' in home and '"Ely.by Account"' in home
 assert "showInstanceMenu" in play
@@ -79,9 +82,25 @@ for label in ('"Execute"', '"Control Layouts"', '"Downloads"'):
 assert "onClick = onRunJar" in rail and "onClick = onControls" in rail
 launcher = (APP / "java/net/kdt/pojavlaunch/aerix/ui/AerixLauncherScreen.kt").read_text()
 assert "onRunJar = {" in launcher and "onControls = {" in launcher, "rail actions wired"
-assert "item { PhoneSkinStage(accent, actions) }" in compact, "stage now leads the dashboard"
+assert "item { PhoneSkinStage(accent, actions, selected) }" in compact, "stage now leads the dashboard"
 assert '"Customize"' in home and '"your skin"' in home and '"PREVIEW"' in home, "stage header"
 assert '"Change Skin"' in home and "actions.accounts()" in home, "change-skin button"
 assert '"QUICK ACTIONS"' in home, "reference section label"
+
+
+# ── Music player, smooth swap, red-open icon, deeper transparency, bigger stage ──
+music = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/AerixMusicScreen.kt").read_text()
+assert "object AerixMusicPlayer" in music and "fun AerixMusicScreen" in music, "music screen ships"
+assert "MediaPlayer" in music and "playAt" in music, "real playback, not a stub"
+assert '"Music"' in rail and "aerix_ic_music_note" in rail, "rail music entry"
+assert "LauncherSection.MUSIC -> AerixMusicScreen()" in launcher, "section routed"
+assert (ROOT / "app_pojavlauncher/src/main/res/drawable/aerix_ic_music_note.xml").exists(), "music icon asset"
+assert "selectedRed = Color(0xFFDC2626)" in rail, "opened section icon turns red"
+assert ".height(280.dp)" in home, "bigger skin stage"
+prefs2 = (APP / "java/net/kdt/pojavlaunch/aerix/bridge/AerixPreferences.kt").read_text()
+assert "AerixTransitionType.SLICE_IN.name" in prefs2, "smooth default section swap"
+surface2 = (APP / "java/net/kdt/pojavlaunch/aerix/theme/AerixSurface.kt").read_text()
+assert "val panel = Color(0x2E172B3A)" in surface2, "deeper transparent panels"
+assert "0x78FF4D5E" in surface2 and "0x48FF4D5E" in surface2, "red outlines"
 
 print("Home v2: stage, login row, middle PLAY, five options, header and press effects passed")

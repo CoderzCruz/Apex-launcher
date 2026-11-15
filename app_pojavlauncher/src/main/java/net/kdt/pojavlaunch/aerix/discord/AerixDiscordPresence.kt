@@ -651,6 +651,7 @@ object AerixDiscordPresence {
         if (prevDisk.owner != "game" || prevDisk.startedAt != gameStartedAt) return
         invalidatePendingClear()
         cancelClearAlarm(app)
+        rejectedAppIds.clear()
         inGameMode = true
         activeModpackIconUrl = modpackIconUrl?.takeIf { it.isNotBlank() } ?: prevDisk?.modpackIconUrl
         details = "Playing Minecraft${if (minecraftVersion.isNullOrBlank()) "" else " $minecraftVersion"}"
@@ -883,6 +884,7 @@ object AerixDiscordPresence {
     /** A game is starting or running: the instance takes over the card. */
     fun playing(instance: String?, minecraftVersion: String?, modpackIconUrl: String? = null) {
         clearOnlyMode = false
+        rejectedAppIds.clear()
         inGameMode = true
         activeModpackIconUrl = modpackIconUrl?.takeIf { it.isNotBlank() }
         details = "Playing Minecraft${if (minecraftVersion.isNullOrBlank()) "" else " $minecraftVersion"}"

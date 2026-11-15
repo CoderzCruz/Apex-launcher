@@ -52,7 +52,7 @@ assert struct.unpack(">II", data[16:24]) == (2170, 725)
 # ── No "(Debug)" in the label, panels are transparent glass, mark == golden V ──
 assert "Vortex Launcher v1 (Debug)" not in gradle, "debug label has no suffix"
 surface = (APP / "java/net/kdt/pojavlaunch/aerix/theme/AerixSurface.kt").read_text()
-assert "val panel = Color(0x4F172B3A)" in surface, "translucent panel (owner ordered transparent)"
+assert "val panel = Color(0x2E172B3A)" in surface, "translucent panel (owner ordered transparent)"
 # All-black shell: the default wallpaper is dropped once, chip still available.
 
 assert "val panel = Color(0xFF000000)" not in surface, "black panel reverted"

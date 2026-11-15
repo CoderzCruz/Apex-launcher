@@ -223,7 +223,7 @@ object AerixPreferences {
         lastSection = p.getString(KEY_LAST_SECTION, "HOME") ?: "HOME"
         backgroundBlur = p.getInt(KEY_BACKGROUND_BLUR, 0).coerceIn(0, 20)
         swapAnimateType = runCatching {
-            AerixTransitionType.valueOf(p.getString(KEY_SWAP_ANIMATE_TYPE, AerixTransitionType.JELLY_BOUNCE.name)!!)
+            AerixTransitionType.valueOf(p.getString(KEY_SWAP_ANIMATE_TYPE, AerixTransitionType.SLICE_IN.name)!!)
         }.getOrDefault(AerixTransitionType.JELLY_BOUNCE)
         animateExtent = p.getInt(KEY_ANIMATE_EXTENT, 3).coerceIn(0, 10)
         festivalEffects = p.getBoolean(KEY_FESTIVAL_EFFECTS, false)
