@@ -33,7 +33,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.animation.core.animateColorAsState
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -127,6 +127,7 @@ import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
 import net.kdt.pojavlaunch.aerix.theme.AerixSurface
 import net.kdt.pojavlaunch.aerix.theme.AerixThemeManager
 import net.kdt.pojavlaunch.aerix.theme.ThemeMotion
+import net.kdt.pojavlaunch.aerix.theme.accentGlow
 import net.kdt.pojavlaunch.aerix.ui.AerixNav
 import net.kdt.pojavlaunch.aerix.ui.LauncherSection
 import net.kdt.pojavlaunch.contracts.OpenDocumentWithExtension
@@ -535,12 +536,14 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
                                 dollAzimuth = (dollAzimuth + dragAmount * DOLL_DRAG_DEG_PER_PX).mod(360f)
                             }
                         )
-                    },
+                    }
                     .pointerInput(account?.username) {
                         awaitEachGesture {
                             var lastPinch = 0f
-                            do {
+                            var pressed = true
+                            while (pressed) {
                                 val event = awaitPointerEvent()
+                                pressed = event.changes.any { it.pressed }
                                 val active = event.changes.filter { it.pressed }
                                 if (active.size >= 2) {
                                     val distance = (active[0].position - active[1].position).getDistance()
@@ -555,7 +558,7 @@ private fun PhoneSkinStage(accent: Color, actions: HomeActions) {
                                 } else {
                                     lastPinch = 0f
                                 }
-                            } while (event.changes.any { it.pressed })
+                            }
                         }
                     },
                 contentAlignment = Alignment.Center
