@@ -70,22 +70,16 @@ assert "Spring.DampingRatioMediumBouncy" in comp
 assert ".apexPress(onClick)" in comp, "QuickActionTile presses with motion"
 assert home.count(".apexPress(") >= 3, "home actions carry the press effect"
 
-# ── Reference-UI merge: labeled menu, stage header, Change Skin, QUICK ACTIONS ──
-menu = home[home.index("private fun ReferenceMenuCard"):home.index("private fun ReferenceMenuRow")]
-for label, sub, action in (
-    ('"Home"', '"Dashboard"', None),
-    ('"Install"', '"Install new version"', "actions.explore"),
-    ('"Execute"', '"Run jar file"', "actions.runJar"),
-    ('"Control Layouts"', '"Edit your controls"', "actions.controls"),
-    ('"Downloads"', '"View your files"', "actions.fileManager"),
-):
-    assert label in menu and sub in menu, label
-    if action:
-        assert action in menu, action
-assert "item { ReferenceMenuCard(accent, actions) }" in compact, "menu card leads the dashboard"
-menu_at = compact.index("ReferenceMenuCard")
-stage_at = compact.index("PhoneSkinStage")
-assert menu_at < stage_at, "menu before the skin stage"
+# ── Menu card removed: the rail carries Execute / Controls / Downloads instead ──
+assert "ReferenceMenuCard" not in home, "dashboard menu card is gone"
+assert "item { ReferenceMenuCard" not in compact, "no menu item leads the dashboard"
+rail = (APP / "java/net/kdt/pojavlaunch/aerix/ui/AerixNavigationRail.kt").read_text()
+for label in ('"Execute"', '"Control Layouts"', '"Downloads"'):
+    assert label in rail, label
+assert "onClick = onRunJar" in rail and "onClick = onControls" in rail
+launcher = (APP / "java/net/kdt/pojavlaunch/aerix/ui/AerixLauncherScreen.kt").read_text()
+assert "onRunJar = {" in launcher and "onControls = {" in launcher, "rail actions wired"
+assert "item { PhoneSkinStage(accent, actions) }" in compact, "stage now leads the dashboard"
 assert '"Customize"' in home and '"your skin"' in home and '"PREVIEW"' in home, "stage header"
 assert '"Change Skin"' in home and "actions.accounts()" in home, "change-skin button"
 assert '"QUICK ACTIONS"' in home, "reference section label"

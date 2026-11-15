@@ -118,6 +118,8 @@ fun AerixNavigationRail(
     selectedSection: LauncherSection,
     onNavigate: (LauncherSection) -> Unit,
     onCreateInstance: () -> Unit,
+    onRunJar: () -> Unit,
+    onControls: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val account = PojavAccountBridge.current
@@ -198,10 +200,19 @@ fun AerixNavigationRail(
                 RailIconItem(R.drawable.aerix_ic_dashboard_filled, stringResource(R.string.aerix_nav_library),
                     librarySelected(selectedSection), activeAccent, expandedRail, compactRail,
                     onClick = { onNavigate(LauncherSection.LIBRARY) }, guideKey = AerixGuideState.LIBRARY)
+                RailIconItem(R.drawable.aerix_ic_java, "Execute",
+                    false, activeAccent, expandedRail, compactRail,
+                    onClick = onRunJar)
+                RailIconItem(R.drawable.aerix_ic_touch_app_outlined, "Control Layouts",
+                    false, activeAccent, expandedRail, compactRail,
+                    onClick = onControls)
                 // Socials is not a rail entry: it opens from the Home dashboard and brings its own
                 // sidebar, so it is not listed next to the launcher's own sections.
                 RailIconItem(R.drawable.aerix_ic_public, stringResource(R.string.aerix_nav_discover),
                     discoverSelected(selectedSection), activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.DISCOVER) }
+                RailIconItem(R.drawable.aerix_ic_folder_outlined, "Downloads",
+                    selectedSection == LauncherSection.FILES, activeAccent, expandedRail, compactRail,
+                    onClick = { onNavigate(LauncherSection.FILES) })
                 RailIconItem(R.drawable.aerix_ic_rocket_launch_filled, "Our other new releases",
                     selectedSection == LauncherSection.OTHER_RELEASES, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.OTHER_RELEASES) }
                 RailIconItem(R.drawable.aerix_ic_format_paint_outlined, stringResource(R.string.aerix_nav_wallpapers),
