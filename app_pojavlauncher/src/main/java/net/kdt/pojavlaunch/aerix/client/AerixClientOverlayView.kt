@@ -81,6 +81,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
@@ -871,21 +872,21 @@ private fun FamousClientRectangleMenu(
 
                     Text(
                         text = when (subPage) {
-                            ClientMenuSubPage.GRID -> "AERIX CLIENT"
-                            ClientMenuSubPage.CAPES -> "AERIX CLIENT  ·  CAPES"
-                            ClientMenuSubPage.CROSSHAIRS -> "AERIX CLIENT  ·  CROSSHAIR"
-                            ClientMenuSubPage.PERFORMANCE -> "AERIX CLIENT  ·  PERFORMANCE"
-                            ClientMenuSubPage.UTILITY -> "AERIX CLIENT  ·  UTILITIES"
-                            ClientMenuSubPage.INFORMATION -> "AERIX CLIENT  ·  HUD INFORMATION"
-                            ClientMenuSubPage.WAYPOINTS -> "AERIX CLIENT  ·  WAYPOINTS"
-                            ClientMenuSubPage.VISUALS -> "AERIX CLIENT  ·  VISUALS"
-                            ClientMenuSubPage.GAME_OPTIONS -> "AERIX CLIENT  ·  GAME OPTIONS"
-                            ClientMenuSubPage.CHAT_SHORTCUTS -> "AERIX CLIENT  ·  CHAT SHORTCUTS"
-                            ClientMenuSubPage.AIM -> "AERIX CLIENT  ·  AIM"
-                            ClientMenuSubPage.PACKS -> "AERIX CLIENT  ·  RESOURCE PACKS"
-                            ClientMenuSubPage.KEY_PROFILES -> "AERIX CLIENT  ·  KEYBIND PROFILES"
-                            ClientMenuSubPage.TRANSFER -> "AERIX CLIENT  ·  IMPORT / EXPORT"
-                            ClientMenuSubPage.GALLERY -> "AERIX CLIENT  ·  SCREENSHOTS"
+                            ClientMenuSubPage.GRID -> "VORTEX CLIENT"
+                            ClientMenuSubPage.CAPES -> "VORTEX CLIENT  ·  CAPES"
+                            ClientMenuSubPage.CROSSHAIRS -> "VORTEX CLIENT  ·  CROSSHAIR"
+                            ClientMenuSubPage.PERFORMANCE -> "VORTEX CLIENT  ·  PERFORMANCE"
+                            ClientMenuSubPage.UTILITY -> "VORTEX CLIENT  ·  UTILITIES"
+                            ClientMenuSubPage.INFORMATION -> "VORTEX CLIENT  ·  HUD INFORMATION"
+                            ClientMenuSubPage.WAYPOINTS -> "VORTEX CLIENT  ·  WAYPOINTS"
+                            ClientMenuSubPage.VISUALS -> "VORTEX CLIENT  ·  VISUALS"
+                            ClientMenuSubPage.GAME_OPTIONS -> "VORTEX CLIENT  ·  GAME OPTIONS"
+                            ClientMenuSubPage.CHAT_SHORTCUTS -> "VORTEX CLIENT  ·  CHAT SHORTCUTS"
+                            ClientMenuSubPage.AIM -> "VORTEX CLIENT  ·  AIM"
+                            ClientMenuSubPage.PACKS -> "VORTEX CLIENT  ·  RESOURCE PACKS"
+                            ClientMenuSubPage.KEY_PROFILES -> "VORTEX CLIENT  ·  KEYBIND PROFILES"
+                            ClientMenuSubPage.TRANSFER -> "VORTEX CLIENT  ·  IMPORT / EXPORT"
+                            ClientMenuSubPage.GALLERY -> "VORTEX CLIENT  ·  SCREENSHOTS"
                         },
                         color = Color.White,
                         fontSize = 15.sp,
@@ -3008,7 +3009,7 @@ private fun OledAfkScreen(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "AERIX CLIENT · OLED AFK",
+                text = "VORTEX CLIENT · OLED AFK",
                 color = LiquidCrystalPalette.CrimsonPrimary.copy(alpha = 0.65f),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
@@ -3052,7 +3053,14 @@ private fun CrimsonBootSplash() {
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.22f)))
         }
         LiquidCrystalCard(
-            modifier = Modifier.width(420.dp),
+            modifier = Modifier
+                .width(420.dp)
+                .shadow(
+                    elevation = 30.dp,
+                    shape = RoundedCornerShape(16.dp),
+                    ambientColor = Color(0x80DC2626),
+                    spotColor = Color(0x99DC2626)
+                ),
             cornerRadius = 16.dp,
             strong = true,
             contentPadding = PaddingValues(22.dp)
@@ -3074,7 +3082,7 @@ private fun CrimsonBootSplash() {
                     )
                     Column {
                         Text(
-                            text = "AERIX CLIENT",
+                            text = "VORTEX CLIENT",
                             color = LiquidCrystalPalette.CrimsonGlow,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.ExtraBold
@@ -3088,15 +3096,31 @@ private fun CrimsonBootSplash() {
                     }
                 }
                 Spacer(Modifier.height(14.dp))
-                LinearProgressIndicator(
-                    progress = { AerixClientInputBridge.bootProgress },
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(6.dp)
-                        .clip(CircleShape),
-                    color = LiquidCrystalPalette.CrimsonPrimary,
-                    trackColor = LiquidCrystalPalette.DarkTile
-                )
+                        .height(8.dp)
+                        .clip(CircleShape)
+                        .background(LiquidCrystalPalette.DarkTile)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(
+                                AerixClientInputBridge.bootProgress.coerceIn(0f, 1f)
+                            )
+                            .fillMaxHeight()
+                            .clip(CircleShape)
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(
+                                        Color(0xFFFF5A63),
+                                        Color(0xFFDC2626),
+                                        Color(0xFFB01B2B)
+                                    )
+                                )
+                            )
+                    )
+                }
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = AerixClientInputBridge.bootStageTitle,

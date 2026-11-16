@@ -300,7 +300,7 @@ object AerixClientInstaller {
                 val capeWarning = runCatching { ensureWaveyCapes(modsDir, mcVersion) }.exceptionOrNull()
                 progressFraction = 0.90f
                 statusHeadline = "Applying Vortex Client Pack & FPS Engine..."
-                statusDetail = "Syncing AERIX CLIENT title, capes & Sodium"
+                statusDetail = "Syncing VORTEX CLIENT title, capes & Sodium"
                 AerixClientPackGenerator.buildAndApplyToInstance(context, gameDir, mcVersion)
 
                 Instances.setSelectedInstance(clientInstance)
