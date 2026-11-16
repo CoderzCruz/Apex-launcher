@@ -327,13 +327,10 @@ fun AerixClientScreen(activity: FragmentActivity) {
                         modifier = Modifier
                             .clip(shape)
                             .background(
-                                if (latest) {
-                                    Brush.horizontalGradient(
-                                        listOf(Color(0xFFDC2626), Color(0xFFB01B2B))
-                                    )
-                                } else {
-                                    AerixSurface.panelRaised
-                                }
+                                Brush.horizontalGradient(
+                                    if (latest) listOf(Color(0xFFDC2626), Color(0xFFB01B2B))
+                                    else listOf(AerixSurface.panelRaised, AerixSurface.panelRaised)
+                                )
                             )
                             .border(
                                 AerixSpacing.hairline,
