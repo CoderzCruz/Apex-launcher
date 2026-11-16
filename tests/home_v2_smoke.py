@@ -105,6 +105,7 @@ assert "VORTEX CLIENT" in client and "FPS Boost" in client and "ClientFeatureTil
 assert "ClientModuleSection" in client and "PvP preset applied" in client, "modules manager + presets"
 assert "SUPPORTED" in client and "horizontalScroll" in client and "DOWNLOADS" in client, "supported-versions strip"
 assert "ClientVersionTile" in client and "ClientActionDock" in client, "custom client UI"
+assert "VORTEX MODS" in client and "ClientPackCard" in client and "Vortex Modpack" in client and "vulkanmod" in client, "vortex mods packs"
 assert "selectedRed = Color(0xFFDC2626)" in rail, "opened section icon turns red"
 assert ".height(300.dp)" in home, "bigger skin stage"
 assert '"Welcome to Vortex Launcher"' in home, "welcome bubble"

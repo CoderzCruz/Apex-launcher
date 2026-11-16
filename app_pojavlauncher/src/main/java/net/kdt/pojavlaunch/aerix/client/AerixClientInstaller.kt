@@ -397,6 +397,57 @@ object AerixClientInstaller {
         }
     }
 
+    /** Counts for a Vortex pack install: succeeded + slugs that failed to fetch. */
+    data class PackInstallResult(val installed: Int, val failed: List<String>)
+
+    /**
+     * Installs a curated Vortex mod collection (FPS pack / Vulkan renderer) into the
+     * Vortex Client instance. Same Modrinth fetch path as the core install, and it drives
+     * the shared progress banner (statusHeadline/progressFraction/isInstalling).
+     * [purgePrefixes] drops conflicting jars first (renderer swaps: sodium line <-> Vulkan).
+     */
+    suspend fun installVortexPack(
+        packTitle: String,
+        slugs: List<String>,
+        purgePrefixes: List<String> = emptyList()
+    ): Result<PackInstallResult> = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        if (isInstalling) {
+            return@withContext Result.failure(IllegalStateException("Download already in progress"))
+        }
+        val instance = findInstalledClientInstance(AerixClientStore.selectedClientVersion)
+            ?: return@withContext Result.failure(
+                IllegalStateException("Install Vortex Client first, then add the pack")
+            )
+        val mcVersion = ClientVersions.resolve(instance.versionId, AerixClientStore.selectedClientVersion)
+        val modsDir = File(instance.gameDirectory, "mods").apply { mkdirs() }
+        isInstalling = true
+        statusHeadline = "Installing $packTitle..."
+        statusDetail = "Preparing mods folder"
+        progressFraction = 0f
+        try {
+            if (purgePrefixes.isNotEmpty()) {
+                modsDir.listFiles()?.forEach { f ->
+                    if (f.isFile && purgePrefixes.any { p -> f.name.contains(p, ignoreCase = true) }) {
+                        f.delete()
+                    }
+                }
+            }
+            val failed = mutableListOf<String>()
+            var installed = 0
+            slugs.forEachIndexed { idx, slug ->
+                statusDetail = "Mod ${idx + 1}/${slugs.size} · $slug"
+                progressFraction = idx.toFloat() / slugs.size
+                val ok = runCatching { ensureModrinthJar(modsDir, slug, mcVersion, 0) }.getOrDefault(false)
+                if (ok) installed++ else failed += slug
+            }
+            progressFraction = 1f
+            statusDetail = "$installed/${slugs.size} mods ready"
+            Result.success(PackInstallResult(installed, failed))
+        } finally {
+            isInstalling = false
+        }
+    }
+
     private fun ensureModrinthJar(modsDir: File, projectSlugOrId: String, mcVersion: String, depth: Int): Boolean {
         val fabricId = when (projectSlugOrId) {
             "sodium", "AANobbMI" -> "sodium"

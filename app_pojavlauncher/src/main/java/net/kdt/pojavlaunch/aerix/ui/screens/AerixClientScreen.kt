@@ -395,6 +395,95 @@ private fun ClientActionDock(
     }
 }
 
+/** Curated Vortex pack card: title + details + one gradient install button. */
+@Composable
+private fun ClientPackCard(
+    title: String,
+    subtitle: String,
+    caption: String,
+    buttonLabel: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val shape = RoundedCornerShape(AerixRadii.card)
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(
+                Brush.horizontalGradient(
+                    listOf(Color(0x33DC2626), AerixSurface.panelRaised)
+                )
+            )
+            .border(
+                1.4.dp,
+                Brush.horizontalGradient(
+                    listOf(Color(0xE0DC2626), Color(0x55DC2626))
+                ),
+                shape
+            )
+            .padding(AerixSpacing.smPlus),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            Text(
+                text = title,
+                fontSize = 14.5.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
+            Text(
+                text = subtitle,
+                fontSize = 10.5.sp,
+                color = Color.White.copy(alpha = 0.74f)
+            )
+            Text(
+                text = caption,
+                fontSize = 9.sp,
+                color = Color.White.copy(alpha = 0.52f)
+            )
+        }
+        val btnShape = RoundedCornerShape(999.dp)
+        Box(
+            modifier = Modifier
+                .clip(btnShape)
+                .background(
+                    if (enabled) {
+                        Brush.horizontalGradient(
+                            listOf(Color(0xFFDC2626), Color(0xFFB01B2B))
+                        )
+                    } else {
+                        Brush.horizontalGradient(
+                            listOf(
+                                AerixSurface.panelRaised,
+                                AerixSurface.panelRaised
+                            )
+                        )
+                    }
+                )
+                .border(
+                    AerixSpacing.hairline,
+                    if (enabled) AerixSurface.borderHighlight else AerixSurface.borderSoft,
+                    btnShape
+                )
+                .clickable(enabled = enabled) { onClick() }
+                .padding(horizontal = 14.dp, vertical = 9.dp)
+        ) {
+            Text(
+                text = buttonLabel,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = if (enabled) Color.White else Color.White.copy(alpha = 0.45f)
+            )
+        }
+    }
+}
+
 @Composable
 fun AerixClientScreen(activity: FragmentActivity) {
     LaunchedEffect(Unit) {
@@ -418,6 +507,20 @@ fun AerixClientScreen(activity: FragmentActivity) {
     }
     val selectedInstalled = remember(selectedVersion, installedClients) {
         AerixClientInstaller.findInstalledClientInstance(selectedVersion, installedClients)
+    }
+    // One-tap Vortex mod packs: install into the client instance, then refresh + toast counts.
+    val startPackInstall: (String, List<String>, List<String>) -> Unit = { title, slugs, purgePrefixes ->
+        scope.launch {
+            val res = AerixClientInstaller.installVortexPack(title, slugs, purgePrefixes)
+            refreshTick++
+            PojavInstanceBridge.reload()
+            res.onSuccess { r ->
+                val failedText = if (r.failed.isEmpty()) "" else " · failed: ${r.failed.joinToString(", ")}"
+                Toast.makeText(activity, "$title: ${r.installed} mods installed$failedText", Toast.LENGTH_LONG).show()
+            }.onFailure { err ->
+                Toast.makeText(activity, err.message ?: "Pack install failed", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -855,6 +958,56 @@ fun AerixClientScreen(activity: FragmentActivity) {
                             AerixClientStore.persist()
                         }
                     )
+                )
+                // ── VORTEX MODS: one-tap curated packs for this instance ──
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "VORTEX MODS",
+                        fontSize = 9.sp,
+                        letterSpacing = 1.4.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = accent
+                    )
+                    Text(
+                        text = "one-tap packs · installs into this instance",
+                        fontSize = 9.sp,
+                        color = Color.White.copy(alpha = 0.55f)
+                    )
+                }
+                ClientPackCard(
+                    title = "Vortex Modpack",
+                    subtitle = "FPS boost · Sodium, Lithium, Ferritecore, ImmediatelyFast, EntityCulling, Dynamic FPS, ModernFix, Krypton",
+                    caption = "All the FPS mods in one tap. Removes the Vulkan renderer if present (renderers conflict). FPS depends on your device.",
+                    buttonLabel = "Install FPS Pack",
+                    enabled = !AerixClientInstaller.isInstalling && preparingLaunchVer == null,
+                    onClick = {
+                        startPackInstall(
+                            "Vortex Modpack",
+                            listOf(
+                                "sodium", "lithium", "ferritecore", "immediatelyfast",
+                                "entityculling", "dynamic-fps", "modernfix", "krypton"
+                            ),
+                            listOf("vulkan")
+                        )
+                    }
+                )
+                ClientPackCard(
+                    title = "Vortex Vulkan",
+                    subtitle = "Vorkan · VulkanMod replaces OpenGL with a Vulkan backend (big FPS gains on supported devices)",
+                    caption = "Removes Sodium/Indium/Nvidium/Iris first — two renderers cannot run together. VulkanMod supports 26.x / 1.21.x.",
+                    buttonLabel = "Install Vulkan",
+                    enabled = !AerixClientInstaller.isInstalling && preparingLaunchVer == null,
+                    onClick = {
+                        startPackInstall(
+                            "Vortex Vulkan",
+                            listOf("vulkanmod"),
+                            listOf("sodium", "indium", "nvidium", "iris")
+                        )
+                    }
                 )
                 Spacer(Modifier.height(76.dp))
             }
