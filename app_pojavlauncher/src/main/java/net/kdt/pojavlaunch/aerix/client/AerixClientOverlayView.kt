@@ -3054,7 +3054,7 @@ private fun CrimsonBootSplash() {
         }
         LiquidCrystalCard(
             modifier = Modifier
-                .width(500.dp)
+                .width(560.dp)
                 .shadow(
                     elevation = 30.dp,
                     shape = RoundedCornerShape(16.dp),
@@ -3071,31 +3071,50 @@ private fun CrimsonBootSplash() {
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(18.dp)
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.ic_aerix_mark),
-                        contentDescription = null,
+                    Box(
+                        contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .size(44.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                    )
+                            .size(78.dp)
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(Color(0x33DC2626), Color(0x14171A22))
+                                )
+                            )
+                            .border(
+                                1.4.dp,
+                                Brush.horizontalGradient(
+                                    listOf(Color(0xE0DC2626), Color(0x55DC2626))
+                                ),
+                                RoundedCornerShape(18.dp)
+                            )
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_aerix_mark),
+                            contentDescription = null,
+                            modifier = Modifier.size(58.dp)
+                        )
+                    }
                     Column {
                         Text(
                             text = "VORTEX CLIENT",
                             color = LiquidCrystalPalette.CrimsonGlow,
-                            fontSize = 11.sp,
+                            fontSize = 13.sp,
+                            letterSpacing = 2.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
                         Text(
                             text = ClientBootLabels.header(AerixClientInputBridge.sessionMinecraftVersion),
                             color = Color.White,
-                            fontSize = 20.sp,
+                            fontSize = 30.sp,
+                            lineHeight = 34.sp,
                             fontWeight = FontWeight.Black
                         )
                     }
                 }
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(16.dp))
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -3121,12 +3140,24 @@ private fun CrimsonBootSplash() {
                             )
                     )
                 }
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = AerixClientInputBridge.bootStageTitle,
-                    color = LiquidCrystalPalette.TextSecondary,
-                    fontSize = 11.sp
-                )
+                Spacer(Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = AerixClientInputBridge.bootStageTitle,
+                        color = LiquidCrystalPalette.TextSecondary,
+                        fontSize = 11.5.sp
+                    )
+                    Text(
+                        text = "${(AerixClientInputBridge.bootProgress.coerceIn(0f, 1f) * 100).toInt()}%",
+                        color = LiquidCrystalPalette.CrimsonGlow,
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
             }
         }
     }
