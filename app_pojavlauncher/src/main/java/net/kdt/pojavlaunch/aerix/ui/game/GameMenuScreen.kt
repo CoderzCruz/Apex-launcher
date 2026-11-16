@@ -129,6 +129,12 @@ interface GameMenuCallbacks {
      * launches the game with it.
      */
     fun onSwitchAccount(account: AerixAccount)
+
+    /** True while a Vortex Client instance is running — shows the in-game client menu entry. */
+    fun isClientMenuAvailable(): Boolean = false
+
+    /** Opens the Vortex Client menu (modules + HUD grid) over the running game. */
+    fun onOpenClientMenu() {}
 }
 
 /** Colours of the menu, all derived from the accent of the current launcher theme. */
@@ -298,6 +304,17 @@ private fun GameMenuMainPage(
                         emphasized = true,
                         onClick = callbacks::onResumeGame
                     )
+                    if (callbacks.isClientMenuAvailable()) {
+                        CompactMenuButton(
+                            label = "Vortex Client",
+                            iconRes = R.drawable.ic_px_fps,
+                            color = palette.accent,
+                            compact = compact,
+                            height = rowHeight,
+                            emphasized = true,
+                            onClick = { onCloseRequest(); callbacks.onOpenClientMenu() }
+                        )
+                    }
                     CompactMenuButton(
                         label = stringResource(R.string.aerix_ingame_menu_logs),
                         iconRes = R.drawable.aerix_ic_terminal_outlined,

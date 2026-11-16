@@ -290,6 +290,17 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
             }
 
             @Override
+            public boolean isClientMenuAvailable() {
+                return instance != null && instance.isAerixClient && mAerixClientOverlay != null;
+            }
+
+            @Override
+            public void onOpenClientMenu() {
+                hideGameMenu();
+                if (mAerixClientOverlay != null) mAerixClientOverlay.openClientMenu();
+            }
+
+            @Override
             public void onForceCloseGame() {
                 dialogForceClose(GameActivity.this);
             }
