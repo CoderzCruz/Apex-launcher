@@ -44,6 +44,7 @@ import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.aerix.bridge.PojavInstanceBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavLaunchBridge
 import net.kdt.pojavlaunch.aerix.client.AerixClientInstaller
+import net.kdt.pojavlaunch.aerix.client.ClientVersionSpec
 import net.kdt.pojavlaunch.aerix.client.AerixClientStore
 import net.kdt.pojavlaunch.aerix.components.GlassPanel
 import net.kdt.pojavlaunch.aerix.components.liquidGlass
@@ -213,6 +214,187 @@ private fun ClientPresetPill(label: String, onClick: () -> Unit) {
     }
 }
 
+/** Compact version card for the custom client grid: version, tier, selected ring. */
+@Composable
+private fun ClientVersionTile(
+    spec: ClientVersionSpec,
+    installed: Boolean,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val shape = RoundedCornerShape(AerixRadii.card)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(64.dp)
+            .clip(shape)
+            .background(
+                Brush.linearGradient(
+                    if (selected) listOf(Color(0x45DC2626), Color(0x2D152536))
+                    else listOf(AerixSurface.panelRaised, AerixSurface.panelRaised)
+                )
+            )
+            .border(
+                if (selected) 1.5.dp else AerixSpacing.hairline,
+                Brush.horizontalGradient(
+                    if (selected) listOf(Color(0xE0DC2626), Color(0x73DC2626))
+                    else listOf(AerixSurface.borderSoft, AerixSurface.borderSoft)
+                ),
+                shape
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = spec.mcVersion,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                Text(
+                    text = if (spec.mcVersion.startsWith("26.")) "Experimental · Java 25" else "Fabric · optimized",
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontSize = 8.5.sp,
+                    maxLines = 1
+                )
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (installed) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(Color(0x33DC2626))
+                            .border(0.8.dp, AerixSurface.borderHighlight, RoundedCornerShape(999.dp))
+                            .padding(horizontal = 6.dp, vertical = 1.5.dp)
+                    ) {
+                        Text(
+                            text = "INSTALLED",
+                            color = Color.White,
+                            fontSize = 7.5.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .size(14.dp)
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(if (selected) Color(0xFFDC2626) else Color.Transparent)
+                        .border(
+                            1.4.dp,
+                            if (selected) Color(0xFFDC2626) else Color.White.copy(alpha = 0.35f),
+                            RoundedCornerShape(999.dp)
+                        )
+                )
+            }
+        }
+    }
+}
+
+/** Sticky bottom dock: selected version + primary Download/Launch action. */
+@Composable
+private fun ClientActionDock(
+    selectedVersion: String,
+    downloading: Boolean,
+    progress: Float,
+    installed: Boolean,
+    launching: Boolean,
+    busy: Boolean,
+    onDownload: () -> Unit,
+    onLaunch: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val shape = RoundedCornerShape(AerixRadii.card)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(Brush.horizontalGradient(listOf(Color(0xF2171920), Color(0xF222242C))))
+            .border(
+                1.dp,
+                Brush.horizontalGradient(listOf(Color(0xE0DC2626), Color(0x55DC2626), Color(0xE0DC2626))),
+                shape
+            )
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "SELECTED",
+                    fontSize = 7.5.sp,
+                    letterSpacing = 1.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = AerixSurface.accent
+                )
+                Text(
+                    text = "Vortex Client $selectedVersion",
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    maxLines = 1
+                )
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (installed && !downloading) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(Color.White.copy(alpha = 0.10f))
+                            .border(0.9.dp, AerixSurface.borderSoft, RoundedCornerShape(999.dp))
+                            .clickable(enabled = !busy) { onDownload() }
+                            .padding(horizontal = 10.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = "\u21bb",
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(Brush.horizontalGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B))))
+                        .clickable(enabled = !busy) {
+                            if (installed) onLaunch() else onDownload()
+                        }
+                        .padding(horizontal = 16.dp, vertical = 9.dp)
+                ) {
+                    Text(
+                        text = when {
+                            downloading -> "Downloading ${(progress * 100).toInt()}%"
+                            launching -> "Syncing..."
+                            installed -> "\u25b6 Launch"
+                            else -> "\u2193 Download"
+                        },
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun AerixClientScreen(activity: FragmentActivity) {
     LaunchedEffect(Unit) {
@@ -223,15 +405,26 @@ fun AerixClientScreen(activity: FragmentActivity) {
     var preparingLaunchVer by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val accent = AerixSurface.accent
+    var selectedVersion by remember {
+        mutableStateOf(
+            AerixClientStore.selectedClientVersion
+                .takeIf { v -> AerixClientInstaller.availableVersions.any { it.mcVersion == v } }
+                ?: AerixClientInstaller.availableVersions.first().mcVersion
+        )
+    }
+    // Load the instance list once, rather than scanning disk for every version card.
+    val installedClients = remember(refreshTick, AerixClientInstaller.isInstalling) {
+        runCatching { Instances.loadAllInstances() }.getOrDefault(emptyList())
+    }
+    val selectedInstalled = remember(selectedVersion, installedClients) {
+        AerixClientInstaller.findInstalledClientInstance(selectedVersion, installedClients)
+    }
 
-    AerixPage(
-        title = "Vortex Client",
-        subtitle = null
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
+                .fillMaxSize()
+                .padding(AerixSpacing.md)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(AerixSpacing.md)
         ) {
@@ -432,11 +625,6 @@ fun AerixClientScreen(activity: FragmentActivity) {
             }
         }
 
-        // Load the instance list once, rather than scanning disk for every version card.
-        val installedClients = remember(refreshTick, AerixClientInstaller.isInstalling) {
-            runCatching { Instances.loadAllInstances() }.getOrDefault(emptyList())
-        }
-        // Liquid Glass Version Download & Launch List (Nothing More)
         Column(
             verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
         ) {
@@ -459,237 +647,36 @@ fun AerixClientScreen(activity: FragmentActivity) {
                 )
             }
 
-            AerixClientInstaller.availableVersions.forEach { spec ->
-                val installed = remember(refreshTick, AerixClientInstaller.isInstalling, spec.mcVersion) {
-                    AerixClientInstaller.findInstalledClientInstance(spec.mcVersion, installedClients)
-                }
-                val isSelected = AerixClientStore.selectedClientVersion == spec.mcVersion
-                val rowShape = RoundedCornerShape(AerixRadii.card)
-
+            AerixClientInstaller.availableVersions.chunked(2).forEach { pair ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .liquidGlass(
-                            shape = rowShape,
-                            tint = if (isSelected) accent else AerixSurface.glassTint,
-                            strength = if (isSelected) 1.0f else 0.90f
-                        )
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = if (isSelected) {
-                                    listOf(
-                                        Color.White.copy(alpha = 0.20f),
-                                        accent.copy(alpha = 0.14f),
-                                        AerixSurface.panelRaised
-                                    )
-                                } else {
-                                    listOf(
-                                        Color.White.copy(alpha = 0.12f),
-                                        AerixSurface.panel
-                                    )
-                                }
-                            ),
-                            shape = rowShape
-                        )
-                        .clickable {
-                            AerixClientStore.selectedClientVersion = spec.mcVersion
-                            AerixClientStore.persist()
-                            if (installed != null) {
-                                Instances.setSelectedInstance(installed)
-                                PojavInstanceBridge.reload()
-                            }
-                        }
-                        .padding(horizontal = 18.dp, vertical = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(34.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Brush.linearGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B)))),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.aerix_ic_rocket_launch_filled),
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                            Text(
-                                text = "Minecraft ${spec.mcVersion}",
-                                color = Color.White,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                            if (installed != null) {
-                                val badgeShape = RoundedCornerShape(999.dp)
-                                Box(
-                                    modifier = Modifier
-                                        .clip(badgeShape)
-                                        .background(accent.copy(alpha = 0.22f))
-                                        .border(0.9.dp, accent.copy(alpha = 0.65f), badgeShape)
-                                        .padding(horizontal = 8.dp, vertical = 2.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(6.dp)
-                                                .clip(RoundedCornerShape(999.dp))
-                                                .background(accent)
-                                        )
-                                        Text(
-                                            text = "INSTALLED",
-                                            color = Color.White,
-                                            fontSize = 9.sp,
-                                            fontWeight = FontWeight.ExtraBold
-                                        )
-                                    }
-                                }
-                            }
+                    pair.forEach { spec ->
+                        val isInstalled = remember(spec.mcVersion, installedClients, refreshTick) {
+                            AerixClientInstaller.findInstalledClientInstance(spec.mcVersion, installedClients)
                         }
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = spec.summary,
-                            color = Color.White.copy(alpha = 0.76f),
-                            fontSize = 12.sp
+                        ClientVersionTile(
+                            spec = spec,
+                            installed = isInstalled != null,
+                            selected = spec.mcVersion == selectedVersion,
+                            onClick = {
+                                selectedVersion = spec.mcVersion
+                                AerixClientStore.selectedClientVersion = spec.mcVersion
+                                AerixClientStore.persist()
+                                if (isInstalled != null) {
+                                    Instances.setSelectedInstance(isInstalled)
+                                    PojavInstanceBridge.reload()
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
                         )
                     }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        val busy = AerixClientInstaller.isInstalling || preparingLaunchVer != null
-                        val pillShape = RoundedCornerShape(999.dp)
-
-                        // Liquid Glass Download / Re-download Pill
-                        Box(
-                            modifier = Modifier
-                                .liquidGlass(
-                                    shape = pillShape,
-                                    tint = if (installed == null) accent else AerixSurface.glassTint,
-                                    strength = 0.95f
-                                )
-                                .background(
-                                    brush = if (installed == null) {
-                                        Brush.horizontalGradient(
-                                            listOf(
-                                                accent.copy(alpha = 0.42f),
-                                                AerixSurface.glassBlue.copy(alpha = 0.30f)
-                                            )
-                                        )
-                                    } else {
-                                        Brush.horizontalGradient(
-                                            listOf(
-                                                Color.White.copy(alpha = 0.14f),
-                                                Color.White.copy(alpha = 0.07f)
-                                            )
-                                        )
-                                    },
-                                    shape = pillShape
-                                )
-                                .clickable(enabled = !busy) {
-                                    AerixClientStore.selectedClientVersion = spec.mcVersion
-                                    AerixClientStore.persist()
-                                    scope.launch {
-                                        val res = AerixClientInstaller.installClientVersion(activity, spec.mcVersion)
-                                        refreshTick++
-                                        PojavInstanceBridge.reload()
-                                        res.onSuccess {
-                                            Toast.makeText(
-                                                activity,
-                                                "Vortex Client ${spec.mcVersion} ready!",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }.onFailure { err ->
-                                            Toast.makeText(
-                                                activity,
-                                                err.message ?: "Download failed",
-                                                Toast.LENGTH_LONG
-                                            ).show()
-                                        }
-                                    }
-                                }
-                                .padding(horizontal = 16.dp, vertical = 9.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            val isThisDownloading =
-                                AerixClientInstaller.isInstalling && AerixClientInstaller.installingVersion == spec.mcVersion
-                            Text(
-                                text = when {
-                                    isThisDownloading -> "Downloading..."
-                                    installed == null -> "\u2193 Download"
-                                    else -> "\u21bb Re-download"
-                                },
-                                color = Color.White,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        }
-
-                        // Liquid Glass Launch Pill (upgrades existing instance pack + WaveyCapes + FPS before launch!)
-                        if (installed != null) {
-                            Box(
-                                modifier = Modifier
-                                    .liquidGlass(
-                                        shape = pillShape,
-                                        tint = accent,
-                                        strength = 1.0f
-                                    )
-                                    .background(
-                                        brush = Brush.horizontalGradient(
-                                            listOf(
-                                                accent.copy(alpha = 0.55f),
-                                                AerixSurface.glassBlue.copy(alpha = 0.38f)
-                                            )
-                                        ),
-                                        shape = pillShape
-                                    )
-                                    .clickable(enabled = !busy) {
-                                        AerixClientStore.selectedClientVersion = spec.mcVersion
-                                        AerixClientStore.persist()
-                                        scope.launch {
-                                            preparingLaunchVer = spec.mcVersion
-                                            val sync = AerixClientInstaller.syncExistingInstanceForLaunch(
-                                                activity,
-                                                installed,
-                                                spec.mcVersion
-                                            )
-                                            sync.onFailure { error ->
-                                                Toast.makeText(activity, "Client update failed: ${error.message}", Toast.LENGTH_LONG).show()
-                                            }
-                                            preparingLaunchVer = null
-                                            Instances.setSelectedInstance(installed)
-                                            PojavInstanceBridge.reload()
-                                            PojavLaunchBridge.play(activity)
-                                        }
-                                    }
-                                    .padding(horizontal = 16.dp, vertical = 9.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = if (preparingLaunchVer == spec.mcVersion) "Syncing..." else "\u25b6 Launch",
-                                    color = Color.White,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.ExtraBold
-                                )
-                            }
-                        }
-                    }
+                    if (pair.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
 
-                // ── Modules: real client toggles, saved for the next launch ──
+            // ── Modules: real client toggles, saved for the next launch ──
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -869,7 +856,51 @@ fun AerixClientScreen(activity: FragmentActivity) {
                         }
                     )
                 )
+                Spacer(Modifier.height(76.dp))
             }
         }
-        }
+        ClientActionDock(
+            selectedVersion = selectedVersion,
+            downloading = AerixClientInstaller.isInstalling && AerixClientInstaller.installingVersion == selectedVersion,
+            progress = AerixClientInstaller.progressFraction,
+            installed = selectedInstalled != null,
+            launching = preparingLaunchVer == selectedVersion,
+            busy = AerixClientInstaller.isInstalling || preparingLaunchVer != null,
+            onDownload = {
+                AerixClientStore.selectedClientVersion = selectedVersion
+                AerixClientStore.persist()
+                scope.launch {
+                    val res = AerixClientInstaller.installClientVersion(activity, selectedVersion)
+                    refreshTick++
+                    PojavInstanceBridge.reload()
+                    res.onSuccess {
+                        Toast.makeText(activity, "Vortex Client $selectedVersion ready!", Toast.LENGTH_SHORT).show()
+                    }.onFailure { err ->
+                        Toast.makeText(activity, err.message ?: "Download failed", Toast.LENGTH_LONG).show()
+                    }
+                }
+            },
+            onLaunch = {
+                if (selectedInstalled != null) {
+                    AerixClientStore.selectedClientVersion = selectedVersion
+                    AerixClientStore.persist()
+                    scope.launch {
+                        preparingLaunchVer = selectedVersion
+                        val sync = AerixClientInstaller.syncExistingInstanceForLaunch(
+                            activity,
+                            selectedInstalled,
+                            selectedVersion
+                        )
+                        sync.onFailure { error ->
+                            Toast.makeText(activity, "Client update failed: ${error.message}", Toast.LENGTH_LONG).show()
+                        }
+                        preparingLaunchVer = null
+                        Instances.setSelectedInstance(selectedInstalled)
+                        PojavInstanceBridge.reload()
+                        PojavLaunchBridge.play(activity)
+                    }
+                }
+            }
+        )
     }
+}
