@@ -71,8 +71,13 @@ internal object LauncherUpdater {
             }
         } finally { response.disconnect(); connection = null }
         val json = try { org.json.JSONObject(body) } catch (e: Exception) { return null }
+        val releaseBody = json.optString("body")
+        // Owner gate: no auto-update until UPDATE_ROLLOUT is flipped to "on" in the repo.
+        val rollout = Regex("Update rollout:\*\*\s*`?(on|off)", RegexOption.IGNORE_CASE)
+            .find(releaseBody)?.groupValues?.get(1)?.lowercase()
+        if (rollout != "on") return null
         val released = Regex("versionCode[^0-9]{0,8}(\\d+)")
-            .find(json.optString("body"))?.groupValues?.get(1)?.toLongOrNull() ?: return null
+            .find(releaseBody)?.groupValues?.get(1)?.toLongOrNull() ?: return null
         if (released <= BuildConfig.VERSION_CODE) return null
         val installed = LauncherVersion.parse(BuildConfig.VERSION_NAME) ?: return null
 
@@ -106,7 +111,8 @@ internal object LauncherUpdater {
                 url = VORTEX_APK_URL,
                 size = apkSize,
                 sha256 = fetchVortexSha256()
-            )
+            ),
+            vortex = true
         )
     }
 

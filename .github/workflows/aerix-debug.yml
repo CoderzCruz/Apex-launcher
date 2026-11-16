@@ -26,6 +26,7 @@ on:
       - "gradle/**"
       - "gradle.properties"
       - "version.properties"
+      - "UPDATE_ROLLOUT"
       - "settings.gradle"
       - ".github/workflows/aerix-debug.yml"
   workflow_dispatch:
@@ -228,6 +229,8 @@ jobs:
           cp "$APK_PATH" "$STAGE/$STAMPED_NAME"
           ( cd "$STAGE" && sha256sum "$APK_NAME" > "$APK_NAME.sha256" )
           SHA256="$(cut -d' ' -f1 "$STAGE/$APK_NAME.sha256")"
+          # Owner-controlled rollout: auto-update only offers builds when UPDATE_ROLLOUT says "on".
+          ROLLOUT="$(cat UPDATE_ROLLOUT 2>/dev/null || echo off)"
           {
             echo "kind: debug (testing only)"
             echo "name: $APK_NAME (universal, arm64 + arm32)"
@@ -249,6 +252,7 @@ jobs:
             echo "- **Branch:** \`$GITHUB_REF_NAME\`"
             echo "- **Commit:** \`$SHORT\` (\`$GITHUB_SHA\`)"
             echo "- **versionCode:** \`$VERSION_CODE\`"
+            echo "- **Update rollout:** \`$ROLLOUT\`"
             echo "- **Built:** \`$BUILT_AT\`"
             echo "- **SHA-256:** \`$SHA256\`"
           } > "$STAGE/RELEASE_NOTES.md"

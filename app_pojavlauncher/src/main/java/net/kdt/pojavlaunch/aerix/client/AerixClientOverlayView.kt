@@ -1264,13 +1264,28 @@ private fun ClientSquaresGridPage(
         )
     )
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    var search by remember { mutableStateOf("") }
+    val filteredModules = if (search.isBlank()) modules
+        else modules.filter { it.title.contains(search.trim(), ignoreCase = true) }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        OutlinedTextField(
+            value = search,
+            onValueChange = { search = it },
+            singleLine = true,
+            label = { Text("Search modules") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth().weight(1f)) {
         val cols = when {
             maxWidth >= 560.dp -> 5
             maxWidth >= 430.dp -> 4
             else -> 3
         }
-        val rows = modules.chunked(cols)
+        val rows = filteredModules.chunked(cols)
 
         Column(
             modifier = Modifier
@@ -1294,6 +1309,14 @@ private fun ClientSquaresGridPage(
                     }
                 }
             }
+            if (filteredModules.isEmpty()) {
+                Text(
+                    text = "No module matches \u201c$search\u201d",
+                    color = LiquidCrystalPalette.TextSecondary,
+                    fontSize = 12.sp
+                )
+            }
+        }
         }
     }
 }

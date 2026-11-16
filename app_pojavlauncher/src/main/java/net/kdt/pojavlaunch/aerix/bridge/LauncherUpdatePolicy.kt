@@ -13,7 +13,7 @@ internal data class LauncherVersion(val major: Int, val minor: Int, val patch: I
         }
     }
 }
-internal data class LauncherRelease(val tag: String, val version: LauncherVersion, val notes: String, val asset: LauncherUpdateAsset)
+internal data class LauncherRelease(val tag: String, val version: LauncherVersion, val notes: String, val asset: LauncherUpdateAsset, val vortex: Boolean = false)
 internal data class LauncherUpdateAsset(val name: String, val url: String, val size: Long, val sha256: String?) {
     /** "arm64", "arm32" or null, read from the asset name the release gave it. */
     val archLabel: String?
