@@ -49,8 +49,15 @@ object VortexCrashCare {
         spoken = true
         val text = fixTextFor(errorText)
         runCatching {
-            val tts = TextToSpeech(context.applicationContext) { status ->
-                if (status != TextToSpeech.SUCCESS) return@TextToSpeech
+            // The init callback fires after the constructor returns, so the var is set by then;
+            // inside the callback a local val keeps every reference resolvable.
+            var pending: TextToSpeech? = null
+            pending = TextToSpeech(context.applicationContext) { status ->
+                val tts = pending ?: return@TextToSpeech
+                if (status != TextToSpeech.SUCCESS) {
+                    runCatching { tts.shutdown() }
+                    return@TextToSpeech
+                }
                 runCatching {
                     tts.setLanguage(Locale("hi", "IN"))
                     tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
