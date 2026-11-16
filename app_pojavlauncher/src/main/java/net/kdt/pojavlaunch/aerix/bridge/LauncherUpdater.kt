@@ -73,7 +73,7 @@ internal object LauncherUpdater {
         val json = try { org.json.JSONObject(body) } catch (e: Exception) { return null }
         val releaseBody = json.optString("body")
         // Owner gate: no auto-update until UPDATE_ROLLOUT is flipped to "on" in the repo.
-        val rollout = Regex("Update rollout:\*\*\s*`?(on|off)", RegexOption.IGNORE_CASE)
+        val rollout = Regex("Update rollout:\\*\\*\\s*`?(on|off)", RegexOption.IGNORE_CASE)
             .find(releaseBody)?.groupValues?.get(1)?.lowercase()
         if (rollout != "on") return null
         val released = Regex("versionCode[^0-9]{0,8}(\\d+)")
