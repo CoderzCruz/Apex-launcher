@@ -353,6 +353,124 @@ fun DownloadScreen(activity: FragmentActivity) {
 // Search & filter bar + 3-column grid + floating PageController (Mirai SearchAssetsScreen.kt)
 // ============================================================================================
 
+/** The team's curated project, always pinned at the top of the Mods installer results. */
+private val pinnedTeamProject: AssetProject = run {
+    val team = teamReleases.first()
+    AssetProject(
+        platform = AssetPlatform.CURSEFORGE,
+        type = team.type,
+        id = team.projectId ?: "1749327",
+        title = team.title,
+        description = team.summary,
+        author = "Team_Aerix",
+        iconUrl = team.iconUrl,
+        downloads = 0L,
+        loaders = listOf("fabric")
+    )
+}
+
+/** Curated pin row: crimson-ringed icon, PINNED badge, team attribution, tap = open the detail page. */
+@Composable
+private fun PinnedProjectCard(
+    project: AssetProject,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val accent = AerixSurface.accent
+    val shape = RoundedCornerShape(AerixRadii.card)
+    val icon = rememberRemoteBitmap(project.iconUrl, targetMinEdgePx = 96)
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(
+                Brush.horizontalGradient(
+                    listOf(accent.copy(alpha = 0.16f), AerixSurface.panelRaised)
+                )
+            )
+            .border(1.4.dp, Brush.horizontalGradient(listOf(accent, accent.copy(alpha = 0.45f))), shape)
+            .clickable(onClick = onClick)
+            .padding(AerixSpacing.smPlus),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(AerixRadii.controlSmall + 2.dp))
+                .background(Brush.linearGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B))))
+                .padding(2.dp)
+        ) {
+            AerixImageWell(
+                image = icon,
+                fallback = R.drawable.aerix_ic_extension_outlined,
+                size = 44.dp,
+                radius = AerixRadii.controlSmall
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(AerixSpacing.tiny)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.tiny),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(shape = RoundedCornerShape(999.dp), color = accent) {
+                    Text(
+                        text = "PINNED",
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                        color = AerixSurface.onAccent,
+                        fontSize = 8.5.sp,
+                        letterSpacing = 1.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
+                Text(
+                    text = project.title,
+                    fontSize = 14.5.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Text(
+                text = "${project.author} · ${AssetPlatform.CURSEFORGE.displayName}",
+                fontSize = 10.5.sp,
+                color = Color.White.copy(alpha = 0.66f)
+            )
+            Text(
+                text = project.description,
+                fontSize = 10.5.sp,
+                color = Color.White.copy(alpha = 0.82f),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Surface(shape = RoundedCornerShape(AerixRadii.control), color = accent.copy(alpha = 0.16f)) {
+            Row(
+                modifier = Modifier.padding(horizontal = AerixSpacing.sm, vertical = AerixSpacing.tiny),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.tiny)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.aerix_ic_download_2_outlined),
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.size(12.dp)
+                )
+                Text(
+                    text = "View & Install",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = accent
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun SearchAssetsContent(
     activity: FragmentActivity,
@@ -680,10 +798,18 @@ private fun SearchAssetsContent(
                         onClick = { reloadNonce++ }
                     )
                 }
-                currentPage == null || currentPage.projects.isEmpty() -> Box(
+                currentPage == null || currentPage.projects.isEmpty() -> Column(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    if (type == AssetType.MOD) {
+                        PinnedProjectCard(
+                            project = pinnedTeamProject,
+                            onClick = { onOpenProject(pinnedTeamProject) },
+                            modifier = Modifier.padding(horizontal = AerixSpacing.md)
+                        )
+                    }
                     QuietEmptyState(R.drawable.aerix_ic_search, stringResource(R.string.aerix_download_empty))
                 }
                 else -> {
@@ -700,6 +826,14 @@ private fun SearchAssetsContent(
                             contentPadding = PaddingValues(top = AerixSpacing.xs, bottom = 68.dp),
                             verticalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
                         ) {
+                            if (type == AssetType.MOD) {
+                                item(key = "pinned_team_project") {
+                                    PinnedProjectCard(
+                                        project = pinnedTeamProject,
+                                        onClick = { onOpenProject(pinnedTeamProject) }
+                                    )
+                                }
+                            }
                             items(
                                 count = rows.size,
                                 key = { idx -> rows[idx].joinToString("_") { "${it.platform}:${it.id}" } }
