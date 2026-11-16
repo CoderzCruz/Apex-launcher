@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -300,6 +301,59 @@ fun AerixClientScreen(activity: FragmentActivity) {
             }
         }
 
+        // Supported versions strip — every release the client ships for.
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = "SUPPORTED",
+                fontSize = 8.5.sp,
+                letterSpacing = 1.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = accent
+            )
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                AerixClientInstaller.availableVersions.forEachIndexed { index, spec ->
+                    val latest = index == 0
+                    val shape = RoundedCornerShape(999.dp)
+                    Box(
+                        modifier = Modifier
+                            .clip(shape)
+                            .background(
+                                if (latest) {
+                                    Brush.horizontalGradient(
+                                        listOf(Color(0xFFDC2626), Color(0xFFB01B2B))
+                                    )
+                                } else {
+                                    AerixSurface.panelRaised
+                                }
+                            )
+                            .border(
+                                AerixSpacing.hairline,
+                                if (spec.mcVersion.startsWith("26.") || latest) AerixSurface.borderHighlight
+                                else AerixSurface.borderSoft,
+                                shape
+                            )
+                            .padding(horizontal = 7.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = spec.mcVersion,
+                            fontSize = 9.sp,
+                            fontWeight = if (latest) FontWeight.ExtraBold else FontWeight.Bold,
+                            color = if (latest) Color.White else Color.White.copy(alpha = 0.78f)
+                        )
+                    }
+                }
+            }
+        }
+
         // Feature showcase — 2 × 3 tiles.
         Column(verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
             Row(
@@ -385,6 +439,25 @@ fun AerixClientScreen(activity: FragmentActivity) {
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
         ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "DOWNLOADS",
+                    fontSize = 9.sp,
+                    letterSpacing = 1.4.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = accent
+                )
+                Text(
+                    text = "${AerixClientInstaller.availableVersions.size} versions · newest first",
+                    fontSize = 9.sp,
+                    color = Color.White.copy(alpha = 0.55f)
+                )
+            }
+
             AerixClientInstaller.availableVersions.forEach { spec ->
                 val installed = remember(refreshTick, AerixClientInstaller.isInstalling, spec.mcVersion) {
                     AerixClientInstaller.findInstalledClientInstance(spec.mcVersion, installedClients)
