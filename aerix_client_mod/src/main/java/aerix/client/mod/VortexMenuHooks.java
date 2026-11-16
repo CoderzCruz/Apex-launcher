@@ -157,7 +157,7 @@ public final class VortexMenuHooks {
             if (button == null) return;
 
             // Mutate the screen's children on the client thread, never from this worker.
-            Method execute = clsMc.getMethod("execute", Runnable.class);
+            Method execute = mc.getClass().getMethod("execute", Runnable.class);
             final Object target = button;
             final Class<?> widgetArg = clsWidget;
             execute.invoke(mc, new Runnable() {
