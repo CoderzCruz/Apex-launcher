@@ -44,11 +44,101 @@ internal object LauncherUpdater {
     private var fullTestJob: Job? = null
     private var apk: File? = null
 
+    private const val VORTEX_APK_NAME = "Vortex.Launcher.v1.apk"
+    private const val VORTEX_APK_URL =
+        "https://github.com/CoderzCruz/Apex-launcher/releases/download/debug-latest/Vortex.Launcher.v1.apk"
+
+    /**
+     * This launcher's own auto-update: the debug-latest release the CI publishes. Returns a
+     * release only when the published versionCode is newer than this install, so every build
+     * offers itself exactly once. Null (current or unreadable) falls through to the upstream
+     * check below, which keeps running unchanged.
+     */
+    private suspend fun fetchVortexDebugRelease(): LauncherRelease? {
+        val response = open("https://api.github.com/repos/CoderzCruz/Apex-launcher/releases/tags/debug-latest")
+        val body = try {
+            if (response.responseCode == 404) return null
+            require(response.responseCode == 200) { "GitHub returned HTTP ${response.responseCode}. Please try again later." }
+            response.inputStream.use { input ->
+                val out = java.io.ByteArrayOutputStream()
+                val buffer = ByteArray(4096)
+                while (out.size() <= 1024 * 1024) {
+                    val count = input.read(buffer)
+                    if (count == -1) break
+                    out.write(buffer, 0, count)
+                }
+                out.toByteArray().toString(Charsets.UTF_8)
+            }
+        } finally { response.disconnect(); connection = null }
+        val json = try { org.json.JSONObject(body) } catch (e: Exception) { return null }
+        val released = Regex("versionCode[^0-9]{0,8}(\\d+)")
+            .find(json.optString("body"))?.groupValues?.get(1)?.toLongOrNull() ?: return null
+        if (released <= BuildConfig.VERSION_CODE) return null
+        val installed = LauncherVersion.parse(BuildConfig.VERSION_NAME) ?: return null
+
+        var apkSize = 0L
+        val assets = json.optJSONArray("assets")
+        if (assets != null) {
+            for (i in 0 until assets.length()) {
+                val asset = assets.getJSONObject(i)
+                if (asset.optString("name") == VORTEX_APK_NAME) {
+                    apkSize = asset.optLong("size", 0L)
+                    break
+                }
+            }
+        }
+        if (apkSize <= 0L || apkSize > LauncherUpdatePolicy.MAX_APK_BYTES) return null
+
+        // Encode the versionCode as the offer version so each new build is a fresh, higher offer
+        // (versionName stays 2.0.0 across builds); tag stays the clean versionName so validate()'s
+        // expectedVersion matches the downloaded noruntime APK.
+        val version = LauncherVersion(
+            (released / 1_000_000L).toInt(),
+            ((released / 1_000L) % 1_000L).toInt(),
+            (released % 1_000L).toInt()
+        )
+        return LauncherRelease(
+            tag = "v${installed.major}.${installed.minor}.${installed.patch}",
+            version = version,
+            notes = json.optString("name").ifBlank { "Vortex Launcher update $released" },
+            asset = LauncherUpdateAsset(
+                name = VORTEX_APK_NAME,
+                url = VORTEX_APK_URL,
+                size = apkSize,
+                sha256 = fetchVortexSha256()
+            )
+        )
+    }
+
+    /** The CI-published `<apk>.sha256` sidecar: first hex token of the sha256sum file. */
+    private fun fetchVortexSha256(): String? {
+        val response = open(VORTEX_APK_URL + ".sha256")
+        try {
+            if (response.responseCode != 200) return null
+            val text = response.inputStream.use { input ->
+                val out = java.io.ByteArrayOutputStream()
+                val buffer = ByteArray(1024)
+                val count = input.read(buffer)
+                if (count <= 0) "" else String(buffer, 0, count, Charsets.UTF_8)
+            }
+            return text.trim().substringBefore(' ').lowercase()
+                .takeIf { it.length == 64 && it.all { ch -> ch in "0123456789abcdef" } }
+        } finally { response.disconnect(); connection = null }
+    }
+
     fun check() {
         if (job?.isActive == true || (phase == LauncherUpdatePhase.READY && apk?.isFile == true)) return
         phase = LauncherUpdatePhase.CHECKING; error = ""
         job = scope.launch {
             try {
+                val vortex = fetchVortexDebugRelease()
+                if (vortex != null) {
+                    withContext(Dispatchers.Main) {
+                        release = vortex
+                        phase = LauncherUpdatePhase.AVAILABLE
+                    }
+                    return@launch
+                }
                 val response = open("https://api.github.com/repos/entitybrian69-bit/Aerix-launcher/releases/latest")
                 val result = try {
                     if (response.responseCode == 404) null else {

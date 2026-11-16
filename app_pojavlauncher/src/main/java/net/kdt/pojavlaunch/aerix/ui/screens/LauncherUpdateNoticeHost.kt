@@ -24,6 +24,12 @@ internal fun LauncherUpdateNoticeHost(activity: FragmentActivity) {
             }
         }
     }
+    // Auto-download the moment an update is offered — only Android's install sheet needs a tap.
+    LaunchedEffect(LauncherUpdater.phase, release?.tag) {
+        if (LauncherUpdater.phase == LauncherUpdatePhase.AVAILABLE && release != null) {
+            LauncherUpdater.download(activity)
+        }
+    }
     LaunchedEffect(release?.tag, LauncherUpdater.phase, revision, manual) {
         if (manual > 0) offeredTag = null
         else if (offeredTag == null && LauncherUpdater.phase == LauncherUpdatePhase.AVAILABLE &&
