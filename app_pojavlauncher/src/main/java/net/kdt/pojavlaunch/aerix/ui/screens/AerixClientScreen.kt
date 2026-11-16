@@ -228,6 +228,13 @@ fun AerixClientScreen(activity: FragmentActivity) {
         title = "Vortex Client",
         subtitle = null
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(AerixSpacing.md)
+        ) {
         // Big showcase hero (Feather/RKMC-style client landing).
         Box(
             modifier = Modifier
@@ -431,9 +438,6 @@ fun AerixClientScreen(activity: FragmentActivity) {
         }
         // Liquid Glass Version Download & Launch List (Nothing More)
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
         ) {
             Row(
@@ -866,5 +870,6 @@ fun AerixClientScreen(activity: FragmentActivity) {
                     )
                 )
             }
+        }
         }
     }
