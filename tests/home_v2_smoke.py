@@ -102,6 +102,7 @@ discover = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/DiscoverScreen.kt")
 assert "Brush.horizontalGradient" in discover and "borderHighlight" in discover, "premium mod cards"
 client = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/AerixClientScreen.kt").read_text()
 assert "VORTEX CLIENT" in client and "FPS Boost" in client and "ClientFeatureTile" in client, "client hero + features"
+assert "ClientModuleSection" in client and "PvP preset applied" in client, "modules manager + presets"
 assert "selectedRed = Color(0xFFDC2626)" in rail, "opened section icon turns red"
 assert ".height(300.dp)" in home, "bigger skin stage"
 assert '"Welcome to Vortex Launcher"' in home, "welcome bubble"

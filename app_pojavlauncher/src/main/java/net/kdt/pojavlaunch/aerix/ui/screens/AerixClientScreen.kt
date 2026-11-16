@@ -109,6 +109,109 @@ private fun ClientFeatureTile(
     }
 }
 
+/** One module row: label + live store state + toggle. */
+private class ModuleChip(val label: String, val enabled: Boolean, val toggle: () -> Unit)
+
+@Composable
+private fun ClientModuleChip(label: String, enabled: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(AerixRadii.control)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(if (enabled) Color(0x33DC2626) else AerixSurface.panelRaised)
+            .border(
+                AerixSpacing.hairline,
+                if (enabled) AerixSurface.borderHighlight else AerixSurface.borderSoft,
+                shape
+            )
+            .clickable(onClick = onToggle)
+            .padding(horizontal = 10.dp, vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                color = if (enabled) Color.White else Color.White.copy(alpha = 0.72f),
+                fontSize = 10.5.sp,
+                fontWeight = if (enabled) FontWeight.ExtraBold else FontWeight.Medium,
+                maxLines = 1,
+                modifier = Modifier.weight(1f)
+            )
+            Box(
+                modifier = Modifier
+                    .size(width = 30.dp, height = 16.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(if (enabled) AerixSurface.accent else Color.White.copy(alpha = 0.14f))
+                    .border(
+                        0.8.dp,
+                        if (enabled) Color.White.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.22f),
+                        RoundedCornerShape(999.dp)
+                    )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(2.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .align(if (enabled) Alignment.CenterEnd else Alignment.CenterStart)
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(Color.White)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClientModuleSection(title: String, chips: List<ModuleChip>) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            text = title,
+            fontSize = 9.sp,
+            letterSpacing = 1.2.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White.copy(alpha = 0.6f)
+        )
+        chips.chunked(2).forEach { pair ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                pair.forEach { chip ->
+                    ClientModuleChip(chip.label, chip.enabled, chip.toggle, Modifier.weight(1f))
+                }
+                if (pair.size == 1) Spacer(Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClientPresetPill(label: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(Brush.horizontalGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B))))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 7.dp)
+    ) {
+        Text(
+            text = label,
+            color = Color.White,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.ExtraBold
+        )
+    }
+}
+
 @Composable
 fun AerixClientScreen(activity: FragmentActivity) {
     LaunchedEffect(Unit) {
@@ -511,6 +614,187 @@ fun AerixClientScreen(activity: FragmentActivity) {
                     }
                 }
             }
+
+                // ── Modules: real client toggles, saved for the next launch ──
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "MODULES",
+                        fontSize = 9.sp,
+                        letterSpacing = 1.4.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = accent
+                    )
+                    Text(
+                        text = "saved for your next launch",
+                        fontSize = 9.sp,
+                        color = Color.White.copy(alpha = 0.55f)
+                    )
+                }
+
+                // One-tap loadout presets.
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    ClientPresetPill("PvP") {
+                        AerixClientStore.toggleSprintEnabled = true
+                        AerixClientStore.toggleSneakEnabled = true
+                        AerixClientStore.hitmarkerEnabled = true
+                        AerixClientStore.comboCounterEnabled = true
+                        AerixClientStore.swordCooldownBarEnabled = true
+                        AerixClientStore.autoGgEnabled = true
+                        AerixClientStore.quickPvpButtonsEnabled = true
+                        AerixClientStore.crosshairEnabled = true
+                        AerixClientStore.persist()
+                        Toast.makeText(activity, "PvP preset applied", Toast.LENGTH_SHORT).show()
+                    }
+                    ClientPresetPill("Survival") {
+                        AerixClientStore.coordsHudEnabled = true
+                        AerixClientStore.armorHudEnabled = true
+                        AerixClientStore.effectsHudEnabled = true
+                        AerixClientStore.healthHudEnabled = true
+                        AerixClientStore.pingHudEnabled = true
+                        AerixClientStore.hitmarkerEnabled = false
+                        AerixClientStore.comboCounterEnabled = false
+                        AerixClientStore.quickPvpButtonsEnabled = false
+                        AerixClientStore.persist()
+                        Toast.makeText(activity, "Survival preset applied", Toast.LENGTH_SHORT).show()
+                    }
+                    ClientPresetPill("FPS") {
+                        AerixClientStore.perfPillEnabled = true
+                        AerixClientStore.adaptiveDistanceEnabled = true
+                        AerixClientStore.fullbrightEnabled = true
+                        AerixClientStore.wavingCapeEnabled = false
+                        AerixClientStore.packEnhancedGlint = false
+                        AerixClientStore.persist()
+                        Toast.makeText(activity, "FPS preset applied", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                ClientModuleSection(
+                    title = "COMBAT & GAMEPLAY",
+                    chips = listOf(
+                        ModuleChip("Toggle sprint", AerixClientStore.toggleSprintEnabled) {
+                            AerixClientStore.toggleSprintEnabled = !AerixClientStore.toggleSprintEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Toggle sneak", AerixClientStore.toggleSneakEnabled) {
+                            AerixClientStore.toggleSneakEnabled = !AerixClientStore.toggleSneakEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Hitmarker", AerixClientStore.hitmarkerEnabled) {
+                            AerixClientStore.hitmarkerEnabled = !AerixClientStore.hitmarkerEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Combo counter", AerixClientStore.comboCounterEnabled) {
+                            AerixClientStore.comboCounterEnabled = !AerixClientStore.comboCounterEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Sword cooldown", AerixClientStore.swordCooldownBarEnabled) {
+                            AerixClientStore.swordCooldownBarEnabled = !AerixClientStore.swordCooldownBarEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Auto GG", AerixClientStore.autoGgEnabled) {
+                            AerixClientStore.autoGgEnabled = !AerixClientStore.autoGgEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Quick PvP buttons", AerixClientStore.quickPvpButtonsEnabled) {
+                            AerixClientStore.quickPvpButtonsEnabled = !AerixClientStore.quickPvpButtonsEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Crosshair", AerixClientStore.crosshairEnabled) {
+                            AerixClientStore.crosshairEnabled = !AerixClientStore.crosshairEnabled
+                            AerixClientStore.persist()
+                        }
+                    )
+                )
+
+                ClientModuleSection(
+                    title = "HUD & STATS",
+                    chips = listOf(
+                        ModuleChip("Coordinates", AerixClientStore.coordsHudEnabled) {
+                            AerixClientStore.coordsHudEnabled = !AerixClientStore.coordsHudEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Armor HUD", AerixClientStore.armorHudEnabled) {
+                            AerixClientStore.armorHudEnabled = !AerixClientStore.armorHudEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Effects", AerixClientStore.effectsHudEnabled) {
+                            AerixClientStore.effectsHudEnabled = !AerixClientStore.effectsHudEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Health", AerixClientStore.healthHudEnabled) {
+                            AerixClientStore.healthHudEnabled = !AerixClientStore.healthHudEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Server & ping", AerixClientStore.pingHudEnabled) {
+                            AerixClientStore.pingHudEnabled = !AerixClientStore.pingHudEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Perf pill", AerixClientStore.perfPillEnabled) {
+                            AerixClientStore.perfPillEnabled = !AerixClientStore.perfPillEnabled
+                            AerixClientStore.persist()
+                        }
+                    )
+                )
+
+                ClientModuleSection(
+                    title = "VISUAL",
+                    chips = listOf(
+                        ModuleChip("Low fire", AerixClientStore.packLowFire) {
+                            AerixClientStore.packLowFire = !AerixClientStore.packLowFire
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Clear water", AerixClientStore.packClearWater) {
+                            AerixClientStore.packClearWater = !AerixClientStore.packClearWater
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Enchanted glint", AerixClientStore.packEnhancedGlint) {
+                            AerixClientStore.packEnhancedGlint = !AerixClientStore.packEnhancedGlint
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Fullbright", AerixClientStore.fullbrightEnabled) {
+                            AerixClientStore.fullbrightEnabled = !AerixClientStore.fullbrightEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Wavey cape", AerixClientStore.wavingCapeEnabled) {
+                            AerixClientStore.wavingCapeEnabled = !AerixClientStore.wavingCapeEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Streamer mode", AerixClientStore.streamerPrivacyEnabled) {
+                            AerixClientStore.streamerPrivacyEnabled = !AerixClientStore.streamerPrivacyEnabled
+                            AerixClientStore.persist()
+                        }
+                    )
+                )
+
+                ClientModuleSection(
+                    title = "TOUCH & AIM",
+                    chips = listOf(
+                        ModuleChip("Touch aim", AerixClientStore.touchAimEnabled) {
+                            AerixClientStore.touchAimEnabled = !AerixClientStore.touchAimEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Gyro aim", AerixClientStore.gyroAdsEnabled) {
+                            AerixClientStore.gyroAdsEnabled = !AerixClientStore.gyroAdsEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Hotbar swipe", AerixClientStore.hotbarSwipeEnabled) {
+                            AerixClientStore.hotbarSwipeEnabled = !AerixClientStore.hotbarSwipeEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("Hold zoom", AerixClientStore.quickZoomEnabled) {
+                            AerixClientStore.quickZoomEnabled = !AerixClientStore.quickZoomEnabled
+                            AerixClientStore.persist()
+                        },
+                        ModuleChip("180\u00b0 flick", AerixClientStore.quickFlickEnabled) {
+                            AerixClientStore.quickFlickEnabled = !AerixClientStore.quickFlickEnabled
+                            AerixClientStore.persist()
+                        }
+                    )
+                )
+            }
         }
     }
-}
