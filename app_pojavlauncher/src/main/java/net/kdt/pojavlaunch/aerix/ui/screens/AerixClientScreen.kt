@@ -516,7 +516,8 @@ fun AerixClientScreen(activity: FragmentActivity) {
             PojavInstanceBridge.reload()
             res.onSuccess { r ->
                 val failedText = if (r.failed.isEmpty()) "" else " · failed: ${r.failed.joinToString(", ")}"
-                Toast.makeText(activity, "$title: ${r.installed} mods installed$failedText", Toast.LENGTH_LONG).show()
+                val hint = if (r.failed.any { "no build" in it }) " — 1.21.11 instance pe try karo" else ""
+                Toast.makeText(activity, "$title: ${r.installed} mods installed$failedText$hint", Toast.LENGTH_LONG).show()
             }.onFailure { err ->
                 Toast.makeText(activity, err.message ?: "Pack install failed", Toast.LENGTH_LONG).show()
             }

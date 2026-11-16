@@ -437,14 +437,47 @@ object AerixClientInstaller {
             slugs.forEachIndexed { idx, slug ->
                 statusDetail = "Mod ${idx + 1}/${slugs.size} · $slug"
                 progressFraction = idx.toFloat() / slugs.size
-                val ok = runCatching { ensureModrinthJar(modsDir, slug, mcVersion, 0) }.getOrDefault(false)
-                if (ok) installed++ else failed += slug
+                val attempt = runCatching { ensureModrinthJar(modsDir, slug, mcVersion, 0) }
+                if (attempt.isSuccess && attempt.getOrDefault(false)) {
+                    installed++
+                } else {
+                    // Same request again, but reporting WHY: HTTP, no build for this MC, or network.
+                    val why = attempt.exceptionOrNull()?.message
+                        ?: runCatching { diagnoseModrinthFailure(slug, mcVersion) }.getOrDefault("unknown error")
+                    failed += "$slug ($why)"
+                }
             }
             progressFraction = 1f
             statusDetail = "$installed/${slugs.size} mods ready"
             Result.success(PackInstallResult(installed, failed))
         } finally {
             isInstalling = false
+        }
+    }
+
+    /** Why [ensureModrinthJar] returned false: Modrinth HTTP, no build for this MC, or network. */
+    private fun diagnoseModrinthFailure(projectSlugOrId: String, mcVersion: String): String {
+        return try {
+            val loadersParam = URLEncoder.encode("[\"fabric\"]", "UTF-8")
+            val gvParam = URLEncoder.encode("[\"$mcVersion\"]", "UTF-8")
+            val url = "https://api.modrinth.com/v2/project/$projectSlugOrId/version?loaders=$loadersParam&game_versions=$gvParam"
+            val req = Request.Builder()
+                .url(url)
+                .header("User-Agent", USER_AGENT)
+                .header("Accept", "application/json")
+                .get()
+                .build()
+            SocialRealtime.restClient.newCall(req).execute().use { resp ->
+                when {
+                    !resp.isSuccessful -> "Modrinth HTTP ${resp.code}"
+                    else -> {
+                        val versions = JSONArray(resp.body?.string().orEmpty())
+                        if (versions.length() == 0) "no build for MC $mcVersion" else "download failed"
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            "network: ${e.message ?: e.javaClass.simpleName}"
         }
     }
 
