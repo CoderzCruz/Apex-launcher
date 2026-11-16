@@ -51,7 +51,7 @@ object ClientInstanceOptions {
         val queue = readJson(packQueue(dir))
         return File(dir, "resourcepacks").listFiles().orEmpty().asSequence()
             .filter { validPackName(it.name) && (it.isDirectory || it.extension.equals("zip", true)) }
-            .filterNot { it.name == AerixClientPackGenerator.PACK_FILE_NAME }
+            .filterNot { it.name == AerixClientPackGenerator.PACK_FILE_NAME || it.name == AerixClientPackGenerator.LEGACY_PACK_FILE_NAME }
             .sortedBy { it.name.lowercase() }.take(100)
             .map { file ->
                 val id = "file/${file.name}"
@@ -60,7 +60,7 @@ object ClientInstanceOptions {
     }
 
     fun queuePack(dir: File, name: String, enabled: Boolean) {
-        require(validPackName(name) && name != AerixClientPackGenerator.PACK_FILE_NAME)
+        require(validPackName(name) && name != AerixClientPackGenerator.PACK_FILE_NAME && name != AerixClientPackGenerator.LEGACY_PACK_FILE_NAME)
         val file = File(File(dir, "resourcepacks"), name)
         require(file.exists() && (file.isDirectory || file.extension.equals("zip", true))) { "Pack no longer exists" }
         val queued = readJson(packQueue(dir))
@@ -130,7 +130,7 @@ object ClientInstanceOptions {
             val packs = packsFromOptions(lines)
             queue.keys().asSequence().toList().forEach { id ->
                 val name = id.removePrefix("file/")
-                if (!id.startsWith("file/") || !validPackName(name) || name == AerixClientPackGenerator.PACK_FILE_NAME) return@forEach
+                if (!id.startsWith("file/") || !validPackName(name) || name == AerixClientPackGenerator.PACK_FILE_NAME || name == AerixClientPackGenerator.LEGACY_PACK_FILE_NAME) return@forEach
                 val file = File(File(dir, "resourcepacks"), name)
                 if (queue.optBoolean(id, false) && file.exists()) {
                     if (id !in packs) packs.add(id)

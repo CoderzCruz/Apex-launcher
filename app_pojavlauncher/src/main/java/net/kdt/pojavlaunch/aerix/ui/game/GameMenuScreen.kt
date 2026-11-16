@@ -517,8 +517,9 @@ private fun CompactMenuButton(
     val pressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(if (pressed) 0.97f else 1f, label = "compactButton")
     val onColor = if (emphasized && color.luminance() > 0.45f) AerixSurface.canvas else AerixSurface.textPrimary
-    val background = if (emphasized) color.copy(alpha = 0.92f) else color.copy(alpha = 0.12f)
-    val outline = if (emphasized) color else color.copy(alpha = 0.38f)
+    // Feather-style: uniform charcoal tiles with a thin light rim; accent only on the primary row.
+    val background = if (emphasized) color.copy(alpha = 0.92f) else Color(0xCC17181C)
+    val outline = if (emphasized) color else Color.White.copy(alpha = 0.16f)
 
     Row(
         modifier = Modifier

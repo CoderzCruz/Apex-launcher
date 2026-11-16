@@ -813,8 +813,8 @@ private fun FamousClientRectangleMenu(
         // Big Dark Gray & Crimson Red Client Rectangle
         Column(
             modifier = Modifier
-                .fillMaxWidth(0.86f)
-                .fillMaxHeight(0.86f)
+                .fillMaxWidth(0.95f)
+                .fillMaxHeight(0.95f)
                 .drawBehind {
                     // Subtle outer Crimson ambient glow around the big rectangle
                     drawRoundRect(
@@ -3054,7 +3054,7 @@ private fun CrimsonBootSplash() {
         }
         LiquidCrystalCard(
             modifier = Modifier
-                .width(420.dp)
+                .width(500.dp)
                 .shadow(
                     elevation = 30.dp,
                     shape = RoundedCornerShape(16.dp),

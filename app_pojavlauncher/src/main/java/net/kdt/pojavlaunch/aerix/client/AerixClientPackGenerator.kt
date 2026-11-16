@@ -23,14 +23,17 @@ import kotlin.math.atan2
 import kotlin.math.hypot
 
 /**
- * Generates `Aerix-Client-Pack.zip` inside the Aerix Client instance's `resourcepacks/` folder,
+ * Generates `Vortex-Client-Pack.zip` inside the Vortex Client instance's `resourcepacks/` folder,
  * preserving 100% authentic Mojang vanilla item/tool/armor artwork while adding live shimmer
- * & floating sparkle particle animations, replacing the Title Screen logo with `AERIX CLIENT`,
+ * & floating sparkle particle animations, replacing the Title Screen logo with `VORTEX CLIENT`,
  * applying the dark Minecraft-style panorama, and tuning FPS configs.
  */
 object AerixClientPackGenerator {
 
-    const val PACK_FILE_NAME = "Aerix-Client-Pack.zip"
+    const val PACK_FILE_NAME = "Vortex-Client-Pack.zip"
+
+    /** Pre-rename pack file; removed on sync and hidden from the pack picker. */
+    const val LEGACY_PACK_FILE_NAME = "Aerix-Client-Pack.zip"
     private const val PACK_SCHEMA_REV = "v6_aerix_dark_landscape_2026"
     internal const val CLIENT_BACKGROUND_ASSET = "aerix/client_dark_background.webp"
 
@@ -56,7 +59,7 @@ object AerixClientPackGenerator {
 
     /**
      * Fast stamp-checked sync called at launch (`attachForInstance` & Launcher Launch button) so
-     * existing Client installs automatically upgrade to the new `AERIX CLIENT` logo, dark landscape
+     * existing Client installs automatically upgrade to the new `VORTEX CLIENT` logo, dark landscape
      * background, and genuine vanilla animated gear once `<mcVersion>.jar` is on disk.
      */
     fun ensurePackUpToDate(context: Context, instanceGameDir: File, mcVersion: String) {
@@ -113,7 +116,7 @@ object AerixClientPackGenerator {
             putText(zos, "pack.mcmeta", mcmeta)
             putBitmap(zos, "pack.png", buildPackIcon(context))
 
-            // 1. Title Screen: Replace "MINECRAFT JAVA EDITION" with "AERIX CLIENT" + Misty Forest Background
+            // 1. Title Screen: Replace "MINECRAFT JAVA EDITION" with "VORTEX CLIENT" + Misty Forest Background
             if (AerixClientStore.packCustomMainMenu) {
                 val logoBmp = if (packFmt >= 13) {
                     buildAerixTitleLogoModern(context)
@@ -123,7 +126,7 @@ object AerixClientPackGenerator {
                 putBitmap(zos, "assets/minecraft/textures/gui/title/minecraft.png", logoBmp)
                 putBitmap(zos, "assets/minecraft/textures/gui/title/minceraft.png", logoBmp)
 
-                // Transparent edition.png so vanilla "JAVA EDITION" never appears over "AERIX CLIENT"
+                // Transparent edition.png so vanilla "JAVA EDITION" never appears over "VORTEX CLIENT"
                 val emptyEdition = Bitmap.createBitmap(128, 16, Bitmap.Config.ARGB_8888)
                 emptyEdition.eraseColor(Color.TRANSPARENT)
                 putBitmap(zos, "assets/minecraft/textures/gui/title/edition.png", emptyEdition)
@@ -230,9 +233,15 @@ object AerixClientPackGenerator {
         }
 
         if (AerixClientStore.installClientResourcePack) {
+            // Remove the pre-rename Aerix pack file so only Vortex-Client-Pack.zip remains.
+            val legacyZip = File(File(instanceGameDir, "resourcepacks").apply { mkdirs() }, LEGACY_PACK_FILE_NAME)
+            if (legacyZip.exists()) legacyZip.delete()
             val currentPacks = map["resourcePacks"].orEmpty()
             if (!currentPacks.contains(PACK_FILE_NAME)) {
                 val packs = runCatching { org.json.JSONArray(currentPacks) }.getOrElse { org.json.JSONArray().put("vanilla") }
+                for (i in packs.length() - 1 downTo 0) {
+                    if (packs.optString(i) == "file/$LEGACY_PACK_FILE_NAME") packs.remove(i)
+                }
                 packs.put("file/$PACK_FILE_NAME")
                 map["resourcePacks"] = packs.toString()
             }
@@ -277,7 +286,7 @@ object AerixClientPackGenerator {
     fun applySodiumAndModConfigs(@Suppress("UNUSED_PARAMETER") instanceGameDir: File) = Unit
 
     /* ═══════════════════════════════════════════════════════════════════════
-     * 1. TITLE SCREEN "AERIX CLIENT" LOGO BUILDERS (EXACT LEGACY & MODERN UV)
+     * 1. TITLE SCREEN "VORTEX CLIENT" LOGO BUILDERS (EXACT LEGACY & MODERN UV)
      * ═══════════════════════════════════════════════════════════════════════ */
 
     /** Draw the supplied A and handwritten wordmark on the Minecraft title's 44px strip. */
@@ -286,17 +295,19 @@ object AerixClientPackGenerator {
         val canvas = Canvas(bmp)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
         val mark = BitmapFactory.decodeResource(context.resources, R.drawable.ic_aerix_mark)
-        val wordmark = BitmapFactory.decodeResource(context.resources, R.drawable.aerix_wordmark)
         val left = (logicalWidth - 215f) / 2f * scale
         if (mark != null) {
             canvas.drawBitmap(mark, null, RectF(left, 1f * scale, left + 42f * scale, 43f * scale), paint)
         }
-        if (wordmark != null) {
-            val wordLeft = left + 50f * scale
-            val wordWidth = 165f * scale
-            val wordHeight = wordWidth * wordmark.height / wordmark.width
-            canvas.drawBitmap(wordmark, null, RectF(wordLeft, 7f * scale, wordLeft + wordWidth, 7f * scale + wordHeight), paint)
+        // VORTEX wordmark drawn as text — replaces the legacy Aerix PNG wordmark on the title.
+        val word = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BLACK)
+            textAlign = Paint.Align.LEFT
+            textSize = 30f * scale
+            color = Color.WHITE
+            setShadowLayer(1.5f * scale, 0f, 1.5f * scale, Color.BLACK)
         }
+        canvas.drawText("VORTEX", left + 50f * scale, 33f * scale, word)
         val subtitle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
