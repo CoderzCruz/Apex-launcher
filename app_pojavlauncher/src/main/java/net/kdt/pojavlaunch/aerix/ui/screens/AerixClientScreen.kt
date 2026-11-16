@@ -508,6 +508,22 @@ fun AerixClientScreen(activity: FragmentActivity) {
     val selectedInstalled = remember(selectedVersion, installedClients) {
         AerixClientInstaller.findInstalledClientInstance(selectedVersion, installedClients)
     }
+    // One-tap config profile: merge preset video settings into the instance's options.txt.
+    val applyConfigProfile: (ClientConfigProfiles.Profile) -> Unit = { profile ->
+        val target = selectedInstalled?.gameDirectory
+        if (target == null) {
+            Toast.makeText(activity, "Pehle Vortex Client instance install karo", Toast.LENGTH_LONG).show()
+        } else {
+            scope.launch {
+                val ok = runCatching { ClientConfigProfiles.applyOptions(target, profile.options) }.isSuccess
+                if (ok) {
+                    Toast.makeText(activity, "${profile.title} profile applied — next launch se active", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(activity, "${profile.title} profile apply failed", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
     // One-tap Vortex mod packs: install into the client instance, then refresh + toast counts.
     val startPackInstall: (String, List<String>, List<String>) -> Unit = { title, slugs, purgePrefixes ->
         scope.launch {
@@ -1010,6 +1026,35 @@ fun AerixClientScreen(activity: FragmentActivity) {
                         )
                     }
                 )
+                // ── CONFIG PROFILES: one-tap video settings for this instance ──
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "CONFIG PROFILES",
+                        fontSize = 9.sp,
+                        letterSpacing = 1.4.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = accent
+                    )
+                    Text(
+                        text = "video settings · next launch se active",
+                        fontSize = 9.sp,
+                        color = Color.White.copy(alpha = 0.55f)
+                    )
+                }
+                ClientConfigProfiles.PROFILES.forEach { profile ->
+                    ClientPackCard(
+                        title = profile.title,
+                        subtitle = profile.caption,
+                        caption = "options.txt me merge hota hai — baaki sab settings jaisi the waisi rehti hain.",
+                        buttonLabel = "Apply",
+                        enabled = !AerixClientInstaller.isInstalling && preparingLaunchVer == null && selectedInstalled != null,
+                        onClick = { applyConfigProfile(profile) }
+                    )
+                }
                 Spacer(Modifier.height(76.dp))
             }
         }
