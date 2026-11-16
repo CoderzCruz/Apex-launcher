@@ -32,18 +32,18 @@ internal data class TeamRelease(
 )
 internal val teamReleases = listOf(TeamRelease(
     // Verified from the CurseForge API/mirror on 2026-10-19, not a guessed title match.
-    title = "Aetherium (Fabric)", slug = "aetherium-fabric", projectId = "1749327", type = AssetType.MOD,
+    title = "Vultium (Fabric)", slug = "aetherium-fabric", projectId = "1749327", type = AssetType.MOD,
     iconUrl = "https://media.forgecdn.net/avatars/thumbnails/2125/90/256/256/639278007572469420.png",
-    attribution = "By Team_Aerix · CurseForge", badges = "Mod · Fabric · Client-side",
+    attribution = "Powered By Vortex Team", badges = "Mod · Fabric · Client-side",
     headline = "A new view of Minecraft performance",
-    summary = "Aetherium brings its own terrain renderer, frame-pacing controls and a redesigned video-settings experience to Fabric. The project describes features for both desktop and Android/Pojav setups.",
+    summary = "Vultium brings its own terrain renderer, frame-pacing controls and a redesigned video-settings experience to Fabric. The project describes features for both desktop and Android/Pojav setups.",
     features = listOf(
         "Rendering & frame pacing" to "Terrain rendering, entity and chunk culling, threaded chunk loading, and a frame-time/FPS overlay.",
         "Your world, your settings" to "Six animated settings pages, presets, dynamic lights, fullbright, zoom and freelook.",
         "Android-aware options" to "Memory and touch options, battery FPS caps and thermal controls, depending on the Minecraft version."
     ),
     compatibility = "Fabric Loader only; Fabric API is not required. The project lists Minecraft 1.16.5–26.3, with separate files for exact game versions. Choose a compatible file in Discover.",
-    warning = "Do not combine with Sodium, Embeddium, Rubidium or OptiFine. If rendering glitches occur, the project recommends disabling the Aetherium renderer in Video Settings → Backend.",
+    warning = "Do not combine with Sodium, Embeddium, Rubidium or OptiFine. If rendering glitches occur, the project recommends disabling the Vultium renderer in Video Settings → Backend.",
     footnote = "Features and compatibility are described by the project; performance depends on your device, renderer and game version. No FPS gain is guaranteed."
 ))
 

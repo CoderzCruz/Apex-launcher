@@ -362,7 +362,7 @@ private val pinnedTeamProject: AssetProject = run {
         id = team.projectId ?: "1749327",
         title = team.title,
         description = team.summary,
-        author = "Team_Aerix",
+        author = "Powered By Vortex Team",
         iconUrl = team.iconUrl,
         downloads = 0L,
         loaders = listOf("fabric")
@@ -436,7 +436,7 @@ private fun PinnedProjectCard(
                 )
             }
             Text(
-                text = "${project.author} · ${AssetPlatform.CURSEFORGE.displayName}",
+                text = project.author,
                 fontSize = 10.5.sp,
                 color = Color.White.copy(alpha = 0.66f)
             )
