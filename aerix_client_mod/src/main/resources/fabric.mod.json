@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "id": "aerix_client_animator",
   "version": "1.0.0",
-  "name": "Aerix Client Animator",
-  "description": "Live animated 3D capes and instant client runtime bridge for Aerix Client.",
+  "name": "Vortex Client Animator",
+  "description": "Animated 3D capes, Vortex title-screen menu hooks and live runtime bridge for Vortex Client.",
   "authors": [
-    "Aerix"
+    "Vortex"
   ],
   "environment": "client",
   "entrypoints": {

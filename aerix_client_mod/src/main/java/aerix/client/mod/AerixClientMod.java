@@ -75,6 +75,7 @@ public final class AerixClientMod implements ClientModInitializer {
     public void onInitializeClient() {
         if (!STARTED.compareAndSet(false, true)) return;
         ClientTelemetry.start();
+        VortexMenuHooks.start();
         Thread worker = new Thread(new Runnable() {
             @Override
             public void run() {
