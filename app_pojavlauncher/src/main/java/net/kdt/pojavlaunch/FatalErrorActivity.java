@@ -41,10 +41,13 @@ public class FatalErrorActivity extends AppCompatActivity {
 		String errHeader = storageAllow ?
 			"Crash stack trace saved to " + strSavePath + "." :
 			"Storage permission is required to save crash stack trace!";
-		
+		// Vortex Crash Care: offline Hindi fix, shown in the dialog and spoken aloud.
+		final String crashFix = net.kdt.pojavlaunch.aerix.bridge.VortexCrashCare.fixTextFor(
+				stackTrace + (throwable != null ? throwable.getClass().getName() : ""));
+
 		new AlertDialog.Builder(this)
 			.setTitle(R.string.error_fatal)
-			.setMessage(errHeader + "\n\n" + stackTrace)
+			.setMessage("\u0939\u093f\u0902\u0926\u0940 \u092e\u0947\u0902 \u0938\u0941\u0927\u093e\u0930: " + crashFix + "\n\n" + errHeader + "\n\n" + stackTrace)
 			.setPositiveButton(android.R.string.ok, (p1, p2) -> finish())
 			.setNegativeButton(R.string.global_restart, (p1, p2) -> startActivity(new Intent(FatalErrorActivity.this, LauncherActivity.class)))
 			.setNeutralButton(android.R.string.copy, (p1, p2) -> {
@@ -55,6 +58,7 @@ public class FatalErrorActivity extends AppCompatActivity {
 			})
 			.setCancelable(false)
 			.show();
+		net.kdt.pojavlaunch.aerix.bridge.VortexCrashCare.speakHindiFix(this, stackTrace);
 	}
 
 	private static String resolveStackTrace(String preformatted, Throwable throwable, String savePath) {
