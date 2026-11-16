@@ -103,6 +103,8 @@ public class PojavApplication extends MGApplication {
 		// (where i can find the cause and fix it)
         //noinspection ConstantValue
         if(!BuildConfig.BUILD_TYPE.equals("gplay")) installFatalErrorHandler();
+        // Vortex Crash Care: freeze watchdog speaks a Hindi fix when the UI stops ticking.
+        net.kdt.pojavlaunch.aerix.bridge.VortexCrashCare.startFreezeWatchdog(this);
 		
 		try {
 			super.onCreate();

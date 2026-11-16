@@ -3,6 +3,8 @@ package net.kdt.pojavlaunch.aerix.bridge
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.widget.Toast
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import java.util.Locale
@@ -47,7 +49,67 @@ object VortexCrashCare {
     fun speakHindiFix(context: Context, errorText: String) {
         if (spoken) return
         spoken = true
-        val text = fixTextFor(errorText)
+        speakRaw(context, fixTextFor(errorText))
+    }
+
+    private const val FREEZE_TEXT =
+        "\u0932\u0917 \u092f\u093e \u092b\u094d\u0930\u0940\u091c \u0939\u094b \u0930\u0939\u093e \u0939\u0948\u0964 " +
+        "RAM \u092c\u0922\u093c\u093e\u090f\u0901, mods \u0915\u092e \u0915\u0930\u0947\u0902, \u092b\u093c\u094b\u0928 \u0930\u0940\u0938\u094d\u091f\u093e\u0930\u094d\u091f \u0915\u0930\u0947\u0902, \u092b\u093c\u093f\u0930 \u0917\u0947\u092e \u091a\u0932\u093e\u090f\u0901\u0964"
+    private const val FREEZE_TOAST = "Vortex: freeze? RAM badhao / mods kam karo"
+
+    @Volatile private var lastTickAt = 0L
+    @Volatile private var freezeSpoken = false
+    @Volatile private var watchdogStartedAt = 0L
+    private var watchdogStarted = false
+
+    /**
+     * Freeze watchdog: a main-looper heartbeat every 2s; when it stops for 12s (and the app has
+     * been alive long enough to skip startup unpacking), a background thread speaks the Hindi
+     * freeze fix and posts a toast. Recovers automatically when the heartbeat resumes.
+     * Call once from Application.onCreate.
+     */
+    @JvmStatic
+    fun startFreezeWatchdog(context: Context) {
+        if (watchdogStarted) return
+        watchdogStarted = true
+        val app = context.applicationContext
+        val main = Handler(Looper.getMainLooper())
+        watchdogStartedAt = SystemClock.elapsedRealtime()
+        lastTickAt = watchdogStartedAt
+        val ticker = object : Runnable {
+            override fun run() {
+                lastTickAt = SystemClock.elapsedRealtime()
+                main.postDelayed(this, 2000L)
+            }
+        }
+        main.postDelayed(ticker, 2000L)
+        Thread({
+            while (true) {
+                try {
+                    Thread.sleep(3000L)
+                    val now = SystemClock.elapsedRealtime()
+                    val age = now - lastTickAt
+                    // >20s old skips the asset-unpack/startup window; one alert until recovery.
+                    if (now - watchdogStartedAt > 20_000L && age > 12_000L && !freezeSpoken) {
+                        freezeSpoken = true
+                        speakRaw(app, FREEZE_TEXT)
+                        main.post {
+                            runCatching {
+                                Toast.makeText(app, FREEZE_TOAST, Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    } else if (age < 4_000L) {
+                        freezeSpoken = false
+                    }
+                } catch (e: InterruptedException) {
+                    return@Thread
+                } catch (ignored: Throwable) {
+                }
+            }
+        }, "Vortex-Freeze-Watchdog").apply { isDaemon = true }.start()
+    }
+
+    private fun speakRaw(context: Context, text: String) {
         runCatching {
             // The init callback fires after the constructor returns, so the var is set by then;
             // inside the callback a local val keeps every reference resolvable.
