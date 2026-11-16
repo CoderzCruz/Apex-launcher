@@ -301,9 +301,9 @@ object AerixClientPackGenerator {
         }
         // VORTEX wordmark drawn as text — replaces the legacy Aerix PNG wordmark on the title.
         val word = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BLACK)
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             textAlign = Paint.Align.LEFT
-            textSize = 30f * scale
+            textSize = 32f * scale
             color = Color.WHITE
             setShadowLayer(1.5f * scale, 0f, 1.5f * scale, Color.BLACK)
         }
