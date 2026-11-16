@@ -44,6 +44,7 @@ import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.aerix.bridge.PojavInstanceBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavLaunchBridge
 import net.kdt.pojavlaunch.aerix.client.AerixClientInstaller
+import net.kdt.pojavlaunch.aerix.client.ClientConfigProfiles
 import net.kdt.pojavlaunch.aerix.client.ClientVersionSpec
 import net.kdt.pojavlaunch.aerix.client.AerixClientStore
 import net.kdt.pojavlaunch.aerix.components.GlassPanel
