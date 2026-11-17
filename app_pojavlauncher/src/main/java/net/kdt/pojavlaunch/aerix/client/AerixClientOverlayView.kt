@@ -25,6 +25,11 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -890,6 +895,7 @@ private fun FamousClientRectangleMenu(
                         },
                         color = Color.White,
                         fontSize = 15.sp,
+                        letterSpacing = 1.sp,
                         fontWeight = FontWeight.Black
                     )
                 }
@@ -1277,8 +1283,40 @@ private fun ClientSquaresGridPage(
             onValueChange = { search = it },
             singleLine = true,
             label = { Text("Search modules") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = LiquidCrystalPalette.CrimsonPrimary,
+                unfocusedBorderColor = LiquidCrystalPalette.DarkTileBorder,
+                cursorColor = LiquidCrystalPalette.CrimsonPrimary,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedLabelColor = LiquidCrystalPalette.CrimsonGlow,
+                unfocusedLabelColor = LiquidCrystalPalette.TextSecondary
+            )
         )
+        // Feather-style quick chips: jump straight to a section.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            val quickLinks: List<Pair<String, () -> Unit>> = listOf(
+                "Capes" to onOpenCapes,
+                "Crosshair" to onOpenCrosshairs,
+                "HUD" to onOpenInformation,
+                "Performance" to onOpenPerformance,
+                "Utilities" to onOpenUtility,
+                "Visuals" to onOpenVisuals,
+                "Game Options" to onOpenGameOptions,
+                "Aim" to onOpenAim,
+                "Packs" to onOpenPacks,
+                "Waypoints" to onOpenWaypoints
+            )
+            quickLinks.forEach { (label, action) ->
+                LiquidCrystalPill(label = label, onClick = action)
+            }
+        }
         BoxWithConstraints(modifier = Modifier.fillMaxWidth().weight(1f)) {
         val cols = when {
             maxWidth >= 560.dp -> 5
@@ -1328,10 +1366,14 @@ private fun GlowingFeatureSquareTile(
 ) {
     val active = module.isActive()
     val tileShape = RoundedCornerShape(10.dp)
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(if (pressed) 0.96f else 1f, label = "tilePress")
 
     Column(
         modifier = modifier
             .height(92.dp)
+            .graphicsLayer { scaleX = pressScale; scaleY = pressScale }
             .drawBehind {
                 // Soft slight Crimson glow when active
                 if (active) {
@@ -1374,7 +1416,7 @@ private fun GlowingFeatureSquareTile(
                 color = if (active) LiquidCrystalPalette.CrimsonGlow else LiquidCrystalPalette.DarkTileBorder,
                 shape = tileShape
             )
-            .clickable { module.onClick() }
+            .clickable(interactionSource = interaction, indication = null) { module.onClick() }
             .padding(horizontal = 8.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
