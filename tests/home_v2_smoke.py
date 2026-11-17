@@ -112,6 +112,11 @@ assert "CAPE SHOP" in cape_shop and "ClientCapeTile" in cape_shop and "equippedC
 assert '"Cape Shop"' in rail and "aerix_ic_style_outlined" in rail, "rail cape shop entry"
 assert '"Vortex Client"' not in rail, "client icon removed from rail"
 assert "AerixCapeShopScreen" in launcher, "cape shop hosted"
+assert "FastClientScreen" in launcher and "LauncherSection.FAST_CLIENT ->" in launcher, "fast client hosted"
+fast = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/FastClientScreen.kt").read_text()
+assert "FAST CLIENT" in fast and "fastclient.net" in fast and "mxinspire" in fast.lower(), "fast client screen"
+other = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/OtherReleasesScreen.kt").read_text()
+assert "FastClientReleaseCard" in other and "LauncherSection.FAST_CLIENT" in other, "fast client card"
 assert "selectedRed = Color(0xFFDC2626)" in rail, "opened section icon turns red"
 assert ".height(300.dp)" in home, "bigger skin stage"
 assert '"Welcome to Vortex Launcher"' in home, "welcome bubble"

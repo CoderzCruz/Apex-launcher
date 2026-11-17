@@ -109,6 +109,7 @@ enum class LauncherSection {
     /** Vortex Client — the Java client page: hero, features and install/launch cards. */
     CLIENT,
     CAPE_SHOP,
+    FAST_CLIENT,
     /** Pages opened on top of a section (Mirai "Create New Instance", instance settings, account sign-in). */
     CREATE_INSTANCE,
     INSTANCE_EDITOR,

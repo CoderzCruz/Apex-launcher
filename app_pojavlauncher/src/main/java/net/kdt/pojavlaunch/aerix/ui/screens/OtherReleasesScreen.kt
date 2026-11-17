@@ -1,6 +1,16 @@
 package net.kdt.pojavlaunch.aerix.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
+import androidx.compose.material3.Surface
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -64,9 +74,53 @@ internal fun OtherReleasesScreen(activity: FragmentActivity, navigate: (Launcher
                 }
             }
             items(teamReleases, key = { it.slug }) { project -> TeamReleaseCard(activity, project, navigate) }
+            item(key = "fast-client") { FastClientReleaseCard(navigate) }
             item {
                 Text("Only our published projects appear here. More releases will be added when we share them.",
                     style = MaterialTheme.typography.bodyMedium, color = AerixSurface.textSecondary)
+            }
+        }
+    }
+}
+
+/** Showcase card for Fast Client by mxinspire1 — opens the dedicated Fast Client page. */
+@Composable
+private fun FastClientReleaseCard(navigate: (LauncherSection) -> Unit) {
+    val accent = AerixThemeManager.currentAccent()
+    Surface(shape = RoundedCornerShape(22.dp), color = AerixSurface.panel) {
+        Column(
+            Modifier
+                .background(Brush.verticalGradient(listOf(accent.copy(alpha = 0.13f), AerixSurface.panel)))
+                .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Surface(shape = RoundedCornerShape(18.dp), color = accent.copy(alpha = 0.14f)) {
+                    Text("F", modifier = Modifier.padding(14.dp), fontSize = 24.sp, fontWeight = FontWeight.Black, color = accent)
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Fast Client", style = MaterialTheme.typography.titleLarge, color = AerixSurface.textPrimary, fontWeight = FontWeight.Bold)
+                    Text("Desktop client · FPS boost", style = MaterialTheme.typography.labelLarge, color = accent)
+                    Text("By MxInspire (mxinspire1)", style = MaterialTheme.typography.bodyMedium, color = AerixSurface.textSecondary)
+                }
+            }
+            Text(
+                "Fast launcher with FPS boosts, one-click Fabric mods, skins & capes and a custom HUD. Versions: 26.1.2, 1.20.1.",
+                style = MaterialTheme.typography.bodyMedium, color = AerixSurface.textSecondary
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Brush.horizontalGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B))))
+                    .clickable { navigate(LauncherSection.FAST_CLIENT) }
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Open Fast Client page →", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)
             }
         }
     }
