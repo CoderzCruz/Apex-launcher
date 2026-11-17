@@ -117,6 +117,9 @@ assert 'ic_px_zap, "Fast Client"' in rail, "fast client rail entry"
 fast = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/FastClientScreen.kt").read_text()
 assert "FAST CLIENT" in fast and "fastclient.net" in fast and "mxinspire" in fast.lower(), "fast client screen"
 assert "MX BOOST" in fast and "GGc38iHO" in fast and "AssetType.MODPACK" in fast, "mx boost modpack section"
+assert "Install in Vortex" in fast and "installModpackFromModrinth" in fast, "mx boost in-vortex install"
+inst = (APP / "java/net/kdt/pojavlaunch/aerix/client/AerixClientInstaller.kt").read_text()
+assert "installModpackFromModrinth" in inst and "modrinth.index.json" in inst, "mrpack installer"
 assert "FastClientScreen(activity, navigate)" in launcher, "fast client passes navigate"
 other = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/OtherReleasesScreen.kt").read_text()
 assert "FastClientReleaseCard" in other and "LauncherSection.FAST_CLIENT" in other, "fast client card"

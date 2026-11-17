@@ -481,6 +481,153 @@ object AerixClientInstaller {
         }
     }
 
+    /**
+     * Installs a Modrinth MODPACK (.mrpack) into the Vortex Client instance: picks the build
+     * whose game_versions contain the instance's Minecraft, downloads the pack, unpacks
+     * modrinth.index.json and applies every client-supported file (mods/, config/, ...).
+     * Path-traversal is rejected; server-only entries are skipped.
+     */
+    suspend fun installModpackFromModrinth(
+        projectId: String,
+        packTitle: String,
+        expectedMcVersion: String? = null
+    ): Result<PackInstallResult> = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        if (isInstalling) {
+            return@withContext Result.failure(IllegalStateException("Download already in progress"))
+        }
+        val instance = findInstalledClientInstance(AerixClientStore.selectedClientVersion)
+            ?: return@withContext Result.failure(
+                IllegalStateException("Install Vortex Client first, then add the pack")
+            )
+        val instanceDir = instance.gameDirectory
+        val mcVersion = expectedMcVersion
+            ?: ClientVersions.resolve(instance.versionId, AerixClientStore.selectedClientVersion)
+        isInstalling = true
+        statusHeadline = "Installing $packTitle..."
+        statusDetail = "Finding a build for MC $mcVersion"
+        progressFraction = 0f
+        try {
+            val versionsUrl = "https://api.modrinth.com/v2/project/$projectId/version"
+            val req = Request.Builder()
+                .url(versionsUrl)
+                .header("User-Agent", USER_AGENT)
+                .header("Accept", "application/json")
+                .get()
+                .build()
+            val bodyStr = SocialRealtime.restClient.newCall(req).execute().use { resp ->
+                if (!resp.isSuccessful) {
+                    return@withContext Result.failure(
+                        IllegalStateException("Modrinth HTTP ${resp.code}")
+                    )
+                }
+                resp.body?.string().orEmpty()
+            }
+            val versions = JSONArray(bodyStr)
+            var chosen: org.json.JSONObject? = null
+            val allGames = linkedSetOf<String>()
+            for (v in 0 until versions.length()) {
+                val ver = versions.getJSONObject(v)
+                val gvs = ver.optJSONArray("game_versions") ?: JSONArray()
+                for (g in 0 until gvs.length()) allGames += gvs.optString(g)
+                if (chosen == null) {
+                    for (g in 0 until gvs.length()) {
+                        if (gvs.optString(g) == mcVersion) { chosen = ver; break }
+                    }
+                }
+            }
+            if (chosen == null) {
+                return@withContext Result.failure(
+                    IllegalStateException(
+                        if (allGames.isEmpty()) "No builds found on Modrinth"
+                        else "$packTitle supports MC ${allGames.joinToString(", ")} — instance is $mcVersion"
+                    )
+                )
+            }
+            val files = chosen!!.optJSONArray("files") ?: JSONArray()
+            if (files.length() == 0) {
+                return@withContext Result.failure(IllegalStateException("Pack file missing on Modrinth"))
+            }
+            val packFileUrl = files.getJSONObject(0).optString("url")
+            if (!packFileUrl.startsWith("https://")) {
+                return@withContext Result.failure(IllegalStateException("Untrusted pack URL"))
+            }
+            statusDetail = "Downloading pack..."
+            val mrpack = File.createTempFile("vortex-pack", ".mrpack", instanceDir)
+            try {
+                if (!downloadToFile(packFileUrl, mrpack)) {
+                    return@withContext Result.failure(IllegalStateException("Pack download failed"))
+                }
+                progressFraction = 0.15f
+                statusDetail = "Reading pack index..."
+                val indexJson = readZipEntry(mrpack, "modrinth.index.json")
+                    ?: return@withContext Result.failure(IllegalStateException("pack index missing"))
+                val index = org.json.JSONObject(indexJson)
+                val entries = index.optJSONArray("files") ?: JSONArray()
+                var applied = 0
+                val failed = mutableListOf<String>()
+                val total = entries.length().coerceAtLeast(1)
+                for (e in 0 until entries.length()) {
+                    val entry = entries.getJSONObject(e)
+                    val envClient = entry.optJSONObject("env")?.optString("client")
+                    if (envClient == "unsupported") continue
+                    val relPath = entry.optString("path")
+                    val fileList = entry.optJSONArray("files") ?: JSONArray()
+                    if (relPath.isBlank() || fileList.length() == 0) continue
+                    var fileUrl = ""
+                    for (f in 0 until fileList.length()) {
+                        val fo = fileList.getJSONObject(f)
+                        if (fo.optBoolean("primary", false)) { fileUrl = fo.optString("url"); break }
+                    }
+                    if (fileUrl.isBlank()) fileUrl = fileList.getJSONObject(0).optString("url")
+                    if (!fileUrl.startsWith("https://")) continue
+                    val target = File(instanceDir, relPath)
+                    val root = instanceDir.canonicalFile
+                    if (!target.canonicalFile.path.startsWith(root.path + File.separator)) {
+                        failed += "$relPath (unsafe path)"
+                        continue
+                    }
+                    statusDetail = "File ${applied + failed.size + 1}/$total · ${relPath.substringAfterLast('/')}"
+                    progressFraction = 0.15f + 0.85f * ((applied + failed.size) / total.toDouble())
+                    if (downloadToFile(fileUrl, target)) applied++ else failed += relPath
+                }
+                progressFraction = 1f
+                statusDetail = "$applied files applied"
+                Result.success(PackInstallResult(applied, failed))
+            } finally {
+                mrpack.delete()
+            }
+        } finally {
+            isInstalling = false
+        }
+    }
+
+    private fun downloadToFile(url: String, target: File): Boolean = runCatching {
+        val req = Request.Builder()
+            .url(url)
+            .header("User-Agent", USER_AGENT)
+            .build()
+        SocialRealtime.restClient.newCall(req).execute().use { resp ->
+            if (!resp.isSuccessful) return@use false
+            val body = resp.body ?: return@use false
+            target.parentFile?.mkdirs()
+            FileOutputStream(target).use { out -> body.byteStream().use { input -> input.copyTo(out) } }
+            true
+        }
+    }.getOrDefault(false)
+
+    private fun readZipEntry(zip: File, entryName: String): String? = runCatching {
+        java.util.zip.ZipInputStream(java.io.FileInputStream(zip)).use { zin ->
+            var entry = zin.nextEntry
+            while (entry != null) {
+                if (entry.name == entryName) {
+                    return@use zin.readBytes().toString(Charsets.UTF_8)
+                }
+                entry = zin.nextEntry
+            }
+            null
+        }
+    }.getOrNull()
+
     private fun ensureModrinthJar(modsDir: File, projectSlugOrId: String, mcVersion: String, depth: Int): Boolean {
         val fabricId = when (projectSlugOrId) {
             "sodium", "AANobbMI" -> "sodium"

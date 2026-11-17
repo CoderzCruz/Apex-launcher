@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,6 +32,8 @@ import androidx.fragment.app.FragmentActivity
 import net.kdt.pojavlaunch.aerix.theme.AerixRadii
 import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
 import net.kdt.pojavlaunch.aerix.bridge.AssetType
+import net.kdt.pojavlaunch.aerix.client.AerixClientInstaller
+import android.widget.Toast
 import net.kdt.pojavlaunch.aerix.theme.AerixSurface
 import net.kdt.pojavlaunch.aerix.ui.LauncherSection
 
@@ -47,6 +51,19 @@ fun FastClientScreen(activity: FragmentActivity, navigate: (LauncherSection) -> 
         } else {
             runCatching {
                 activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            }
+        }
+    }
+
+    val scope = rememberCoroutineScope()
+    val installInVortex: () -> Unit = {
+        scope.launch {
+            val res = AerixClientInstaller.installModpackFromModrinth("GGc38iHO", "Mx Boost")
+            res.onSuccess { r ->
+                val failedText = if (r.failed.isEmpty()) "" else " · failed: ${r.failed.joinToString(", ")}"
+                Toast.makeText(activity, "Mx Boost installed: ${r.installed} files$failedText — launch se active", Toast.LENGTH_LONG).show()
+            }.onFailure { err ->
+                Toast.makeText(activity, err.message ?: "Mx Boost install failed", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -143,6 +160,11 @@ fun FastClientScreen(activity: FragmentActivity, navigate: (LauncherSection) -> 
                     Spacer(Modifier.height(4.dp))
                     FastLinkButton("Find in Discover (search: Mx Boost)", "discover") { openLink(it) }
                     FastLinkButton("Open on Modrinth", "https://modrinth.com/project/GGc38iHO") { openLink(it) }
+                    FastLinkButton(
+                        label = if (AerixClientInstaller.isInstalling) "Installing Mx Boost..." else "Install in Vortex (Android) - play inside the launcher",
+                        url = "install",
+                        enabled = !AerixClientInstaller.isInstalling
+                    ) { if (it == "install") installInVortex() }
                 }
             }
 
@@ -230,17 +252,25 @@ fun FastClientScreen(activity: FragmentActivity, navigate: (LauncherSection) -> 
 }
 
 @Composable
-private fun FastLinkButton(label: String, url: String, onClick: (String) -> Unit) {
+private fun FastLinkButton(label: String, url: String, enabled: Boolean = true, onClick: (String) -> Unit) {
     val shape = RoundedCornerShape(AerixRadii.card)
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(Brush.horizontalGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B))))
-            .clickable { onClick(url) }
+            .background(
+                if (enabled) Brush.horizontalGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B)))
+                else Brush.horizontalGradient(listOf(AerixSurface.panelRaised, AerixSurface.panelRaised))
+            )
+            .clickable(enabled = enabled) { onClick(url) }
             .padding(vertical = 13.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = label, color = Color.White, fontSize = 12.5.sp, fontWeight = FontWeight.ExtraBold)
+        Text(
+            text = label,
+            color = if (enabled) Color.White else Color.White.copy(alpha = 0.5f),
+            fontSize = 12.5.sp,
+            fontWeight = FontWeight.ExtraBold
+        )
     }
 }
