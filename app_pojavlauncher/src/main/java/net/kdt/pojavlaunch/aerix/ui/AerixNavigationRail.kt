@@ -202,6 +202,8 @@ fun AerixNavigationRail(
                     selectedSection == LauncherSection.VORTEX_MC, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.VORTEX_MC) }
                 RailIconItem(R.drawable.aerix_ic_style_outlined, "Cape Shop",
                     selectedSection == LauncherSection.CAPE_SHOP, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.CAPE_SHOP) }
+                RailIconItem(R.drawable.ic_px_zap, "Fast Client",
+                    selectedSection == LauncherSection.FAST_CLIENT, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.FAST_CLIENT) }
                 RailIconItem(R.drawable.aerix_ic_add, stringResource(R.string.create_instance),
                     selectedSection == LauncherSection.CREATE_INSTANCE, activeAccent, expandedRail, compactRail,
                     onClick = onCreateInstance, guideKey = AerixGuideState.CREATE)

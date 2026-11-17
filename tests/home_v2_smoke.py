@@ -113,6 +113,7 @@ assert '"Cape Shop"' in rail and "aerix_ic_style_outlined" in rail, "rail cape s
 assert '"Vortex Client"' not in rail, "client icon removed from rail"
 assert "AerixCapeShopScreen" in launcher, "cape shop hosted"
 assert "FastClientScreen" in launcher and "LauncherSection.FAST_CLIENT ->" in launcher, "fast client hosted"
+assert 'ic_px_zap, "Fast Client"' in rail, "fast client rail entry"
 fast = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/FastClientScreen.kt").read_text()
 assert "FAST CLIENT" in fast and "fastclient.net" in fast and "mxinspire" in fast.lower(), "fast client screen"
 other = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/OtherReleasesScreen.kt").read_text()
