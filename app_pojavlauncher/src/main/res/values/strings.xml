@@ -84,6 +84,8 @@
     <string name="aerix_settings_theme_motion">Animated theme</string>
     <string name="aerix_settings_theme_motion_sub">The accent pulses, selected items glow, and every wallpaper drifts with its own particles. Turning this off applies immediately.</string>
     <string name="mcl_setting_renderer_emesis">Emesis (OpenGL 3.2+ core) - all versions</string>
+    <string name="mcl_setting_renderer_cosmic_renderx">Cosmic RenderX (Vulkan) - all versions</string>
+    <string name="mcl_setting_renderer_cosmic_renderx_description">Vortex\u2019s own fast renderer: the proven mesa/Zink GL-to-Vulkan path with a lower-latency present mode. Needs Vulkan support - a real step above plain GL translators.</string>
     <string name="mcl_setting_renderer_emesis_description">A super performant renderer built only to outmatch and outperform every other renderer, supporting all devices and versions.</string>
     <string name="mcl_setting_renderer_freedreno_kgsl">Freedreno (KGSL) - all versions</string>
     <string name="mcl_setting_renderer_mesa_desktop">Mesa (DRM) - all versions</string>

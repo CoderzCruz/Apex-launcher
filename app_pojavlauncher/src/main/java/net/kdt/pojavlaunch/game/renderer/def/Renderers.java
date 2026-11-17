@@ -13,4 +13,5 @@ public final class Renderers {
     public static final String SFPEW_RENDERER = "opengles_sfpew";
     public static final String PROTON_RENDERER = "opengles_proton";
     public static final String EMESIS_RENDERER = "emesis";
+    public static final String COSMIC_RENDERX_RENDERER = "cosmic_renderx";
     }

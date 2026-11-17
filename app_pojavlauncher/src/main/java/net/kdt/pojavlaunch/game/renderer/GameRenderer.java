@@ -11,6 +11,7 @@ import static net.kdt.pojavlaunch.game.renderer.def.Renderers.NGGL4ES_RENDERER;
 import static net.kdt.pojavlaunch.game.renderer.def.Renderers.MOBILEGLUES_RENDERER;
 import static net.kdt.pojavlaunch.game.renderer.def.Renderers.SFPEW_RENDERER;
 import static net.kdt.pojavlaunch.game.renderer.def.Renderers.PROTON_RENDERER;
+import static net.kdt.pojavlaunch.game.renderer.def.Renderers.COSMIC_RENDERX_RENDERER;
 import static net.kdt.pojavlaunch.game.renderer.def.Renderers.EMESIS_RENDERER;
 
 import android.content.Context;
@@ -83,6 +84,7 @@ public class GameRenderer {
             case SFPEW_RENDERER: return new GLESRenderSpec.SFPEWRenderSpec();
             case PROTON_RENDERER: return new net.kdt.pojavlaunch.game.renderer.impl.ProtonRenderSpec();
             case EMESIS_RENDERER: return new net.kdt.pojavlaunch.game.renderer.impl.EmesisRenderSpec();
+            case COSMIC_RENDERX_RENDERER: return new net.kdt.pojavlaunch.game.renderer.impl.CosmicRenderSpec();
             default:
                 Log.e(TAG, "Unknown renderer " + renderer);
                 return null;

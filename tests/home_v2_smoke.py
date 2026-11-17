@@ -140,3 +140,12 @@ assert "val accentDefault = Color(0xFFDC2626)" in surface2, "accent red like the
 assert "Color.White.copy(alpha = 0.30f)" not in home, "LAUNCH outline switched to red"
 
 print("Home v2: stage, login row, middle PLAY, five options, header and press effects passed")
+
+cache = (APP / "java/net/kdt/pojavlaunch/game/renderer/RendererCache.java").read_text()
+assert "COSMIC_RENDERX_RENDERER" in cache, "cosmic renderer offered"
+game_renderer = (APP / "java/net/kdt/pojavlaunch/game/renderer/GameRenderer.java").read_text()
+assert "CosmicRenderSpec" in game_renderer, "cosmic renderer wired"
+settings_src = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.kt").read_text()
+assert "Cosmic RenderX" in settings_src and "hasCosmic" in settings_src, "cosmic settings tile"
+cosmic_spec = (APP / "java/net/kdt/pojavlaunch/game/renderer/impl/CosmicRenderSpec.java").read_text()
+assert "MESA_VK_WSI_PRESENT_MODE" in cosmic_spec and "ZinkRenderSpec" in cosmic_spec, "cosmic spec"

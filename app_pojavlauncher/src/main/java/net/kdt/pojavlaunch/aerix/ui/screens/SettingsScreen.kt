@@ -206,6 +206,7 @@ private fun defaultRendererStackOptions(defaultRendererId: String): List<Rendere
     RendererStackOption("Legacy", "LTW Legacy (1.8\u20131.16.5)", "1.8\u20131.16.5", Renderers.GL4ES_RENDERER, R.drawable.aerix_logo_opengl),
     RendererStackOption("Zink", "Kopper Zink (Vulkan)", "VULKAN", Renderers.ZINK_RENDERER, R.drawable.aerix_logo_vulkan),
     RendererStackOption("PROTON", "Proton (PowerVR)", "32-BIT ONLY", Renderers.PROTON_RENDERER, R.drawable.aerix_logo_proton, brandedLogo = true),
+    RendererStackOption("COSMIC", "Cosmic RenderX", "VULKAN", Renderers.COSMIC_RENDERX_RENDERER, R.drawable.aerix_logo_cosmic, brandedLogo = true, descriptionRes = R.string.mcl_setting_renderer_cosmic_renderx_description),
     RendererStackOption("EMESIS", "Emesis Renderer", "ALL VERSIONS", Renderers.EMESIS_RENDERER, R.drawable.aerix_logo_emesis, brandedLogo = true, descriptionRes = R.string.mcl_setting_renderer_emesis_description)
 )
 
@@ -472,11 +473,13 @@ private fun RendererTabContent(activity: FragmentActivity) {
                 // Global Renderer list and in the instance editor below.
                 val hasProton = compatible.any { it.first == Renderers.PROTON_RENDERER }
                 val hasEmesis = compatible.any { it.first == Renderers.EMESIS_RENDERER }
+                val hasCosmic = compatible.any { it.first == Renderers.COSMIC_RENDERX_RENDERER }
                 val offeredOptions = rendererStackOptions.filter { option ->
                     when {
                         option.keyMatch == "AUTO" -> true
                         option.rendererId == Renderers.PROTON_RENDERER -> hasProton
                         option.rendererId == Renderers.EMESIS_RENDERER -> hasEmesis
+                        option.rendererId == Renderers.COSMIC_RENDERX_RENDERER -> hasCosmic
                         else -> false
                     }
                 }
