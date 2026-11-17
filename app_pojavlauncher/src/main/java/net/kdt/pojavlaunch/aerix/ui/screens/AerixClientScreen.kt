@@ -47,6 +47,7 @@ import net.kdt.pojavlaunch.aerix.client.AerixClientInstaller
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.kdt.pojavlaunch.aerix.client.AerixClientCosmetics
