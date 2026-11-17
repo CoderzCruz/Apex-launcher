@@ -1142,6 +1142,18 @@ private fun GameTabContent(activity: FragmentActivity) {
 
         item {
             SettingsCardColumn(modifier = Modifier.fillMaxWidth()) {
+                MiraiActionSettingsCard(
+                    position = CardPosition.Top,
+                    title = "Owner Panel",
+                    summary = "Vortex Admin: rollout kill-switch, build trigger, download stats (token stays on this device)",
+                    value = "Open",
+                    onClick = { AerixNav.navigate(LauncherSection.OWNER_PANEL) }
+                )
+            }
+        }
+
+        item {
+            SettingsCardColumn(modifier = Modifier.fillMaxWidth()) {
                 MiraiSwitchSettingsCard(
                     position = CardPosition.Top,
                     title = stringResource(R.string.preference_force_big_core_title),

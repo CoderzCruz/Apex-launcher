@@ -149,3 +149,11 @@ settings_src = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.
 assert "Cosmic RenderX" in settings_src and "hasCosmic" in settings_src, "cosmic settings tile"
 cosmic_spec = (APP / "java/net/kdt/pojavlaunch/game/renderer/impl/CosmicRenderSpec.java").read_text()
 assert "MESA_VK_WSI_PRESENT_MODE" in cosmic_spec and "ZinkRenderSpec" in cosmic_spec, "cosmic spec"
+
+panel = (APP / "assets/owner_panel.html").read_text()
+assert "UPDATE_ROLLOUT" in panel and "debug-latest" in panel and "vortex_admin_pat" in panel, "owner panel page"
+owner = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/OwnerPanelScreen.kt").read_text()
+assert "owner_panel.html" in owner and "WebView" in owner, "owner panel screen"
+assert "LauncherSection.OWNER_PANEL" in launcher, "owner panel hosted"
+settings_panel = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.kt").read_text()
+assert "Owner Panel" in settings_panel and "LauncherSection.OWNER_PANEL" in settings_panel, "owner panel entry"

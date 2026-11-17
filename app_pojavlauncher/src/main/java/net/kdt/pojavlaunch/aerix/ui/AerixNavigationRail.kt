@@ -95,6 +95,7 @@ enum class LauncherSection {
     /** Music player — songs keep playing while you play Minecraft. */
     MUSIC,
     LOGS,
+    OWNER_PANEL,
     SETTINGS,
     /** The team page, between Settings and the account entry. */
     CONTRIBUTION,

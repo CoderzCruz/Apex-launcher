@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vortex Admin — Release Control</title>
+<style>
+  :root { --bg:#0b0d12; --panel:#14161d; --panel2:#1a1d26; --line:#262a35; --red:#dc2626; --red2:#b01b2b; --text:#eef1f6; --mut:#8b93a5; --ok:#22c55e; --warn:#f59e0b; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; padding:16px; }
+  h1 { font-size:20px; margin:4px 0 2px; letter-spacing:1px; }
+  h1 span { color:var(--red); }
+  .sub { color:var(--mut); font-size:12px; margin-bottom:14px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:14px; }
+  .card h2 { font-size:13px; letter-spacing:1.5px; color:var(--red); margin:0 0 10px; text-transform:uppercase; }
+  label { display:block; font-size:12px; color:var(--mut); margin:8px 0 4px; }
+  input, textarea { width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--text); border-radius:10px; padding:11px 12px; font-size:14px; outline:none; }
+  input:focus, textarea:focus { border-color:var(--red); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; }
+  button { border:0; border-radius:10px; padding:11px 16px; font-size:13.5px; font-weight:700; cursor:pointer; color:#fff; background:#2a2f3d; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  .red { background:linear-gradient(90deg,var(--red),var(--red2)); }
+  .ghost { background:transparent; border:1px solid var(--line); color:var(--text); }
+  .ok { background:#14532d; } .warn { background:#7c2d12; } .danger { background:#7f1d1d; }
+  .k { color:var(--mut); font-size:12px; }
+  .v { font-size:15px; font-weight:700; margin-bottom:6px; word-break:break-all; }
+  .pill { display:inline-block; font-size:11px; font-weight:800; padding:3px 9px; border-radius:99px; letter-spacing:.5px; }
+  .on { background:#14532d; color:#86efac; } .off { background:#7f1d1d; color:#fca5a5; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  td, th { text-align:left; padding:7px 6px; border-bottom:1px solid var(--line); }
+  th { color:var(--mut); font-size:11px; letter-spacing:1px; }
+  .toast { position:fixed; left:12px; right:12px; bottom:16px; background:var(--panel2); border:1px solid var(--red); color:var(--text); padding:12px 14px; border-radius:12px; font-size:13px; display:none; z-index:9; }
+  .note { font-size:11.5px; color:var(--mut); line-height:1.5; margin-top:8px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  @media (max-width:420px){ .grid2{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+  <h1>VORTEX <span>ADMIN</span></h1>
+  <div class="sub">Release control · owner panel · GitHub-powered (no server)</div>
+
+  <div class="card">
+    <h2>1 · Login (GitHub PAT)</h2>
+    <label>Personal Access Token — classic, scope <b>repo</b> (Contents + Actions)</label>
+    <input id="pat" type="password" placeholder="ghp_..." autocomplete="off">
+    <div class="row" style="margin-top:10px">
+      <button class="red" onclick="savePat()">Save token</button>
+      <button class="ghost" onclick="clearPat()">Clear</button>
+      <button class="ghost" onclick="loadStatus()">Refresh</button>
+    </div>
+    <div class="note">Token sirf <b>isi device ke browser storage</b> me rehta hai — app me nahi, chat me nahi. github.com/settings/tokens → Generate (classic) → <b>repo</b> scope ✓</div>
+  </div>
+
+  <div class="card">
+    <h2>2 · Live status</h2>
+    <div class="k">Release</div>
+    <div class="v" id="rel">—</div>
+    <div class="k">Auto-update rollout</div>
+    <div class="v"><span id="roll" class="pill off">…</span></div>
+    <div class="k">APK downloads (debug-latest)</div>
+    <div class="v" id="dl">—</div>
+    <div class="k">Last published</div>
+    <div class="v" id="pub">—</div>
+  </div>
+
+  <div class="card">
+    <h2>3 · Actions</h2>
+    <div class="row">
+      <button class="ok" id="btnOn" onclick="setRollout('on')" disabled>Rollout ON (auto-update)</button>
+      <button class="danger" id="btnOff" onclick="setRollout('off')" disabled>Rollout OFF (kill switch)</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="red" id="btnBuild" onclick="triggerBuild()" disabled>▶ Trigger build now</button>
+    </div>
+    <label>Branch ref for builds</label>
+    <input id="ref" value="arena/a426cc08-apex-launcher">
+    <div class="note">Rollout = UPDATE_ROLLOUT repo file (on/off) — OFF karte hi kisi phone pe auto-update nahi jayega. Build = aerix-debug workflow.</div>
+  </div>
+
+  <div class="card">
+    <h2>4 · Recent runs</h2>
+    <table id="runs"><tr><th>Run</th><th>Workflow</th><th>Status</th></tr></table>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+const OWNER="CoderzCruz", REPO="Apex-launcher", API="https://api.github.com";
+let CACHE={};
+
+function pat(){ return (localStorage.getItem("vortex_admin_pat")||"").trim(); }
+function savePat(){ const v=document.getElementById("pat").value.trim(); if(!v){toast("Token empty");return;} localStorage.setItem("vortex_admin_pat",v); toast("Token saved (this device only)"); loadStatus(); }
+function clearPat(){ localStorage.removeItem("vortex_admin_pat"); document.getElementById("pat").value=""; toast("Token cleared"); setActions(false); }
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.style.display="block"; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display="none",3500); }
+
+async function gh(path, opts){
+  if(!pat()) throw new Error("Pehle token save karo");
+  const headers={"Accept":"application/vnd.github+json","Authorization":"Bearer "+pat()};
+  if(opts&&opts.body){ headers["Content-Type"]="application/json"; }
+  const res=await fetch(API+path, Object.assign({},opts,{headers}));
+  if(!res.ok){ let m="HTTP "+res.status; try{ const j=await res.json(); if(j.message) m+=" — "+j.message; }catch(e){} throw new Error(m); }
+  return res.status===204?null:res.json();
+}
+function setActions(on){ ["btnOn","btnOff","btnBuild"].forEach(id=>document.getElementById(id).disabled=!on); }
+
+async function loadStatus(){
+  try{
+    if(!pat()){ setActions(false); document.getElementById("rel").textContent="Token save karo"; return; }
+    const rel=await gh(`/repos/${OWNER}/${REPO}/releases/tags/debug-latest`);
+    const vc=(rel.body||"").match(/versionCode[^0-9]{0,8}(\d+)/);
+    const ro=(rel.body||"").match(/Update rollout[^a-z]{0,10}(on|off)/i);
+    document.getElementById("rel").textContent=(vc?("#"+vc[1]):rel.tag_name)+"  ·  "+rel.tag_name;
+    const rollEl=document.getElementById("roll");
+    const isOn=ro&&ro[1].toLowerCase()==="on";
+    rollEl.textContent=isOn?"ON — auto-update live":"OFF — no auto updates";
+    rollEl.className="pill "+(isOn?"on":"off");
+    const apk=(rel.assets||[]).find(a=>a.name==="Vortex.Launcher.v1.apk");
+    document.getElementById("dl").textContent=apk?(apk.download_count+" downloads · "+(apk.size/1048576).toFixed(1)+" MB"):"—";
+    document.getElementById("pub").textContent=rel.published_at?new Date(rel.published_at).toLocaleString():"—";
+    setActions(true);
+
+    const runs=await gh(`/repos/${OWNER}/${REPO}/actions/runs?per_page=6`);
+    const tb=document.getElementById("runs");
+    tb.innerHTML="<tr><th>Run</th><th>Workflow</th><th>Status</th></tr>";
+    (runs.workflow_runs||[]).forEach(r=>{
+      const tr=document.createElement("tr");
+      const st=(r.conclusion||r.status||"");
+      tr.innerHTML=`<td>${r.id}</td><td>${r.name||r.path}</td><td>${st}</td>`;
+      tb.appendChild(tr);
+    });
+  }catch(e){ toast(e.message||String(e)); setActions(false); }
+}
+
+async function setRollout(value){
+  try{
+    const cur=await gh(`/repos/${OWNER}/${REPO}/contents/UPDATE_ROLLOUT`);
+    const content=btoa(value+"\n");
+    if(cur.content && atob(cur.content.replace(/\n/g,"")).trim()===value){ toast("Already "+value); loadStatus(); return; }
+    await gh(`/repos/${OWNER}/${REPO}/contents/UPDATE_ROLLOUT`,{method:"PUT",body:JSON.stringify({
+      message:"owner panel: rollout -> "+value, content, sha:cur.sha
+    })});
+    toast("Rollout = "+value+" — phones updated from next check");
+    loadStatus();
+  }catch(e){ toast("Rollout failed: "+(e.message||e)); }
+}
+
+async function triggerBuild(){
+  try{
+    const ref=document.getElementById("ref").value.trim()||"arena/a426cc08-apex-launcher";
+    await gh(`/repos/${OWNER}/${REPO}/actions/workflows/aerix-debug.yml/dispatches`,{method:"POST",body:JSON.stringify({ref})});
+    toast("Build triggered on "+ref);
+    setTimeout(loadStatus,3000);
+  }catch(e){ toast("Build failed: "+(e.message||e)); }
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  const p=pat(); if(p) document.getElementById("pat").value=p;
+  loadStatus();
+});
+</script>
+</body>
+</html>
