@@ -404,6 +404,45 @@ private fun RendererTabContent(activity: FragmentActivity) {
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+                if (plugins.isEmpty()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(AerixSpacing.xs)
+                    ) {
+                        // The FPS gap on this device is the missing renderer plugin: offer the
+                        // official v2.0 APK directly instead of telling the user to find it.
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Brush.horizontalGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B))))
+                                .clickable {
+                                    runCatching {
+                                        activity.startActivity(
+                                            Intent(
+                                                Intent.ACTION_VIEW,
+                                                Uri.parse("https://github.com/entitybrian69-bit/Emesis-renderer-/releases/download/v2.0/EmesisRenderer-Universal-v2.0.apk")
+                                            )
+                                        )
+                                    }
+                                }
+                                .padding(vertical = 11.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Download Emesis Renderer plugin (v2.0 APK)",
+                                color = Color.White,
+                                fontSize = 12.5.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                        Text(
+                            text = "Built-in fast option: pick the Emesis Renderer tile below (All Versions), then relaunch the game.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = AerixSurface.textSecondary
+                        )
+                    }
+                }
                 if (plugins.isNotEmpty()) {
                     plugins.chunked(2).forEach { rowPlugins ->
                         Row(
