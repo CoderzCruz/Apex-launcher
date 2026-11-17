@@ -226,7 +226,7 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
                             LauncherSection.ACCOUNTS -> AccountsScreen(activity)
                             LauncherSection.CLIENT -> AerixClientScreen(activity)
                             LauncherSection.CAPE_SHOP -> AerixCapeShopScreen(activity)
-                            LauncherSection.FAST_CLIENT -> FastClientScreen(activity)
+                            LauncherSection.FAST_CLIENT -> FastClientScreen(activity, navigate)
                             LauncherSection.ABOUT -> AboutScreen(activity)
                             LauncherSection.CREATE_INSTANCE -> CreateInstanceScreen(activity) {
                                 AerixNav.finishTo(LauncherSection.LIBRARY)

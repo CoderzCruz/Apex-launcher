@@ -29,7 +29,9 @@ import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import net.kdt.pojavlaunch.aerix.theme.AerixRadii
 import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
+import net.kdt.pojavlaunch.aerix.bridge.AssetType
 import net.kdt.pojavlaunch.aerix.theme.AerixSurface
+import net.kdt.pojavlaunch.aerix.ui.LauncherSection
 
 /**
  * Fast Client by mxinspire1 — showcase page with the published versions and the
@@ -38,10 +40,14 @@ import net.kdt.pojavlaunch.aerix.theme.AerixSurface
  * anything into this Android launcher.
  */
 @Composable
-fun FastClientScreen(activity: FragmentActivity) {
+fun FastClientScreen(activity: FragmentActivity, navigate: (LauncherSection) -> Unit) {
     val openLink: (String) -> Unit = { url ->
-        runCatching {
-            activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        if (url == "discover") {
+            AerixDownloadRequest.open(AssetType.MODPACK, navigate)
+        } else {
+            runCatching {
+                activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            }
         }
     }
 
@@ -88,6 +94,55 @@ fun FastClientScreen(activity: FragmentActivity) {
                         fontSize = 11.5.sp,
                         color = Color.White.copy(alpha = 0.8f)
                     )
+                }
+            }
+
+            // Mx Boost — MxInspire's Android-ready FPS modpack (the fast experience on phones)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(AerixRadii.card))
+                    .background(Brush.horizontalGradient(listOf(Color(0x3DFF3B30), AerixSurface.panelRaised)))
+                    .border(
+                        1.6.dp,
+                        Brush.horizontalGradient(listOf(Color(0xFFFF5A50), Color(0x99FF3B30))),
+                        RoundedCornerShape(AerixRadii.card)
+                    )
+                    .padding(16.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    Text(
+                        text = "MX BOOST",
+                        fontSize = 22.sp,
+                        letterSpacing = 2.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "BY MXINSPIRE - FPS MODPACK - ANDROID READY",
+                        fontSize = 9.sp,
+                        letterSpacing = 1.4.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFFFF6B75)
+                    )
+                    Text(
+                        text = "Tumhare phone ke liye ban gaya: Pojav, Mojo aur Zalith launchers + PC. Minecraft 1.21 se 26.2 tak optimized.",
+                        fontSize = 11.sp,
+                        color = Color.White.copy(alpha = 0.85f)
+                    )
+                    listOf(
+                        "Reduced lag on low-end devices",
+                        "Higher and stable FPS",
+                        "Carefully tested performance mods"
+                    ).forEach { line ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(text = ">", color = Color(0xFFFF6B75), fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                            Text(text = line, fontSize = 10.5.sp, color = Color.White.copy(alpha = 0.78f))
+                        }
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    FastLinkButton("Find in Discover (search: Mx Boost)", "discover") { openLink(it) }
+                    FastLinkButton("Open on Modrinth", "https://modrinth.com/project/GGc38iHO") { openLink(it) }
                 }
             }
 
@@ -159,7 +214,7 @@ fun FastClientScreen(activity: FragmentActivity) {
                     .padding(12.dp)
             ) {
                 Text(
-                    text = "Note: Fast Client is a desktop launcher (Windows / macOS / Linux) - it does not run inside Vortex on Android. Download only from the official links below, and scan any file before opening it.",
+                    text = "Note: MX BOOST = phone ke liye (Pojav/Mojo/Zalith + PC) - Discover me search karo ya Modrinth se install karo. FAST CLIENT (PC wala) = desktop launcher - Windows/macOS/Linux ke liye; official links se hi download karo aur file scan karo.",
                     fontSize = 10.5.sp,
                     color = Color.White.copy(alpha = 0.88f)
                 )
