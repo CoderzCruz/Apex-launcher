@@ -36,6 +36,7 @@ import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.compose.material3.Text
 import net.kdt.pojavlaunch.aerix.client.AerixClientCosmetics
 import net.kdt.pojavlaunch.aerix.client.AerixClientInstaller
 import net.kdt.pojavlaunch.aerix.client.AerixClientStore
