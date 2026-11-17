@@ -107,7 +107,11 @@ assert "SUPPORTED" in client and "horizontalScroll" in client and "DOWNLOADS" in
 assert "ClientVersionTile" in client and "ClientActionDock" in client, "custom client UI"
 assert "VORTEX MODS" in client and "ClientPackCard" in client and "Vortex Modpack" in client and "vulkanmod" in client, "vortex mods packs"
 assert "CONFIG PROFILES" in client and "ClientConfigProfiles" in client and "applyConfigProfile" in client, "config profiles"
-assert "CAPE SHOP" in client and "ClientCapeTile" in client and "equippedCapeId" in client, "cape shop"
+cape_shop = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/AerixCapeShopScreen.kt").read_text()
+assert "CAPE SHOP" in cape_shop and "ClientCapeTile" in cape_shop and "equippedCapeId" in cape_shop, "cape shop screen"
+assert '"Cape Shop"' in rail and "aerix_ic_style_outlined" in rail, "rail cape shop entry"
+assert '"Vortex Client"' not in rail, "client icon removed from rail"
+assert "AerixCapeShopScreen" in launcher, "cape shop hosted"
 assert "selectedRed = Color(0xFFDC2626)" in rail, "opened section icon turns red"
 assert ".height(300.dp)" in home, "bigger skin stage"
 assert '"Welcome to Vortex Launcher"' in home, "welcome bubble"

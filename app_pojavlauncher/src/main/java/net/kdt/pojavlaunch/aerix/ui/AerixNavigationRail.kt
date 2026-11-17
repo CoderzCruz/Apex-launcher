@@ -108,6 +108,7 @@ enum class LauncherSection {
     VORTEX_MC,
     /** Vortex Client — the Java client page: hero, features and install/launch cards. */
     CLIENT,
+    CAPE_SHOP,
     /** Pages opened on top of a section (Mirai "Create New Instance", instance settings, account sign-in). */
     CREATE_INSTANCE,
     INSTANCE_EDITOR,
@@ -198,8 +199,8 @@ fun AerixNavigationRail(
                     selectedSection == LauncherSection.RULES, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.RULES) }
                 RailIconItem(R.drawable.aerix_ic_sports_esports_outlined, "Vortex MC",
                     selectedSection == LauncherSection.VORTEX_MC, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.VORTEX_MC) }
-                RailIconItem(R.drawable.ic_px_fps, "Vortex Client",
-                    selectedSection == LauncherSection.CLIENT, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.CLIENT) }
+                RailIconItem(R.drawable.aerix_ic_style_outlined, "Cape Shop",
+                    selectedSection == LauncherSection.CAPE_SHOP, activeAccent, expandedRail, compactRail) { onNavigate(LauncherSection.CAPE_SHOP) }
                 RailIconItem(R.drawable.aerix_ic_add, stringResource(R.string.create_instance),
                     selectedSection == LauncherSection.CREATE_INSTANCE, activeAccent, expandedRail, compactRail,
                     onClick = onCreateInstance, guideKey = AerixGuideState.CREATE)

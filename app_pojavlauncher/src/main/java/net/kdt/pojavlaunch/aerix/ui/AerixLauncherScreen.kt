@@ -79,6 +79,7 @@ import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
 import net.kdt.pojavlaunch.aerix.theme.AerixSurface
 import net.kdt.pojavlaunch.aerix.theme.AerixThemeManager
 import net.kdt.pojavlaunch.aerix.ui.screens.AboutScreen
+import net.kdt.pojavlaunch.aerix.ui.screens.AerixCapeShopScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AerixClientScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AerixMusicScreen
 import net.kdt.pojavlaunch.aerix.ui.screens.AccountsScreen
@@ -223,6 +224,7 @@ fun AerixLauncherScreen(activity: FragmentActivity) {
                             }
                             LauncherSection.ACCOUNTS -> AccountsScreen(activity)
                             LauncherSection.CLIENT -> AerixClientScreen(activity)
+                            LauncherSection.CAPE_SHOP -> AerixCapeShopScreen(activity)
                             LauncherSection.ABOUT -> AboutScreen(activity)
                             LauncherSection.CREATE_INSTANCE -> CreateInstanceScreen(activity) {
                                 AerixNav.finishTo(LauncherSection.LIBRARY)
