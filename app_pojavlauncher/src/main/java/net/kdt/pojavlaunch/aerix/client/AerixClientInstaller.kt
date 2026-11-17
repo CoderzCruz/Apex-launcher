@@ -587,7 +587,7 @@ object AerixClientInstaller {
                         continue
                     }
                     statusDetail = "File ${applied + failed.size + 1}/$total · ${relPath.substringAfterLast('/')}"
-                    progressFraction = 0.15f + 0.85f * ((applied + failed.size) / total.toDouble())
+                    progressFraction = 0.15f + 0.85f * ((applied + failed.size).toFloat() / total)
                     if (downloadToFile(fileUrl, target)) applied++ else failed += relPath
                 }
                 progressFraction = 1f
