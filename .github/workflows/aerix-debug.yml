@@ -259,6 +259,8 @@ jobs:
 
           # Anchor the tag ref to the root 2020 keystore commit so GitHub's /releases list
           # always sorts debug-latest below every public v* release and never touches the website.
+          # Ship the owner panel as a release asset so it also opens in any desktop browser.
+          cp app_pojavlauncher/src/main/assets/owner_panel.html "$STAGE/vortex-admin.html"
           ANCHOR_SHA="cadb0ab12ff45b582927361b703df878b37e0221"
           if gh release view "$TAG" > /dev/null 2>&1; then
             # Prune previous stamped APKs and the legacy Aerix-named assets so only the
@@ -272,7 +274,8 @@ jobs:
               "$STAGE/$APK_NAME" \
               "$STAGE/$STAMPED_NAME" \
               "$STAGE/$APK_NAME.sha256" \
-              "$STAGE/DEBUG_BUILD.txt"
+              "$STAGE/DEBUG_BUILD.txt" \
+              "$STAGE/vortex-admin.html"
             gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" -f sha="$ANCHOR_SHA" -F force=true > /dev/null 2>&1 || true
             gh release edit "$TAG" \
               --prerelease \
@@ -287,7 +290,8 @@ jobs:
               "$STAGE/$APK_NAME" \
               "$STAGE/$STAMPED_NAME" \
               "$STAGE/$APK_NAME.sha256" \
-              "$STAGE/DEBUG_BUILD.txt"
+              "$STAGE/DEBUG_BUILD.txt" \
+              "$STAGE/vortex-admin.html"
           fi
           rm -rf "$STAGE"
           echo "::notice title=debug-apk::https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/$APK_NAME (versionCode $VERSION_CODE, from $SHORT)"
