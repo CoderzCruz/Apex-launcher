@@ -100,6 +100,13 @@ public class LauncherPreferences {
             PREF_RENDERER = defaultRendererId(ctx);
             DEFAULT_PREF.edit().putString("renderer", PREF_RENDERER).apply();
         }
+        // One-time move off the old GL defaults onto Cosmic RenderX when the device runs it.
+        if (("opengles2".equals(PREF_RENDERER) || "opengles3_ltw".equals(PREF_RENDERER)
+                || "opengles_mobileglues".equals(PREF_RENDERER))
+                && new net.kdt.pojavlaunch.game.renderer.impl.CosmicRenderSpec().compatibleDevice(ctx)) {
+            PREF_RENDERER = Renderers.COSMIC_RENDERX_RENDERER;
+            DEFAULT_PREF.edit().putString("renderer", PREF_RENDERER).apply();
+        }
         PREF_BUTTONSIZE = DEFAULT_PREF.getInt("buttonscale", 100);
         PREF_MOUSESCALE = DEFAULT_PREF.getInt("mousescale", 100)/100f;
         PREF_MOUSESPEED = ((float)DEFAULT_PREF.getInt("mousespeed",100))/100f;
@@ -174,6 +181,14 @@ public class LauncherPreferences {
      * @return The renderer id to use when nothing was picked yet.
      */
     public static String defaultRendererId(Context ctx){
+        // Cosmic RenderX (Vortex's Vulkan path) is the preferred backend whenever the
+        // device can run it; the GL renderers remain the compatibility fallback.
+        try {
+            if (new net.kdt.pojavlaunch.game.renderer.impl.CosmicRenderSpec().compatibleDevice(ctx)) {
+                return Renderers.COSMIC_RENDERX_RENDERER;
+            }
+        } catch (Throwable ignored) {
+        }
         try {
             if(GpuUtils.getGlInfo().glesMajorVersion >= 3
                     && new File(Tools.NATIVE_LIB_DIR, "libmobileglues.so").exists()) {

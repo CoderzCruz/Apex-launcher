@@ -1172,6 +1172,7 @@ fun miraiRendererEntries(context: Context, includeFollowGlobal: Boolean): List<M
                 summary = when (rendererId) {
                     Renderers.PROTON_RENDERER -> "32-bit devices only"
                     Renderers.EMESIS_RENDERER -> context.getString(R.string.mcl_setting_renderer_emesis_description)
+                    Renderers.COSMIC_RENDERX_RENDERER -> "Vortex's Vulkan renderer (low latency)"
                     else -> null
                 }
             )
