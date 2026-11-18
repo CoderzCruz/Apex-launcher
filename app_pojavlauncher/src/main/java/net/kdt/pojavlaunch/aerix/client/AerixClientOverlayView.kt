@@ -675,19 +675,53 @@ private fun AerixClientRootOverlay(
     var ownerAlertSeenAt by remember { mutableLongStateOf(0L) }
     LaunchedEffect(gameDir) {
         val alertFile = gameDir?.let { File(it, "config/vortex_owner_alert.txt") }
+        var lastBroadcastCheck = 0L
         while (true) {
             delay(700L)
-            if (alertFile == null) continue
-            runCatching {
-                if (alertFile.isFile) {
-                    val lines = alertFile.readLines()
-                    val ts = lines.getOrNull(0)?.toLongOrNull() ?: 0L
-                    val msg = lines.getOrNull(1).orEmpty().trim()
-                    if (ts > ownerAlertSeenAt && System.currentTimeMillis() - ts < 60_000L && msg.isNotEmpty()) {
-                        ownerAlertSeenAt = ts
-                        ownerAlert = msg
+            // Local: chat messages from the owner's name (OwnerChatWatch output).
+            if (alertFile != null) {
+                runCatching {
+                    if (alertFile.isFile) {
+                        val lines = alertFile.readLines()
+                        val ts = lines.getOrNull(0)?.toLongOrNull() ?: 0L
+                        val msg = lines.getOrNull(1).orEmpty().trim()
+                        if (ts > ownerAlertSeenAt && System.currentTimeMillis() - ts < 60_000L && msg.isNotEmpty()) {
+                            ownerAlertSeenAt = ts
+                            ownerAlert = msg
+                        }
                     }
                 }
+            }
+            // Remote: owner broadcasts written from the admin panel (GitHub raw as relay).
+            val nowMs = System.currentTimeMillis()
+            if (nowMs - lastBroadcastCheck > 60_000L) {
+                lastBroadcastCheck = nowMs
+                Thread {
+                    runCatching {
+                        val conn = java.net.URL(
+                            "https://raw.githubusercontent.com/CoderzCruz/Apex-launcher/refs/heads/arena/a426cc08-apex-launcher/vortex_broadcast.txt"
+                        ).openConnection() as java.net.HttpURLConnection
+                        conn.connectTimeout = 8000
+                        conn.readTimeout = 8000
+                        try {
+                            if (conn.responseCode == 200) {
+                                val text = conn.inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
+                                val lines = text.lines()
+                                val ts = lines.getOrNull(0)?.trim()?.toLongOrNull() ?: 0L
+                                val msg = lines.getOrNull(1).orEmpty().trim()
+                                val fresh = ts > ownerAlertSeenAt &&
+                                    nowMs - ts < 7L * 24 * 3600 * 1000L &&
+                                    msg.isNotEmpty()
+                                if (fresh) {
+                                    ownerAlertSeenAt = ts
+                                    ownerAlert = msg
+                                }
+                            }
+                        } finally {
+                            conn.disconnect()
+                        }
+                    }
+                }.start()
             }
         }
     }

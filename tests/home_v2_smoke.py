@@ -164,3 +164,6 @@ watch = (ROOT_PARENT / "aerix_client_mod/src/main/java/aerix/client/mod/OwnerCha
 assert "vortex_owner_alert.txt" in watch and "field_2061" in watch, "owner chat watch"
 assert "vortex_owner_name.txt" in open("app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/AerixClientPackGenerator.kt").read(), "owner name write"
 assert "cancelRun" in panel, "panel cancel run"
+
+assert "vortex_broadcast.txt" in overlay_src, "broadcast poll"
+assert "sendBroadcast" in panel and "Broadcast" in panel, "panel broadcast"

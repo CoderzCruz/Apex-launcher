@@ -78,12 +78,22 @@
   </div>
 
   <div class="card">
-  <h2>4 · Release assets</h2>
+  <h2>4 · Broadcast (owner message)</h2>
+  <label>Message — sab Vortex users ke game screen pe OWNER banner banega (60s me)</label>
+  <textarea id="bcast" rows="3" placeholder="Server maintenance in 10 minutes..."></textarea>
+  <div class="row" style="margin-top:10px">
+    <button class="red" id="btnBcast" onclick="sendBroadcast()" disabled>📢 Send broadcast</button>
+  </div>
+  <div class="note">GitHub file (vortex_broadcast.txt) = relay — har Vortex client in-game ise poll karta hai. Sirf tum (repo write token) bhej sakte ho.</div>
+</div>
+
+<div class="card">
+  <h2>5 · Release assets</h2>
   <div id="assets" class="k">—</div>
 </div>
 
 <div class="card">
-    <h2>5 · Recent runs</h2>
+    <h2>6 · Recent runs</h2>
     <table id="runs"><tr><th>Run</th><th>Workflow</th><th>Status</th></tr></table>
   </div>
 
@@ -106,7 +116,7 @@ async function gh(path, opts){
   if(!res.ok){ let m="HTTP "+res.status; try{ const j=await res.json(); if(j.message) m+=" — "+j.message; }catch(e){} throw new Error(m); }
   return res.status===204?null:res.json();
 }
-function setActions(on){ ["btnOn","btnOff","btnBuild"].forEach(id=>document.getElementById(id).disabled=!on); }
+function setActions(on){ ["btnOn","btnOff","btnBuild","btnBcast"].forEach(id=>document.getElementById(id).disabled=!on); }
 
 async function loadStatus(){
   try{
@@ -174,6 +184,23 @@ async function cancelRun(id){
     toast("Run "+id+" cancel requested");
     setTimeout(loadStatus,2500);
   }catch(e){ toast("Cancel failed: "+(e.message||e)); }
+}
+
+function b64utf8(s){ return btoa(String.fromCharCode(...new TextEncoder().encode(s))); }
+async function sendBroadcast(){
+  const msg=(document.getElementById("bcast").value||"").trim();
+  if(!msg){ toast("Message likho pehle"); return; }
+  try{
+    const path="/repos/"+OWNER+"/"+REPO+"/contents/vortex_broadcast.txt";
+    let sha;
+    try{ const cur=await gh(path); sha=cur.sha; }catch(e){ if(!/404/.test(e.message)) throw e; }
+    const body=Date.now()+"\n"+msg+"\n";
+    const payload={message:"owner broadcast",content:b64utf8(body)};
+    if(sha) payload.sha=sha;
+    await gh(path,{method:"PUT",body:JSON.stringify(payload)});
+    toast("Broadcast sent —60s me screens pe");
+    document.getElementById("bcast").value="";
+  }catch(e){ toast("Send failed: "+(e.message||e)); }
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
