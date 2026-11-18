@@ -172,3 +172,10 @@ prefs_src = (APP / "java/net/kdt/pojavlaunch/prefs/LauncherPreferences.java").re
 assert "COSMIC_RENDERX_RENDERER" in prefs_src and "opengles3_ltw" in prefs_src, "cosmic default + migration"
 mirai_src = (APP / "java/net/kdt/pojavlaunch/aerix/components/MiraiSettingsComponents.kt").read_text()
 assert "Vortex\u2019s Vulkan renderer" in mirai_src or "Vortex's Vulkan renderer" in mirai_src, "cosmic dropdown summary"
+
+settings_check = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.kt").read_text()
+assert "Download Emesis" not in settings_check, "emesis download button gone"
+assert "RendererStackOption(\"EMESIS\"" not in settings_check, "emesis tile gone"
+assert "Cosmic RenderX is built in" in settings_check, "cosmic empty-state"
+mirai_check = (APP / "java/net/kdt/pojavlaunch/aerix/components/MiraiSettingsComponents.kt").read_text()
+assert "rendererId == Renderers.EMESIS_RENDERER" in mirai_check, "emesis filtered from dropdown"

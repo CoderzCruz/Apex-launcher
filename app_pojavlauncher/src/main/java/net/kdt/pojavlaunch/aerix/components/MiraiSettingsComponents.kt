@@ -1162,6 +1162,7 @@ fun miraiRendererEntries(context: Context, includeFollowGlobal: Boolean): List<M
     val cache = RendererCache.getCompatibleRenderers(context)
     cache.rendererIds.forEachIndexed { index, rendererId ->
         if (rendererId in pluginTags) return@forEachIndexed
+        if (rendererId == Renderers.EMESIS_RENDERER) return@forEachIndexed
         list.add(
             MiraiRendererEntry(
                 uniqueId = rendererId,
@@ -1171,7 +1172,6 @@ fun miraiRendererEntries(context: Context, includeFollowGlobal: Boolean): List<M
                 // renderer also describes what it is.
                 summary = when (rendererId) {
                     Renderers.PROTON_RENDERER -> "32-bit devices only"
-                    Renderers.EMESIS_RENDERER -> context.getString(R.string.mcl_setting_renderer_emesis_description)
                     Renderers.COSMIC_RENDERX_RENDERER -> "Vortex's Vulkan renderer (low latency)"
                     else -> null
                 }

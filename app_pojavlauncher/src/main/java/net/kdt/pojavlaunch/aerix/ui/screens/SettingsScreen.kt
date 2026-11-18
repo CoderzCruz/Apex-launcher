@@ -207,7 +207,6 @@ private fun defaultRendererStackOptions(defaultRendererId: String): List<Rendere
     RendererStackOption("Zink", "Kopper Zink (Vulkan)", "VULKAN", Renderers.ZINK_RENDERER, R.drawable.aerix_logo_vulkan),
     RendererStackOption("PROTON", "Proton (PowerVR)", "32-BIT ONLY", Renderers.PROTON_RENDERER, R.drawable.aerix_logo_proton, brandedLogo = true),
     RendererStackOption("COSMIC", "Cosmic RenderX", "VULKAN", Renderers.COSMIC_RENDERX_RENDERER, R.drawable.aerix_logo_cosmic, brandedLogo = true, descriptionRes = R.string.mcl_setting_renderer_cosmic_renderx_description),
-    RendererStackOption("EMESIS", "Emesis Renderer", "ALL VERSIONS", Renderers.EMESIS_RENDERER, R.drawable.aerix_logo_emesis, brandedLogo = true, descriptionRes = R.string.mcl_setting_renderer_emesis_description)
 )
 
 /**
@@ -384,10 +383,9 @@ private fun RendererTabContent(activity: FragmentActivity) {
 
                 // Installed renderer plugin APKs come first: they are renderer backends like the
                 // tiles below, and a freshly installed plugin has to be obvious without scrolling.
-                val skippedPlugins = remember(revision) { PojavPluginBridge.lastScanNotes }
                 Text(
                     text = if (plugins.isEmpty()) {
-                        "No renderer plugin APK detected. Install the plugin APK, then reopen this tab."
+                        "No external renderer plugins — Cosmic RenderX is built in."
                     } else {
                         "Renderer plugins (" + plugins.size + "): " +
                             plugins.joinToString(" \u00B7 ") { it.displayName }
@@ -397,54 +395,6 @@ private fun RendererTabContent(activity: FragmentActivity) {
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                if (skippedPlugins.isNotEmpty()) {
-                    Text(
-                        text = "Skipped plugin APK: " + skippedPlugins.joinToString("; "),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = AerixSurface.textSecondary,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                if (plugins.isEmpty()) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(AerixSpacing.xs)
-                    ) {
-                        // The FPS gap on this device is the missing renderer plugin: offer the
-                        // official v2.0 APK directly instead of telling the user to find it.
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Brush.horizontalGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B))))
-                                .clickable {
-                                    runCatching {
-                                        activity.startActivity(
-                                            Intent(
-                                                Intent.ACTION_VIEW,
-                                                Uri.parse("https://github.com/entitybrian69-bit/Emesis-renderer-/releases/download/v2.0/EmesisRenderer-Universal-v2.0.apk")
-                                            )
-                                        )
-                                    }
-                                }
-                                .padding(vertical = 11.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Download Emesis Renderer plugin (v2.0 APK)",
-                                color = Color.White,
-                                fontSize = 12.5.sp,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        }
-                        Text(
-                            text = "Built-in fast option: pick the Emesis Renderer tile below (All Versions), then relaunch the game.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = AerixSurface.textSecondary
-                        )
-                    }
-                }
                 if (plugins.isNotEmpty()) {
                     plugins.chunked(2).forEach { rowPlugins ->
                         Row(
@@ -472,13 +422,11 @@ private fun RendererTabContent(activity: FragmentActivity) {
                 // build simply does not list it. Every other renderer stays available in the
                 // Global Renderer list and in the instance editor below.
                 val hasProton = compatible.any { it.first == Renderers.PROTON_RENDERER }
-                val hasEmesis = compatible.any { it.first == Renderers.EMESIS_RENDERER }
                 val hasCosmic = compatible.any { it.first == Renderers.COSMIC_RENDERX_RENDERER }
                 val offeredOptions = rendererStackOptions.filter { option ->
                     when {
                         option.keyMatch == "AUTO" -> true
                         option.rendererId == Renderers.PROTON_RENDERER -> hasProton
-                        option.rendererId == Renderers.EMESIS_RENDERER -> hasEmesis
                         option.rendererId == Renderers.COSMIC_RENDERX_RENDERER -> hasCosmic
                         else -> false
                     }
@@ -763,11 +711,13 @@ private fun RendererTabContent(activity: FragmentActivity) {
             // installed plugin Android does not expose and one that was never installed look
             // identical from here otherwise.
             val pluginStatus = remember(revision) { PojavPluginBridge.pluginStatus(activity) }
-            Text(
-                text = "Renderer plugins: $pluginStatus",
-                style = MaterialTheme.typography.labelSmall,
-                color = if (pluginStatus == "all detected") AerixSurface.textSecondary else Color(0xFFFFC46B)
-            )
+            if (pluginStatus != "all detected" && !pluginStatus.startsWith("not detected")) {
+                Text(
+                    text = "Renderer plugins: $pluginStatus",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFFFFC46B)
+                )
+            }
 
             SettingsCardColumn(modifier = Modifier.fillMaxWidth()) {
                 MiraiListSettingsCard(
