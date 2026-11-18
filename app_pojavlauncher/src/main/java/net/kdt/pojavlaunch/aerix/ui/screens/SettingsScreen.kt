@@ -706,7 +706,7 @@ private fun RendererTabContent(activity: FragmentActivity) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Vortex Launcher v1 (${BuildConfig.VERSION_NAME}) \u2022 Built by entitybrian",
+                        text = "Vortex Launcher v1 (${BuildConfig.VERSION_NAME}) \u2022 Built by Vortex Team",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = AerixSurface.textPrimary
