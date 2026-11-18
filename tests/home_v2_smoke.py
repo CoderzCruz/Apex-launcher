@@ -157,3 +157,10 @@ assert "owner_panel.html" in owner and "WebView" in owner, "owner panel screen"
 assert "LauncherSection.OWNER_PANEL" in launcher, "owner panel hosted"
 settings_panel = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.kt").read_text()
 assert "Owner Panel" in settings_panel and "LauncherSection.OWNER_PANEL" in settings_panel, "owner panel entry"
+
+overlay_src = (APP / "java/net/kdt/pojavlaunch/aerix/client/AerixClientOverlayView.kt").read_text()
+assert "ownerAlert" in overlay_src and "OWNER" in overlay_src, "owner chat banner"
+watch = (ROOT_PARENT / "aerix_client_mod/src/main/java/aerix/client/mod/OwnerChatWatch.java").read_text() if False else open("aerix_client_mod/src/main/java/aerix/client/mod/OwnerChatWatch.java").read()
+assert "vortex_owner_alert.txt" in watch and "field_2061" in watch, "owner chat watch"
+assert "vortex_owner_name.txt" in open("app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/AerixClientPackGenerator.kt").read(), "owner name write"
+assert "cancelRun" in panel, "panel cancel run"

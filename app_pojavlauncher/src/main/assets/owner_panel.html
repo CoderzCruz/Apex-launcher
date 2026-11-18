@@ -78,7 +78,12 @@
   </div>
 
   <div class="card">
-    <h2>4 · Recent runs</h2>
+  <h2>4 · Release assets</h2>
+  <div id="assets" class="k">—</div>
+</div>
+
+<div class="card">
+    <h2>5 · Recent runs</h2>
     <table id="runs"><tr><th>Run</th><th>Workflow</th><th>Status</th></tr></table>
   </div>
 
@@ -116,6 +121,8 @@ async function loadStatus(){
     rollEl.className="pill "+(isOn?"on":"off");
     const apk=(rel.assets||[]).find(a=>a.name==="Vortex.Launcher.v1.apk");
     document.getElementById("dl").textContent=apk?(apk.download_count+" downloads · "+(apk.size/1048576).toFixed(1)+" MB"):"—";
+    CACHE.assets=(rel.assets||[]);
+    renderAssets();
     document.getElementById("pub").textContent=rel.published_at?new Date(rel.published_at).toLocaleString():"—";
     setActions(true);
 
@@ -125,7 +132,9 @@ async function loadStatus(){
     (runs.workflow_runs||[]).forEach(r=>{
       const tr=document.createElement("tr");
       const st=(r.conclusion||r.status||"");
-      tr.innerHTML=`<td>${r.id}</td><td>${r.name||r.path}</td><td>${st}</td>`;
+      const active=(st==="in_progress"||st==="queued");
+      const cancel=active?` <button class="danger" style="padding:4px 8px;font-size:11px" onclick="cancelRun(${r.id})">Cancel</button>`:"";
+      tr.innerHTML=`<td><a href="${r.html_url}" target="_blank" style="color:#ff6b6b">${r.id}</a></td><td>${r.name||r.path}</td><td>${st}${cancel}</td>`;
       tb.appendChild(tr);
     });
   }catch(e){ toast(e.message||String(e)); setActions(false); }
@@ -151,6 +160,20 @@ async function triggerBuild(){
     toast("Build triggered on "+ref);
     setTimeout(loadStatus,3000);
   }catch(e){ toast("Build failed: "+(e.message||e)); }
+}
+
+function renderAssets(){
+  const box=document.getElementById("assets");
+  const list=CACHE.assets||[];
+  if(!list.length){ box.textContent="—"; return; }
+  box.innerHTML=list.map(a=>`<div style="margin:4px 0"><a href="${a.browser_download_url}" target="_blank" style="color:#ff6b6b;font-weight:700">${a.name}</a> <span style="color:#8b93a5">(${a.download_count} dl)</span></div>`).join("");
+}
+async function cancelRun(id){
+  try{
+    await gh(`/repos/${OWNER}/${REPO}/actions/runs/${id}/cancel`,{method:"POST"});
+    toast("Run "+id+" cancel requested");
+    setTimeout(loadStatus,2500);
+  }catch(e){ toast("Cancel failed: "+(e.message||e)); }
 }
 
 document.addEventListener("DOMContentLoaded",()=>{

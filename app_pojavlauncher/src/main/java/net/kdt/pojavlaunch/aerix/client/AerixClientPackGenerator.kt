@@ -250,6 +250,14 @@ object AerixClientPackGenerator {
         if (!map.containsKey("panoramaScrollSpeed")) map["panoramaScrollSpeed"] = "0.0"
         if (!map.containsKey("monochromeLogo")) map["monochromeLogo"] = if (AerixClientStore.packCustomMojangSplash) "true" else "false"
         map["gamma"] = if (AerixClientStore.fullbrightEnabled) "100.0" else "1.0"
+        // Owner chat banner: the in-game mod highlights chat from this account's name.
+        runCatching {
+            val ownerName = net.kdt.pojavlaunch.aerix.bridge.PojavAccountBridge.current?.username?.trim().orEmpty()
+            if (ownerName.isNotEmpty()) {
+                File(instanceGameDir, "config").mkdirs()
+                File(instanceGameDir, "config/vortex_owner_name.txt").writeText(ownerName)
+            }
+        }
         // Initial defaults only: never overwrite existing user graphics or audio choices on launch.
         if (!map.containsKey("autoJump")) map["autoJump"] = "false"
         if (mcVersion == "26.3" && !map.containsKey("graphicsPreset")) {

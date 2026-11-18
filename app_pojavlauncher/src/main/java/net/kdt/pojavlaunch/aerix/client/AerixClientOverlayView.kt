@@ -660,9 +660,74 @@ private fun AerixClientRootOverlay(
         }
     }
 
+    // Roblox-style owner chat banner: the mod writes config/vortex_owner_alert.txt; we show it.
+    var ownerAlert by remember { mutableStateOf<String?>(null) }
+    var ownerAlertSeenAt by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(gameDir) {
+        val alertFile = gameDir?.let { File(it, "config/vortex_owner_alert.txt") }
+        while (true) {
+            delay(700L)
+            if (alertFile == null) continue
+            runCatching {
+                if (alertFile.isFile) {
+                    val lines = alertFile.readLines()
+                    val ts = lines.getOrNull(0)?.toLongOrNull() ?: 0L
+                    val msg = lines.getOrNull(1).orEmpty().trim()
+                    if (ts > ownerAlertSeenAt && System.currentTimeMillis() - ts < 60_000L && msg.isNotEmpty()) {
+                        ownerAlertSeenAt = ts
+                        ownerAlert = msg
+                    }
+                }
+            }
+        }
+    }
+    LaunchedEffect(ownerAlert) {
+        if (ownerAlert != null) {
+            delay(7000L)
+            ownerAlert = null
+        }
+    }
+
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val wPx = constraints.maxWidth.toFloat().coerceAtLeast(1f)
         val hPx = constraints.maxHeight.toFloat().coerceAtLeast(1f)
+
+        // Owner chat banner: top-center highlight for messages from the owner (Roblox-style).
+        AnimatedVisibility(
+            visible = ownerAlert != null,
+            modifier = Modifier.align(Alignment.TopCenter)
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(top = 46.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Brush.horizontalGradient(listOf(Color(0xE63A1418), Color(0xE616181F))))
+                    .border(
+                        1.4.dp,
+                        Brush.horizontalGradient(listOf(Color(0xFFFFD700), Color(0xFFFF6B75))),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .padding(horizontal = 14.dp, vertical = 9.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "OWNER",
+                    color = Color(0xFFFFD700),
+                    fontSize = 10.sp,
+                    letterSpacing = 1.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                Text(
+                    text = ownerAlert ?: "",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
 
         // Compact non-overlapping `[✦ Client]` button in safe gap (x=0.57, y=0.018 — clear of TAB at 0.46 & A at 0.77)
         if (!bootVisible && modal == InGameClientModal.NONE) {

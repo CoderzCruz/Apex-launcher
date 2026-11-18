@@ -181,6 +181,7 @@ public final class AerixClientMod implements ClientModInitializer {
 
     private void onRenderThreadTick(Object mc) throws Exception {
         File runDir = resolveRunDir(mc);
+        OwnerChatWatch.tick(mc, runDir);
         if (!modernRuntime) visualOverrides.tick(mc, runDir);
         adaptiveDistance.tick(mc, runDir);
         boolean assetSkin = modernRuntime || (handlesResolved && mSkinCompCape != null &&
