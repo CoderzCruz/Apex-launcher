@@ -66,6 +66,23 @@ public class PojavApplication extends MGApplication {
 				Log.e(CRASH_REPORT_TAG, " - The crash stack trace was:", th);
 			}
 
+			// Emergency auto-heal: a crash on the Cosmic RenderX renderer falls back to the
+			// safe GL backend so the next launch works; the reset is recorded in the crash file.
+			try {
+				if (net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER.equals(
+						net.kdt.pojavlaunch.game.renderer.def.Renderers.COSMIC_RENDERX_RENDERER)) {
+					net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_RENDERER =
+							net.kdt.pojavlaunch.game.renderer.def.Renderers.GL4ES_RENDERER;
+					net.kdt.pojavlaunch.prefs.LauncherPreferences.DEFAULT_PREF.edit()
+							.putString("renderer", net.kdt.pojavlaunch.game.renderer.def.Renderers.GL4ES_RENDERER)
+							.apply();
+					PrintStream healStream = new PrintStream(crashFile);
+					healStream.append(" - Auto-reset renderer: Cosmic RenderX -> GL4ES (crash fallback)\n");
+					healStream.close();
+				}
+			} catch (Throwable ignored) {
+			}
+
 			FatalErrorActivity.showError(PojavApplication.this, crashFile.getAbsolutePath(), storagePermAllowed, th);
 			Tools.fullyExit();
 		});

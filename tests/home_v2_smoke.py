@@ -169,7 +169,10 @@ assert "vortex_broadcast.txt" in overlay_src, "broadcast poll"
 assert "sendBroadcast" in panel and "Broadcast" in panel, "panel broadcast"
 
 prefs_src = (APP / "java/net/kdt/pojavlaunch/prefs/LauncherPreferences.java").read_text()
-assert "COSMIC_RENDERX_RENDERER" in prefs_src and "opengles3_ltw" in prefs_src, "cosmic default + migration"
+assert "one-time move off the old GL defaults" not in prefs_src, "no forced cosmic migration"
+assert "MOBILEGLUES_RENDERER" in prefs_src, "original GL default restored"
+app_src = (APP / "java/net/kdt/pojavlaunch/PojavApplication.java").read_text()
+assert "Auto-reset renderer: Cosmic RenderX -> GL4ES" in app_src, "crash auto-heal"
 mirai_src = (APP / "java/net/kdt/pojavlaunch/aerix/components/MiraiSettingsComponents.kt").read_text()
 assert "Vortex\u2019s Vulkan renderer" in mirai_src or "Vortex's Vulkan renderer" in mirai_src, "cosmic dropdown summary"
 
