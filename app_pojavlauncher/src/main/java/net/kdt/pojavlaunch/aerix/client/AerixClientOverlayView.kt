@@ -231,6 +231,16 @@ class AerixClientOverlayView @JvmOverloads constructor(
             return
         }
         activeClientInstance = instance
+        // Owner chat banner: write the owner name immediately on attach (in addition to the
+        // options-apply write) so the alert works even if options were never re-applied.
+        runCatching {
+            val ownerName = net.kdt.pojavlaunch.aerix.bridge.PojavAccountBridge.current?.username?.trim().orEmpty()
+            val dir = instance.gameDirectory
+            if (ownerName.isNotEmpty() && dir != null) {
+                java.io.File(dir, "config").mkdirs()
+                java.io.File(dir, "config/vortex_owner_name.txt").writeText(ownerName)
+            }
+        }
         AerixClientStore.reload(context.applicationContext)
         ClientPerformanceSettings.reload(context.applicationContext)
         AerixClientInputBridge.resetSessionState(instance.versionId)
