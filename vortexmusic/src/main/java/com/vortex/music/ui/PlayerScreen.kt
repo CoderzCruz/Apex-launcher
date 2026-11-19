@@ -136,13 +136,13 @@ fun PlayerScreen(onBack: () -> Unit, onOpenSettings: () -> Unit) {
 
         Spacer(Modifier.height(10.dp))
         Slider(
-            value = if (seeking) seekValue else if (duration > 0) position.toFloat() / duration else 0f,
+            value = if (seeking) seekValue else if (duration > 0) position.toFloat() / duration.toFloat() else 0f,
             onValueChange = {
                 seeking = true
                 seekValue = it
             },
             onValueChangeFinished = {
-                PlayerState.seekTo((seekValue * duration).toLong())
+                PlayerState.seekTo((seekValue * duration.toFloat()).toLong())
                 seeking = false
             },
             colors = SliderDefaults.colors(
@@ -152,7 +152,7 @@ fun PlayerScreen(onBack: () -> Unit, onOpenSettings: () -> Unit) {
             )
         )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(formatTime(if (seeking) seekValue * duration else position),
+            Text(formatTime(if (seeking) (seekValue * duration.toFloat()).toLong() else position),
                 color = VortexColors.TextSecondary, fontSize = 11.5.sp)
             Text(formatTime(duration), color = VortexColors.TextSecondary, fontSize = 11.5.sp)
         }

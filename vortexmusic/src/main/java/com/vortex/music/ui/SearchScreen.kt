@@ -36,6 +36,7 @@ private val FILTERS = listOf("All", "Songs", "Artists", "Albums", "Playlists")
 
 @Composable
 fun SearchScreen(songs: List<Song>, onPlay: (List<Song>, Int) -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var query by remember { mutableStateOf("") }
     var filter by remember { mutableStateOf("All") }
     val recents by MusicRepository.recentSearches.collectAsState()
@@ -74,7 +75,7 @@ fun SearchScreen(songs: List<Song>, onPlay: (List<Song>, Int) -> Unit) {
                         .background(if (filter == f) VortexColors.Accent else VortexColors.Surface)
                         .clickable {
                             filter = f
-                            if (query.isNotBlank()) MusicRepository.addSearch(context(), query)
+                            if (query.isNotBlank()) MusicRepository.addSearch(context, query)
                         }
                         .padding(horizontal = 14.dp, vertical = 7.dp)
                 )
@@ -113,7 +114,7 @@ fun SearchScreen(songs: List<Song>, onPlay: (List<Song>, Int) -> Unit) {
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
                                 .padding(16.dp)
-                                .clickable { MusicRepository.clearSearches(context()) }
+                                .clickable { MusicRepository.clearSearches(context) }
                         )
                     }
                 }
@@ -137,7 +138,7 @@ fun SearchScreen(songs: List<Song>, onPlay: (List<Song>, Int) -> Unit) {
                     }
                     items(results, key = { "s${it.id}" }) { song ->
                         SongRow(song) {
-                            MusicRepository.addSearch(context(), query)
+                            MusicRepository.addSearch(context, query)
                             onPlay(results, results.indexOf(song))
                         }
                     }
@@ -152,7 +153,7 @@ fun SearchScreen(songs: List<Song>, onPlay: (List<Song>, Int) -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    MusicRepository.addSearch(context(), query)
+                                    MusicRepository.addSearch(context, query)
                                     val list = MusicRepository.byArtist(artist)
                                     if (list.isNotEmpty()) onPlay(list, 0)
                                 }
@@ -172,7 +173,7 @@ fun SearchScreen(songs: List<Song>, onPlay: (List<Song>, Int) -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    MusicRepository.addSearch(context(), query)
+                                    MusicRepository.addSearch(context, query)
                                     val list = MusicRepository.byAlbum(album)
                                     if (list.isNotEmpty()) onPlay(list, 0)
                                 }
@@ -192,7 +193,7 @@ fun SearchScreen(songs: List<Song>, onPlay: (List<Song>, Int) -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    MusicRepository.addSearch(context(), query)
+                                    MusicRepository.addSearch(context, query)
                                     val list = (playlists[name] ?: emptyList())
                                         .mapNotNull { id -> songs.find { it.id == id } }
                                     if (list.isNotEmpty()) onPlay(list, 0)
@@ -211,8 +212,3 @@ fun SearchScreen(songs: List<Song>, onPlay: (List<Song>, Int) -> Unit) {
         }
     }
 }
-
-/** Activity context without plumbing it through every composable. */
-@Composable
-private fun context(): android.content.Context =
-    androidx.compose.ui.platform.LocalContext.current
