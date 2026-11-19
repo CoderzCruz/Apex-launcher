@@ -48,6 +48,14 @@ public class Instance extends DisplayInstance {
         if (net.kdt.pojavlaunch.aerix.bridge.RetiredRendererCleanup.isRetiredTag(renderer)) {
             renderer = null; // Inherit the remaining global renderer; preserve all other instance data.
         }
+        // The reverted Cosmic migration had written cosmic_renderx straight into instances that
+        // never chose it (GameRunner saves the running tag after every launch), and those devices
+        // black-screen after the splash. Unconfirmed cosmic inherits the global safe renderer;
+        // an explicit tile choice records cosmic_confirmed and is preserved.
+        if (net.kdt.pojavlaunch.game.renderer.def.Renderers.COSMIC_RENDERX_RENDERER.equals(renderer)
+                && !LauncherPreferences.DEFAULT_PREF.getBoolean("cosmic_confirmed", false)) {
+            renderer = null;
+        }
     }
 
     private void sanitizeArgs() {

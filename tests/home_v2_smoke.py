@@ -179,6 +179,8 @@ settings_full = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen
 assert settings_full.count("cosmic_confirmed") >= 3, "choice flags on every write path"
 cosmic_src = (APP / "java/net/kdt/pojavlaunch/game/renderer/impl/CosmicRenderSpec.java").read_text()
 assert "MESA_VK_WSI_PRESENT_MODE" not in cosmic_src, "mailbox removed (pure zink)"
+instance_src = (APP / "java/net/kdt/pojavlaunch/instances/Instance.java").read_text()
+assert "cosmic_confirmed" in instance_src and "COSMIC_RENDERX_RENDERER.equals(renderer)" in instance_src, "instance-level cosmic guard"
 mirai_src = (APP / "java/net/kdt/pojavlaunch/aerix/components/MiraiSettingsComponents.kt").read_text()
 assert "Vortex\u2019s Vulkan renderer" in mirai_src or "Vortex's Vulkan renderer" in mirai_src, "cosmic dropdown summary"
 
