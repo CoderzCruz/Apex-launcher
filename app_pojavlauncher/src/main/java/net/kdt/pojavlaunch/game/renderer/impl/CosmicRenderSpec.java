@@ -12,6 +12,7 @@ import java.util.Map;
  * GL-to-Vulkan path (same device requirements as Zink) and adds a lower-latency WSI
  * present mode so frame delivery stays ahead of slow GL translators.
  */
+// Vortex-branded Zink path (pure Zink env — see setupEnvironment).
 public class CosmicRenderSpec extends MesaRenderSpec.ZinkRenderSpec {
     @Override
     public String name() {
