@@ -87,7 +87,7 @@ object MusicRepository {
                         (0 until arr.length()).map { arr.getString(it) }
                     } ?: emptyList()
                     _playCounts.value = json.optJSONObject("counts")?.let { obj ->
-                        obj.keys().asSequence().associateWith { k -> obj.getInt(k) }
+                        obj.keys().asSequence().map { k -> k.toLong() to obj.getInt(k) }.toMap()
                     } ?: emptyMap()
                 }
             }

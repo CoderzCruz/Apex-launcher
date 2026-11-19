@@ -287,7 +287,9 @@ class PlaybackService : android.app.Service() {
             focusRequest?.let { runCatching { am.abandonAudioFocusRequest(it) } }
         } else {
             @Suppress("DEPRECATION")
-            runCatching { am.abandonAudioFocus({ }, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN) }
+            runCatching {
+                am.abandonAudioFocus(AudioManager.OnAudioFocusChangeListener { })
+            }
         }
     }
 
@@ -342,7 +344,6 @@ class PlaybackService : android.app.Service() {
             .setSmallIcon(R.drawable.ic_vortex_music)
             .setContentTitle(song.title)
             .setContentText(song.artist)
-            .setLargeIcon(null)
             .setContentIntent(openApp)
             .setOngoing(playing)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

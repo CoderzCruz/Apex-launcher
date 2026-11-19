@@ -83,14 +83,16 @@ fun greeting(): String {
 /** Loads embedded album art for a song; null falls back to the gradient tile. */
 @Composable
 fun rememberArtwork(song: Song?): ImageBitmap? {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var bmp by remember(song?.id) { mutableStateOf<ImageBitmap?>(null) }
     val uri = song?.artworkUri ?: ""
     LaunchedEffect(uri) {
         if (uri.isEmpty()) { bmp = null; return@LaunchedEffect }
         bmp = withContext(Dispatchers.IO) {
             runCatching {
-                val stream = android.content.ContentResolver.openInputStream(android.net.Uri.parse(uri))
-                stream?.use { BitmapFactory.decodeStream(it)?.asImageBitmap() }
+                context.contentResolver.openInputStream(android.net.Uri.parse(uri))?.use {
+                    BitmapFactory.decodeStream(it)?.asImageBitmap()
+                }
             }.getOrNull()
         }
     }
