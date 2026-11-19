@@ -408,6 +408,9 @@ private fun RendererTabContent(activity: FragmentActivity) {
                                     onSelect = {
                                         autoSelected = false
                                         PojavSettingsBridge.writeString(activity, "renderer", plugin.pluginTag)
+                                        LauncherPreferences.DEFAULT_PREF.edit()
+                                            .putBoolean("cosmic_confirmed", plugin.pluginTag == Renderers.COSMIC_RENDERX_RENDERER)
+                                            .apply()
                                     },
                                     modifier = Modifier.weight(1f)
                                 )
@@ -449,6 +452,9 @@ private fun RendererTabContent(activity: FragmentActivity) {
                                     compatible.firstOrNull()?.first ?: Renderers.GL4ES_RENDERER
                                 }
                                 PojavSettingsBridge.writeString(activity, "renderer", targetId)
+                                LauncherPreferences.DEFAULT_PREF.edit()
+                                    .putBoolean("cosmic_confirmed", targetId == Renderers.COSMIC_RENDERX_RENDERER)
+                                    .apply()
                             }
                             // The selected tile takes the accent as a pulsing glow; with the
                             // animated theme off it is the same flat border as before, and no
@@ -752,6 +758,9 @@ private fun RendererTabContent(activity: FragmentActivity) {
                         autoSelected = false
                         currentMiraiRendererId = entry.uniqueId
                         setMiraiGlobalRenderer(entry)
+                        LauncherPreferences.DEFAULT_PREF.edit()
+                            .putBoolean("cosmic_confirmed", entry.uniqueId == Renderers.COSMIC_RENDERX_RENDERER)
+                            .apply()
                         PojavSettingsBridge.touch()
                     }
                 )

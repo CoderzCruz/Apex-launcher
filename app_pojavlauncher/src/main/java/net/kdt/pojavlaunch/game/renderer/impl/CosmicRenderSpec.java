@@ -30,8 +30,8 @@ public class CosmicRenderSpec extends MesaRenderSpec.ZinkRenderSpec {
 
     @Override
     public void setupEnvironment(Context context, Map<String, String> envMap) {
+        // Identical to the proven Zink environment — branding and selection only, so a
+        // device that can run Zink can run Cosmic RenderX with no extra present-mode risk.
         super.setupEnvironment(context, envMap);
-        // Mailbox present mode: lower latency than FIFO on mobile drivers.
-        envMap.put("MESA_VK_WSI_PRESENT_MODE", "mailbox");
     }
 }

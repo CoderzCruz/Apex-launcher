@@ -100,6 +100,13 @@ public class LauncherPreferences {
             PREF_RENDERER = defaultRendererId(ctx);
             DEFAULT_PREF.edit().putString("renderer", PREF_RENDERER).apply();
         }
+        // Cosmic RenderX without an explicit choice (the reverted migration wrote it straight
+        // into the pref) falls back to the safe GL default — black screens never persist.
+        if (Renderers.COSMIC_RENDERX_RENDERER.equals(PREF_RENDERER)
+                && !DEFAULT_PREF.getBoolean("cosmic_confirmed", false)) {
+            PREF_RENDERER = defaultRendererId(ctx);
+            DEFAULT_PREF.edit().putString("renderer", PREF_RENDERER).apply();
+        }
         PREF_BUTTONSIZE = DEFAULT_PREF.getInt("buttonscale", 100);
         PREF_MOUSESCALE = DEFAULT_PREF.getInt("mousescale", 100)/100f;
         PREF_MOUSESPEED = ((float)DEFAULT_PREF.getInt("mousespeed",100))/100f;

@@ -148,7 +148,7 @@ assert "CosmicRenderSpec" in game_renderer, "cosmic renderer wired"
 settings_src = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.kt").read_text()
 assert "Cosmic RenderX" in settings_src and "hasCosmic" in settings_src, "cosmic settings tile"
 cosmic_spec = (APP / "java/net/kdt/pojavlaunch/game/renderer/impl/CosmicRenderSpec.java").read_text()
-assert "MESA_VK_WSI_PRESENT_MODE" in cosmic_spec and "ZinkRenderSpec" in cosmic_spec, "cosmic spec"
+assert "ZinkRenderSpec" in cosmic_spec and "MESA_VK_WSI_PRESENT_MODE" not in cosmic_spec, "cosmic spec = pure zink"
 
 panel = (APP / "assets/owner_panel.html").read_text()
 assert "UPDATE_ROLLOUT" in panel and "debug-latest" in panel and "vortex_admin_pat" in panel, "owner panel page"
@@ -173,6 +173,12 @@ assert "one-time move off the old GL defaults" not in prefs_src, "no forced cosm
 assert "MOBILEGLUES_RENDERER" in prefs_src, "original GL default restored"
 app_src = (APP / "java/net/kdt/pojavlaunch/PojavApplication.java").read_text()
 assert "Auto-reset renderer: Cosmic RenderX -> GL4ES" in app_src, "crash auto-heal"
+prefs_full = (APP / "java/net/kdt/pojavlaunch/prefs/LauncherPreferences.java").read_text()
+assert "cosmic_confirmed" in prefs_full, "unconfirmed cosmic reset guard"
+settings_full = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.kt").read_text()
+assert settings_full.count("cosmic_confirmed") >= 3, "choice flags on every write path"
+cosmic_src = (APP / "java/net/kdt/pojavlaunch/game/renderer/impl/CosmicRenderSpec.java").read_text()
+assert "MESA_VK_WSI_PRESENT_MODE" not in cosmic_src, "mailbox removed (pure zink)"
 mirai_src = (APP / "java/net/kdt/pojavlaunch/aerix/components/MiraiSettingsComponents.kt").read_text()
 assert "Vortex\u2019s Vulkan renderer" in mirai_src or "Vortex's Vulkan renderer" in mirai_src, "cosmic dropdown summary"
 
