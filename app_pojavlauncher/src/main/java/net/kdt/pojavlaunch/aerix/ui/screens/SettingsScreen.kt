@@ -207,6 +207,7 @@ private fun defaultRendererStackOptions(defaultRendererId: String): List<Rendere
     RendererStackOption("Zink", "Kopper Zink (Vulkan)", "VULKAN", Renderers.ZINK_RENDERER, R.drawable.aerix_logo_vulkan),
     RendererStackOption("PROTON", "Proton (PowerVR)", "32-BIT ONLY", Renderers.PROTON_RENDERER, R.drawable.aerix_logo_proton, brandedLogo = true),
     RendererStackOption("COSMIC", "Cosmic RenderX", "VULKAN", Renderers.COSMIC_RENDERX_RENDERER, R.drawable.aerix_logo_cosmic, brandedLogo = true, descriptionRes = R.string.mcl_setting_renderer_cosmic_renderx_description),
+    RendererStackOption("EMESIS", "Emesis Renderer", "ALL VERSIONS", Renderers.EMESIS_RENDERER, R.drawable.aerix_logo_emesis, brandedLogo = true, descriptionRes = R.string.mcl_setting_renderer_emesis_description),
 )
 
 /**
@@ -385,7 +386,7 @@ private fun RendererTabContent(activity: FragmentActivity) {
                 // tiles below, and a freshly installed plugin has to be obvious without scrolling.
                 Text(
                     text = if (plugins.isEmpty()) {
-                        "No external renderer plugins — Cosmic RenderX is built in."
+                        "No external renderer plugins — Emesis and Cosmic RenderX are built in."
                     } else {
                         "Renderer plugins (" + plugins.size + "): " +
                             plugins.joinToString(" \u00B7 ") { it.displayName }
@@ -425,11 +426,13 @@ private fun RendererTabContent(activity: FragmentActivity) {
                 // build simply does not list it. Every other renderer stays available in the
                 // Global Renderer list and in the instance editor below.
                 val hasProton = compatible.any { it.first == Renderers.PROTON_RENDERER }
+                val hasEmesis = compatible.any { it.first == Renderers.EMESIS_RENDERER }
                 val hasCosmic = compatible.any { it.first == Renderers.COSMIC_RENDERX_RENDERER }
                 val offeredOptions = rendererStackOptions.filter { option ->
                     when {
                         option.keyMatch == "AUTO" -> true
                         option.rendererId == Renderers.PROTON_RENDERER -> hasProton
+                        option.rendererId == Renderers.EMESIS_RENDERER -> hasEmesis
                         option.rendererId == Renderers.COSMIC_RENDERX_RENDERER -> hasCosmic
                         else -> false
                     }

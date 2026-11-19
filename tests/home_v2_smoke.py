@@ -183,8 +183,8 @@ mirai_src = (APP / "java/net/kdt/pojavlaunch/aerix/components/MiraiSettingsCompo
 assert "Vortex\u2019s Vulkan renderer" in mirai_src or "Vortex's Vulkan renderer" in mirai_src, "cosmic dropdown summary"
 
 settings_check = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.kt").read_text()
-assert "Download Emesis" not in settings_check, "emesis download button gone"
-assert "RendererStackOption(\"EMESIS\"" not in settings_check, "emesis tile gone"
-assert "Cosmic RenderX is built in" in settings_check, "cosmic empty-state"
+assert "RendererStackOption(\"EMESIS\"" in settings_check, "emesis tile restored"
+assert "Download Emesis" not in settings_check, "plugin download stays removed"
+assert "Emesis and Cosmic RenderX are built in" in settings_check, "empty-state copy"
 mirai_check = (APP / "java/net/kdt/pojavlaunch/aerix/components/MiraiSettingsComponents.kt").read_text()
-assert "rendererId == Renderers.EMESIS_RENDERER" in mirai_check, "emesis filtered from dropdown"
+assert "Renderers.EMESIS_RENDERER ->" in mirai_check, "emesis summary restored"
