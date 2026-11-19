@@ -103,7 +103,7 @@ fun PlayerScreen(onBack: () -> Unit, onOpenSettings: () -> Unit) {
             Text("⌄", color = VortexColors.TextPrimary, fontSize = 22.sp,
                 modifier = Modifier.clickable(onClick = onBack).padding(6.dp))
             Text("NOW PLAYING", color = VortexColors.TextSecondary, fontSize = 11.sp,
-                fontWeight = FontWeight.Bold, letterSpacing = androidx.compose.ui.unit.TextUnit(2f, androidx.compose.ui.unit.Sp))
+                fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
             Text("⚙", color = VortexColors.TextSecondary, fontSize = 18.sp,
                 modifier = Modifier.clickable(onClick = onOpenSettings).padding(6.dp))
         }

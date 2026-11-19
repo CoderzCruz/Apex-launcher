@@ -144,7 +144,7 @@ fun SectionHeader(title: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun SongRow(song: Song, onClick: () -> Unit, trailing: @Composable (() -> Unit)? = null) {
+fun SongRow(song: Song, trailing: @Composable (() -> Unit)? = null, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

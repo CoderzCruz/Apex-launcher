@@ -85,6 +85,10 @@ private fun VortexMusicApp(activity: MainActivity) {
         if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO
         else Manifest.permission.READ_EXTERNAL_STORAGE
 
+    val notificationsLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* granted or not: playback works either way, notification just won't show */ }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -92,15 +96,10 @@ private fun VortexMusicApp(activity: MainActivity) {
             MainScope().launch { MusicRepository.scan(activity) }
             if (Build.VERSION.SDK_INT >= 33) {
                 // Ask for notification permission next so the media notification can show.
-                notifLauncher?.launch(Manifest.permission.POST_NOTIFICATIONS)
+                notificationsLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }
-    var notifLauncher by remember { mutableStateOf<((String) -> Unit)?>(null) }
-    val notificationsLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { /* granted or not: playback works either way, notification just won't show */ }
-    notifLauncher = { perm -> notificationsLauncher.launch(perm) }
 
     LaunchedEffect(Unit) {
         val granted = ContextCompat.checkSelfPermission(

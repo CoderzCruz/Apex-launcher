@@ -61,7 +61,7 @@ fun LibraryScreen(
     // Create / rename dialogs
     if (showCreate || renameTarget != null) {
         var name by remember { mutableStateOf(renameTarget ?: "") }
-        AlertDialog(
+        androidx.compose.material3.AlertDialog(
             onDismissRequest = { showCreate = false; renameTarget = null },
             title = { Text(if (renameTarget != null) "Rename playlist" else "New playlist") },
             text = {
