@@ -7,7 +7,7 @@ MOD = ROOT / "vortexmusic"
 # Module skeleton
 assert (MOD / "build.gradle").exists(), "module build.gradle"
 manifest = (MOD / "src/main/AndroidManifest.xml").read_text()
-assert ".ui.MainActivity" in manifest and "PlaybackService" in manifest
+assert "PlaybackService" in manifest and "MediaButtonReceiver" in manifest, "library manifest"
 assert "FOREGROUND_SERVICE_MEDIA_PLAYBACK" in manifest, "background playback permission"
 assert "MediaButtonReceiver" in manifest, "headset/media button support"
 
@@ -25,11 +25,11 @@ assert "playlists.json" in repo or "vortex_music_library.json" in repo, "persist
 for banned in ["http://", "https://"]:
     assert banned not in repo, "library must stay local-only"
 
-# All four tabs exist and are wired
+# The library exposes every screen the launcher host wires up
+for screen in ["HomeScreen.kt", "SearchScreen.kt", "LibraryScreen.kt", "PlayerScreen.kt", "SettingsScreen.kt"]:
+    assert (MOD / "src/main/java/com/vortex/music/ui" / screen).exists(), screen
 main = (MOD / "src/main/java/com/vortex/music/ui/MainActivity.kt").read_text()
-for tab in ["HOME", "SEARCH", "LIBRARY", "PLAYER"]:
-    assert tab in main, f"tab {tab}"
-assert "SettingsScreen" in main, "settings wired"
+assert "fun MiniPlayer" in main, "public mini player"
 
 # Screens exist with real controls
 player = (MOD / "src/main/java/com/vortex/music/ui/PlayerScreen.kt").read_text()
@@ -38,8 +38,10 @@ for token in ["Slider", "PlayerState.toggle", "PlayerState.next", "PlayerState.p
 for screen in ["HomeScreen.kt", "SearchScreen.kt", "LibraryScreen.kt", "SettingsScreen.kt"]:
     assert (MOD / "src/main/java/com/vortex/music/ui" / screen).exists(), screen
 
-# Workflow publishes the APK
-wf = (ROOT / ".github/workflows/vortex-music.yml").read_text()
-assert "vortexmusic:assembleDebug" in wf and "music-latest" in wf
+# The launcher hosts the experience
+launcher_music = (ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/ui/screens/AerixMusicScreen.kt").read_text()
+assert "PlayerState" in launcher_music and "MiniPlayer" in launcher_music, "launcher host"
+app_gradle = (ROOT / "app_pojavlauncher/build.gradle").read_text()
+assert "project(':vortexmusic')" in app_gradle, "library dependency"
 
 print("Vortex Music smoke test passed")

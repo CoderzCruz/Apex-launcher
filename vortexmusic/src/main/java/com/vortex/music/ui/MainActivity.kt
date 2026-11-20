@@ -213,7 +213,7 @@ private fun VortexMusicApp(activity: MainActivity) {
 }
 
 @Composable
-private fun MiniPlayer(song: Song, playing: Boolean, onTap: () -> Unit, onToggle: () -> Unit) {
+fun MiniPlayer(song: Song, playing: Boolean, onTap: () -> Unit, onToggle: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

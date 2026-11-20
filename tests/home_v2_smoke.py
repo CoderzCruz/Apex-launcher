@@ -90,14 +90,13 @@ assert '"QUICK ACTIONS"' in home, "reference section label"
 
 # ── Music player, smooth swap, red-open icon, deeper transparency, bigger stage ──
 music = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/AerixMusicScreen.kt").read_text()
-assert "object AerixMusicPlayer" in music and "fun AerixMusicScreen" in music, "music screen ships"
+assert "fun AerixMusicScreen" in music and "PlaybackService" in music, "music screen ships (vortex music host)"
 assert "MediaPlayer" in music and "playAt" in music, "real playback, not a stub"
 assert '"Music"' in rail and "aerix_ic_music_note" in rail, "rail music entry"
 assert "LauncherSection.MUSIC -> AerixMusicScreen()" in launcher, "section routed"
 assert (ROOT / "app_pojavlauncher/src/main/res/drawable/aerix_ic_music_note.xml").exists(), "music icon asset"
-assert "Brush.horizontalGradient" in music, "music screen premium gradients"
-assert "MusicTransportButton" in music, "circular transport controls"
-assert "MusicEqBar" in music, "live equalizer bars"
+assert "MusicRepository" in music and "PlayerState" in music, "vortex music engine host"
+assert "MiniPlayer" in music and "HomeScreen(" in music, "music tabs + mini player"
 discover = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/DiscoverScreen.kt").read_text()
 assert "Brush.horizontalGradient" in discover and "borderHighlight" in discover, "premium mod cards"
 client = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/AerixClientScreen.kt").read_text()

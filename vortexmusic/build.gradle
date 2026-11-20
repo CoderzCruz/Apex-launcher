@@ -1,5 +1,5 @@
 plugins {
-    id 'com.android.application' version '8.11.1'
+    id 'com.android.library' version '8.11.1'
     id 'org.jetbrains.kotlin.android' version '2.2.10'
     id 'org.jetbrains.kotlin.plugin.compose' version '2.2.10'
 }
@@ -9,17 +9,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId "com.vortex.music"
         minSdkVersion 23
-        targetSdkVersion 36
-        versionCode 1
-        versionName "1.0.0"
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-        }
     }
 
     compileOptions {
