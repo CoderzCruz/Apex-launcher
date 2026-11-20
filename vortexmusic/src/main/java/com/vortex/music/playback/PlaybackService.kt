@@ -74,8 +74,30 @@ class PlaybackService : android.app.Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Foreground-service contract: startForeground() must run within ~5s of
+        // startForegroundService() or Android kills the whole app with
+        // ForegroundServiceDidNotStartInTimeException (the "launcher crashes after
+        // opening Music" report). Post the idle notification first; pushNotification()
+        // replaces it as soon as playback has state.
+        runCatching { startForeground(NOTIFICATION_ID, buildIdleNotification()) }
         MediaButtonReceiver.handleIntent(session, intent)
         return START_NOT_STICKY
+    }
+
+    /** Low-priority notification shown the moment the service starts (FGS contract). */
+    private fun buildIdleNotification(): Notification {
+        val openApp = PendingIntent.getActivity(
+            this, 0, Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_vortex_music)
+            .setContentTitle("Vortex Music")
+            .setContentText("Ready to play")
+            .setContentIntent(openApp)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .build()
     }
 
     override fun onDestroy() {
