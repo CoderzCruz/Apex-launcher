@@ -59,6 +59,13 @@ assert "PojavLaunchBridge.play(activity)" in screen
 assert "AerixClientServers.add(" in screen and "AerixClientServers.remove(" in screen
 assert "checking…" in screen and "offline / not answering" in servers
 
+# ── The page is actually reachable: a rail entry, not an orphan ─────────
+rail = (SRC / "java/net/kdt/pojavlaunch/aerix/ui/AerixNavigationRail.kt").read_text()
+assert 'RailIconItem(R.drawable.ic_px_fps, "Vortex Client"' in rail, "rail entry"
+assert "onNavigate(LauncherSection.CLIENT)" in rail, "rail entry wired"
+launcher = (SRC / "java/net/kdt/pojavlaunch/aerix/ui/AerixLauncherScreen.kt").read_text()
+assert "LauncherSection.CLIENT -> AerixClientScreen(activity)" in launcher, "client page hosted"
+
 # ── The separate products stay separate ──────────────────────────────────
 assert "vortexclientapp" not in screen and "com.vortex.clientapp" not in screen
 print("vortex client menu smoke: OK")

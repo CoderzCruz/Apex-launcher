@@ -32,7 +32,8 @@ assert 'name="aerix_brand" translatable="false">Vortex<' in aerix_strings
 # ── Vortex Client is hosted again as its own rail section (old id gone) ───
 rail = RAIL.read_text()
 assert "AERIX_CLIENT" not in rail, "legacy client id stays gone"
-assert 'RailIconItem(R.drawable.ic_px_fps, "Vortex Client"' not in rail, "client rail entry swapped for Cape Shop"
+assert 'RailIconItem(R.drawable.ic_px_fps, "Vortex Client"' in rail, "client has its own rail entry"
+assert 'RailIconItem(R.drawable.aerix_ic_style_outlined, "Cape Shop"' in rail, "cape shop keeps its own"
 assert '"Rules"' in rail and "LauncherSection.RULES" in rail
 launcher = LAUNCHER.read_text()
 assert "LauncherSection.CLIENT -> AerixClientScreen(" in launcher, "client page hosted"

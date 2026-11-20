@@ -110,7 +110,7 @@ assert "CONFIG PROFILES" in client and "ClientConfigProfiles" in client and "app
 cape_shop = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/AerixCapeShopScreen.kt").read_text()
 assert "CAPE SHOP" in cape_shop and "ClientCapeTile" in cape_shop and "equippedCapeId" in cape_shop, "cape shop screen"
 assert '"Cape Shop"' in rail and "aerix_ic_style_outlined" in rail, "rail cape shop entry"
-assert '"Vortex Client"' not in rail, "client icon removed from rail"
+assert '"Vortex Client"' in rail and "onNavigate(LauncherSection.CLIENT)" in rail, "client has its own rail entry again"
 assert "AerixCapeShopScreen" in launcher, "cape shop hosted"
 assert "FastClientScreen" in launcher and "LauncherSection.FAST_CLIENT ->" in launcher, "fast client hosted"
 assert 'ic_px_zap, "Fast Client"' in rail, "fast client rail entry"
