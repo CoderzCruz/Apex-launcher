@@ -18,7 +18,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,14 +49,60 @@ fun HomeScreen(songs: List<Song>, onPlay: (List<Song>, Int) -> Unit, openPlayer:
     rememberPlayCounts()
 
     if (songs.isEmpty()) {
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val neededPermission =
+            if (android.os.Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO
+            else Manifest.permission.READ_EXTERNAL_STORAGE
+        val scanLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            if (granted) {
+                kotlinx.coroutines.MainScope().launch { MusicRepository.scan(context) }
+            } else {
+                android.widget.Toast.makeText(
+                    context, "Permission denied — use Import songs instead",
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+        val importLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.OpenMultipleDocuments()
+        ) { uris ->
+            if (!uris.isNullOrEmpty()) {
+                val n = MusicRepository.addImported(context, uris)
+                android.widget.Toast.makeText(context, "$n song(s) imported",
+                    android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("No local music found", color = VortexColors.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "Add mp3 / wav / m4a files to your device music folders, then pull to refresh.",
+                    "Your device has no indexed music yet. Grant access to scan, or import files directly.",
                     color = VortexColors.TextSecondary, fontSize = 12.5.sp
                 )
+                Spacer(Modifier.height(18.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        "Grant access & scan",
+                        color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(VortexColors.Accent)
+                            .clickable { scanLauncher.launch(neededPermission) }
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                    )
+                    Text(
+                        "Import songs",
+                        color = VortexColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(VortexColors.SurfaceHigh)
+                            .clickable { importLauncher.launch(arrayOf("audio/*")) }
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                    )
+                }
             }
         }
         return

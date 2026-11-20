@@ -145,35 +145,10 @@ internal object LauncherUpdater {
                     }
                     return@launch
                 }
-                val response = open("https://api.github.com/repos/entitybrian69-bit/Aerix-launcher/releases/latest")
-                val result = try {
-                    if (response.responseCode == 404) null else {
-                        require(response.responseCode == 200) { "GitHub returned HTTP ${response.responseCode}. Please try again later." }
-                        val bytes = response.inputStream.use { input ->
-                            val out = java.io.ByteArrayOutputStream()
-                            val buffer = ByteArray(4096)
-                            while (out.size() <= 256 * 1024) {
-                                val count = input.read(buffer)
-                                if (count == -1) break
-                                out.write(buffer, 0, count)
-                            }
-                            out.toByteArray()
-                        }
-                        require(bytes.size <= 256 * 1024) { "Release response is too large" }
-                        LauncherUpdatePolicy.release(
-                            bytes.toString(Charsets.UTF_8),
-                            BuildConfig.FLAVOR == "noruntime",
-                            // The build for this device's own CPU: arm64 where it exists, arm32 on
-                            // the 32-bit phones, the universal APK where neither applies.
-                            LauncherUpdatePolicy.preferredAbi(Build.SUPPORTED_64_BIT_ABIS, Build.SUPPORTED_32_BIT_ABIS)
-                        )
-                    }
-                } finally { response.disconnect(); connection = null }
+                // Owner directive: the upstream entitybrian69-bit release must NEVER be
+                // offered inside Vortex — only our own debug-latest updates count.
                 withContext(Dispatchers.Main) {
-                    release = result
-                    val installed = LauncherVersion.parse(BuildConfig.VERSION_NAME)
-                    require(installed != null) { "This build does not have a stable release version" }
-                    phase = if (result != null && result.version > installed) LauncherUpdatePhase.AVAILABLE else LauncherUpdatePhase.CURRENT
+                    phase = LauncherUpdatePhase.CURRENT
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
