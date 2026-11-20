@@ -62,7 +62,7 @@ assert "buildAerixTitleLogoModern(context)" in pack and "buildAerixTitleLogoLega
 
 # ── options.txt: readability, parallax, pack enabled ─────────────────────
 assert 'map["panoramaScrollSpeed"] =' in pack and 'packMenuParallax) "1.0" else "0.0"' in pack
-assert 'map["monochromeLogo"] = if (AerixClientStore.packCustomMojangSplash) "true" else "false"' in pack
+assert 'map["monochromeLogo"] = "false"' in pack, "red wordmark must never render grey"
 assert 'map["resourcePacks"]' in pack and '"file/$PACK_FILE_NAME"' in pack
 assert "var packMenuParallax by mutableStateOf(true)" in store
 assert 'putBoolean("packMenuParallax", packMenuParallax)' in store

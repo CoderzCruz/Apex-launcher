@@ -241,7 +241,8 @@ object AerixClientPackGenerator {
         map["panoramaScrollSpeed"] =
             if (AerixClientStore.packCustomMainMenu && AerixClientStore.packMenuParallax) "1.0" else "0.0"
         // The VORTEX wordmark is crimson: monochromeLogo would flatten it to grey.
-        map["monochromeLogo"] = if (AerixClientStore.packCustomMojangSplash) "true" else "false"
+        // Monochrome logo would render the crimson VORTEX wordmark grey; keep the colour.
+        map["monochromeLogo"] = "false"
         map["gamma"] = if (AerixClientStore.fullbrightEnabled) "100.0" else "1.0"
         // Owner chat banner: the in-game mod highlights chat from this account's name.
         runCatching {
