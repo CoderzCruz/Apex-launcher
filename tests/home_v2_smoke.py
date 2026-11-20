@@ -91,7 +91,8 @@ assert '"QUICK ACTIONS"' in home, "reference section label"
 # ── Music player, smooth swap, red-open icon, deeper transparency, bigger stage ──
 music = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/AerixMusicScreen.kt").read_text()
 assert "fun AerixMusicScreen" in music and "PlaybackService" in music, "music screen ships (vortex music host)"
-assert "MediaPlayer" in music and "playAt" in music, "real playback, not a stub"
+engine = (ROOT / "vortexmusic/src/main/java/com/vortex/music/playback/PlaybackService.kt").read_text()
+assert "MediaPlayer" in engine and "prepareAsync" in engine, "real playback, not a stub"
 assert '"Music"' in rail and "aerix_ic_music_note" in rail, "rail music entry"
 assert "LauncherSection.MUSIC -> AerixMusicScreen()" in launcher, "section routed"
 assert (ROOT / "app_pojavlauncher/src/main/res/drawable/aerix_ic_music_note.xml").exists(), "music icon asset"
