@@ -101,8 +101,7 @@ assert "MiniPlayer" in music and "HomeScreen(" in music, "music tabs + mini play
 discover = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/DiscoverScreen.kt").read_text()
 assert "Brush.horizontalGradient" in discover and "borderHighlight" in discover, "premium mod cards"
 client = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/AerixClientScreen.kt").read_text()
-assert "VORTEX CLIENT" in client and "FPS Boost" in client and "ClientMenuButton" in client, "client hero + feather menu"
-assert "CLIENT MENU" in client and "AerixNav.navigate(LauncherSection.LIBRARY)" in client, "client menu navigation"
+assert "VORTEX CLIENT" in client and "FPS Boost" in client and "ClientFeatureTile" in client, "client hero + features"
 assert "ClientModuleSection" in client and "PvP preset applied" in client, "modules manager + presets"
 assert "SUPPORTED" in client and "horizontalScroll" in client and "DOWNLOADS" in client, "supported-versions strip"
 assert "ClientVersionTile" in client and "ClientActionDock" in client, "custom client UI"

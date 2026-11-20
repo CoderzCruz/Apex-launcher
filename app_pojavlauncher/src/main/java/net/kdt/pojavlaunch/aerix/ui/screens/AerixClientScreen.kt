@@ -45,8 +45,6 @@ import net.kdt.pojavlaunch.aerix.bridge.PojavInstanceBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavLaunchBridge
 import net.kdt.pojavlaunch.aerix.client.AerixClientInstaller
 import net.kdt.pojavlaunch.aerix.client.ClientConfigProfiles
-import net.kdt.pojavlaunch.aerix.ui.AerixNav
-import net.kdt.pojavlaunch.aerix.ui.LauncherSection
 import net.kdt.pojavlaunch.aerix.client.ClientVersionSpec
 import net.kdt.pojavlaunch.aerix.client.AerixClientStore
 import net.kdt.pojavlaunch.aerix.components.GlassPanel
@@ -61,32 +59,7 @@ import net.kdt.pojavlaunch.instances.Instances
  * Transparent backdrop over the launcher's live wallpaper, showing ONLY `Aerix Client`
  * and Liquid Glass client version download / launch cards below it.
  */
-/** Feather-style big red action button for the CLIENT MENU grid. */
-@Composable
-private fun ClientMenuButton(label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(10.dp)
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(52.dp)
-            .clip(shape)
-            .background(
-                Brush.horizontalGradient(listOf(Color(0xFFE21F3D), Color(0xFFB01B2B)))
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        Text(
-            text = label,
-            color = Color.White,
-            fontSize = 14.sp,
-            letterSpacing = 1.sp,
-            fontWeight = FontWeight.ExtraBold
-        )
-    }
-}
-
+/** One showcase tile: crimson icon square + title + one-liner. */
 @Composable
 private fun ClientFeatureTile(
     iconRes: Int,
@@ -699,58 +672,28 @@ fun AerixClientScreen(activity: FragmentActivity) {
             }
         }
 
-        // CLIENT MENU — Feather-style big red buttons (the client feel, mobile edition).
+        // Feature showcase — 2 × 3 tiles.
         Column(verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
             ) {
-                Text(
-                    text = "CLIENT MENU",
-                    fontSize = 9.sp,
-                    letterSpacing = 1.4.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = accent
-                )
-                Text(
-                    text = "Welcome back, " + (net.kdt.pojavlaunch.aerix.bridge.PojavAccountBridge.current?.username ?: "Player"),
-                    fontSize = 9.sp,
-                    color = Color.White.copy(alpha = 0.6f)
-                )
+                ClientFeatureTile(R.drawable.ic_px_fps, "FPS Boost", "Optimised frames", Modifier.weight(1f))
+                ClientFeatureTile(R.drawable.aerix_ic_person_outlined, "Capes & Cosmetics", "WaveyCapes in-game", Modifier.weight(1f))
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
             ) {
-                ClientMenuButton("SINGLEPLAYER", Modifier.weight(1f)) {
-                    AerixNav.navigate(LauncherSection.LIBRARY)
-                }
-                ClientMenuButton("MULTIPLAYER", Modifier.weight(1f)) {
-                    AerixNav.navigate(LauncherSection.VORTEX_MC)
-                }
+                ClientFeatureTile(R.drawable.aerix_ic_dashboard_outlined, "Custom HUD", "CPS, coords & armor", Modifier.weight(1f))
+                ClientFeatureTile(R.drawable.aerix_ic_touch_app_outlined, "Gyro Aim", "Motion controls", Modifier.weight(1f))
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
             ) {
-                ClientMenuButton("MODS", Modifier.weight(1f)) {
-                    AerixNav.navigate(LauncherSection.CLIENT)
-                }
-                ClientMenuButton("SETTINGS", Modifier.weight(1f)) {
-                    AerixNav.navigate(LauncherSection.SETTINGS)
-                }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
-            ) {
-                ClientMenuButton("COSMETICS", Modifier.weight(1f)) {
-                    AerixNav.navigate(LauncherSection.CAPE_SHOP)
-                }
-                ClientMenuButton("PERFORMANCE", Modifier.weight(1f)) {
-                    AerixNav.navigate(LauncherSection.CLIENT)
-                }
+                ClientFeatureTile(R.drawable.aerix_ic_update, "One-tap Sync", "Updates before launch", Modifier.weight(1f))
+                ClientFeatureTile(R.drawable.aerix_ic_format_paint_outlined, "Dark Theme", "Custom menu & panorama", Modifier.weight(1f))
             }
         }
 
