@@ -299,7 +299,7 @@ object AerixClientPackGenerator {
      * - `minecraft.png` logo: 256x64 sheet for 1.19.4+ (`packFmt >= 13`), 256x256 split sheet before
      * - red-forest panorama cubemap (projected on device, so no seam and no stretch at any aspect)
      * - readability scrim over the panorama (replaces vanilla's milky white gradient)
-     * - crimson buttons: `gui/sprites/widget/*.png` + nine_slice `.mcmeta` for 1.20.2+,
+     * - crimson buttons: the widget button sprites + nine_slice `.mcmeta` for 1.20.2+,
      *   legacy `gui/widgets.png` sheet before that
      * - VORTEX splashes
      *

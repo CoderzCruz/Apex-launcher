@@ -134,7 +134,7 @@ private fun ClientMenuButton(
 @Composable
 private fun ClientServersSection(accent: Color, onJoin: (String) -> Unit) {
     val context = LocalContext.current
-    LaunchedEffect(Unit) { AerixClientServers.init(context) }
+    LaunchedEffect(Unit) { withContext(Dispatchers.IO) { AerixClientServers.init(context) } }
     val servers = AerixClientServers.servers
     val pings = remember { mutableStateMapOf<String, AerixClientServers.Ping?>() }
     var adding by remember { mutableStateOf(false) }
