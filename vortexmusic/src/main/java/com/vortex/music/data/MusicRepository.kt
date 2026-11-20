@@ -44,6 +44,9 @@ object MusicRepository {
     private val _songs = MutableStateFlow<List<Song>>(emptyList())
     val songs: StateFlow<List<Song>> = _songs
 
+    /** Songs imported via the SAF picker; restored on load and merged after scans. */
+    private val importedRestored = java.util.Collections.synchronizedList(ArrayList<Song>())
+
     private val _playlists = MutableStateFlow<Map<String, List<Long>>>(emptyMap())
     val playlists: StateFlow<Map<String, List<Long>>> = _playlists
 
@@ -89,6 +92,24 @@ object MusicRepository {
                     _playCounts.value = json.optJSONObject("counts")?.let { obj ->
                         obj.keys().asSequence().map { k -> k.toLong() to obj.getInt(k) }.toMap()
                     } ?: emptyMap()
+                    json.optJSONArray("imported")?.let { arr ->
+                        for (i in 0 until arr.length()) {
+                            val o = arr.getJSONObject(i)
+                            importedRestored.add(
+                                Song(
+                                    id = o.optLong("id"),
+                                    title = o.optString("title", "Imported"),
+                                    artist = o.optString("artist", "Imported"),
+                                    album = o.optString("album", "Imported"),
+                                    albumId = 0L,
+                                    durationMs = o.optLong("durationMs"),
+                                    uri = o.optString("uri"),
+                                    dateAddedSec = o.optLong("dateAddedSec"),
+                                    isImported = true
+                                )
+                            )
+                        }
+                    }
                 }
             }
             loaded = true
@@ -109,6 +130,21 @@ object MusicRepository {
             val counts = JSONObject()
             _playCounts.value.forEach { (id, n) -> counts.put(id.toString(), n) }
             json.put("counts", counts)
+            val impArr = JSONArray()
+            synchronized(importedRestored) {
+                importedRestored.forEach { s ->
+                    val o = JSONObject()
+                    o.put("id", s.id)
+                    o.put("title", s.title)
+                    o.put("artist", s.artist)
+                    o.put("album", s.album)
+                    o.put("durationMs", s.durationMs)
+                    o.put("uri", s.uri)
+                    o.put("dateAddedSec", s.dateAddedSec)
+                    impArr.put(o)
+                }
+            }
+            json.put("imported", impArr)
             libFile(context).writeText(json.toString())
         }
     }
@@ -160,11 +196,74 @@ object MusicRepository {
                 }
             }
         }
-        _songs.value = out
-        out
+        val merged = java.util.ArrayList(out)
+        synchronized(importedRestored) {
+            importedRestored.forEach { s ->
+                if (merged.none { it.uri == s.uri }) merged.add(s)
+            }
+        }
+        _songs.value = merged
+        merged
     }
 
     fun songsById(): Map<Long, Song> = _songs.value.associateBy { it.id }
+
+    /**
+     * Adds SAF-picked files to the library: persists read access, resolves display name
+     * and duration, then merges them into [songs] (restored on every restart via JSON).
+     */
+    fun addImported(context: android.content.Context, uris: List<android.net.Uri>): Int {
+        var added = 0
+        uris.forEach { uri ->
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
+            val dup = _songs.value.any { it.uri == uri.toString() } ||
+                synchronized(importedRestored) { importedRestored.any { it.uri == uri.toString() } }
+            if (dup) return@forEach
+            var title = uri.lastPathSegment?.substringAfterLast('/') ?: "Imported"
+            var duration = 0L
+            runCatching {
+                context.contentResolver.query(
+                    uri,
+                    arrayOf(android.provider.OpenableColumns.DISPLAY_NAME),
+                    null, null, null
+                )?.use { c ->
+                    if (c.moveToFirst()) {
+                        val ix = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                        if (ix >= 0) title = c.getString(ix) ?: title
+                    }
+                }
+            }
+            runCatching {
+                val retriever = android.media.MediaMetadataRetriever()
+                retriever.setDataSource(context, uri)
+                duration = retriever.extractMetadata(
+                    android.media.MediaMetadataRetriever.METADATA_KEY_DURATION
+                )?.toLongOrNull() ?: 0L
+                retriever.release()
+            }
+            val cleanTitle = title.substringBeforeLast('.')
+            val song = Song(
+                id = -kotlin.math.abs(uri.toString().hashCode().toLong()),
+                title = cleanTitle,
+                artist = "Imported",
+                album = "Imported",
+                albumId = 0L,
+                durationMs = duration.coerceAtLeast(0L),
+                uri = uri.toString(),
+                dateAddedSec = System.currentTimeMillis() / 1000L,
+                isImported = true
+            )
+            importedRestored.add(song)
+            _songs.value = _songs.value + song
+            added++
+        }
+        if (added > 0) persist(context)
+        return added
+    }
 
     // ── Library mutations (all persisted) ──────────────────────────────
 

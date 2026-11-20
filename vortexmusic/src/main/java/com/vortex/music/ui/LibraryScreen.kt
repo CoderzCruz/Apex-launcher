@@ -37,6 +37,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.vortex.music.data.MusicRepository
 import com.vortex.music.data.Song
 import kotlinx.coroutines.launch
@@ -93,6 +95,21 @@ fun LibraryScreen(
                         .padding(8.dp))
             }
         )
+    }
+
+    // Owner asked for an "Aurora Funk" playlist up front; songs get added after import.
+    LaunchedEffect(Unit) { MusicRepository.createPlaylist(context, "Aurora Funk") }
+
+    // SAF import: pick audio files from anywhere on the device.
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        if (!uris.isNullOrEmpty()) {
+            val n = MusicRepository.addImported(context, uris)
+            android.widget.Toast.makeText(
+                context, "$n song(s) imported", android.widget.Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     openPlaylist?.let { plName ->
@@ -239,13 +256,20 @@ fun LibraryScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("${songs.size} songs on device", color = VortexColors.TextSecondary, fontSize = 12.sp)
-                    Text("Rescan", color = VortexColors.Accent, fontSize = 12.5.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .clickable {
-                                kotlinx.coroutines.MainScope().launch { MusicRepository.scan(context) }
-                            }
-                            .padding(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Text("+ Import", color = VortexColors.Accent, fontSize = 12.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .clickable { importLauncher.launch(arrayOf("audio/*")) }
+                                .padding(4.dp))
+                        Text("Rescan", color = VortexColors.Accent, fontSize = 12.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .clickable {
+                                    kotlinx.coroutines.MainScope().launch { MusicRepository.scan(context) }
+                                }
+                                .padding(4.dp))
+                    }
                 }
                 if (songs.isEmpty()) {
                     EmptyHint("No local audio found. Add music files and tap Rescan.")

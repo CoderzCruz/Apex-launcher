@@ -190,3 +190,14 @@ assert "Download Emesis" not in settings_check, "plugin download stays removed"
 assert "Emesis and Cosmic RenderX are built in" in settings_check, "empty-state copy"
 mirai_check = (APP / "java/net/kdt/pojavlaunch/aerix/components/MiraiSettingsComponents.kt").read_text()
 assert "Renderers.EMESIS_RENDERER ->" in mirai_check, "emesis summary restored"
+
+repo_src = (ROOT / "vortexmusic/src/main/java/com/vortex/music/data/MusicRepository.kt").read_text()
+assert "addImported" in repo_src and "takePersistableUriPermission" in repo_src, "SAF import"
+lib_src = (ROOT / "vortexmusic/src/main/java/com/vortex/music/ui/LibraryScreen.kt").read_text()
+assert "OpenMultipleDocuments" in lib_src and "Aurora Funk" in lib_src, "import button + aurora playlist"
+host_src = (ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/ui/screens/AerixMusicScreen.kt").read_text()
+assert "musicPlaying" in host_src, "presence wired from music host"
+pres_src = (ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/discord/AerixDiscordPresence.kt").read_text()
+assert "Listening:" in pres_src and "Vortex Music" in pres_src, "music presence"
+common_src = (ROOT / "vortexmusic/src/main/java/com/vortex/music/ui/Common.kt").read_text()
+assert "embeddedPicture" in common_src, "embedded artwork fallback"

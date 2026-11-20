@@ -889,6 +889,36 @@ object AerixDiscordPresence {
         main.post { switchConnectionIfNeededOrSend() }
     }
 
+    /** Launcher music: the card shows what is currently playing (Spotify-style). */
+    fun musicPlaying(title: String, artist: String) {
+        val diskOwner = appContext?.let { readDiskState(it)?.owner }
+        if (diskOwner != null && diskOwner != "launcher") return
+        clearOnlyMode = false
+        inGameMode = false
+        activeModpackIconUrl = null
+        details = "Vortex Music"
+        state = ("Listening: " + title + " - " + artist).take(100)
+        if (startedAt == 0L) startedAt = System.currentTimeMillis()
+        appContext?.let { app ->
+            val disk = readDiskState(app)
+            if (disk == null || disk.owner == "launcher") {
+                writeDiskState(
+                    app,
+                    PresenceDiskState(
+                        owner = "launcher",
+                        exitedAtElapsedMs = 0L,
+                        details = details,
+                        state = state,
+                        startedAt = startedAt,
+                        activeAppId = if (connectedAppId > 0L) connectedAppId else (resolveDesiredAppId() ?: 0L),
+                        modpackIconUrl = null
+                    )
+                )
+            }
+        }
+        main.post { switchConnectionIfNeededOrSend() }
+    }
+
     /** A game is starting or running: the instance takes over the card. */
     fun playing(instance: String?, minecraftVersion: String?, modpackIconUrl: String? = null) {
         clearOnlyMode = false
@@ -1130,6 +1160,7 @@ object AerixDiscordPresence {
 
         fun stateFor(section: String?): String = when (section?.uppercase()) {
             null, "HOME" -> HOME
+            "MUSIC" -> "Listening to music"
             "AERIX_CLIENT" -> AERIX_CLIENT
             "LIBRARY" -> LIBRARY
             "DISCOVER", "DOWNLOADS" -> DISCOVER

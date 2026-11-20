@@ -93,6 +93,17 @@ fun AerixMusicScreen() {
 
     val currentSong = queue.getOrNull(index)
 
+    // Discord Rich Presence: show what is playing while it plays.
+    LaunchedEffect(playing, currentSong) {
+        if (playing && currentSong != null) {
+            net.kdt.pojavlaunch.aerix.discord.AerixDiscordPresence.musicPlaying(
+                currentSong.title, currentSong.artist
+            )
+        } else {
+            net.kdt.pojavlaunch.aerix.discord.AerixDiscordPresence.inLauncher("MUSIC")
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             // Vortex tab bar (Home / Search / Library / Player)

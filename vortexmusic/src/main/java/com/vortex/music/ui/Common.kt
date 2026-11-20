@@ -90,9 +90,18 @@ fun rememberArtwork(song: Song?): ImageBitmap? {
         if (uri.isEmpty()) { bmp = null; return@LaunchedEffect }
         bmp = withContext(Dispatchers.IO) {
             runCatching {
-                context.contentResolver.openInputStream(android.net.Uri.parse(uri))?.use {
-                    BitmapFactory.decodeStream(it)?.asImageBitmap()
-                }
+                val fromAlbum = context.contentResolver
+                    .openInputStream(android.net.Uri.parse(uri))?.use {
+                        BitmapFactory.decodeStream(it)?.asImageBitmap()
+                    }
+                fromAlbum ?: runCatching {
+                    // Album-art URI can miss art that is embedded in the file itself.
+                    val retriever = android.media.MediaMetadataRetriever()
+                    retriever.setDataSource(context, android.net.Uri.parse(song?.uri ?: ""))
+                    val pic = retriever.embeddedPicture
+                    retriever.release()
+                    pic?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }
+                }.getOrNull()
             }.getOrNull()
         }
     }
