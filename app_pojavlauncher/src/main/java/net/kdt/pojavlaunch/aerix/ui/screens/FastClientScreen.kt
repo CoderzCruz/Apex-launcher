@@ -58,7 +58,7 @@ fun FastClientScreen(activity: FragmentActivity, navigate: (LauncherSection) -> 
     val scope = rememberCoroutineScope()
     val installInVortex: () -> Unit = {
         scope.launch {
-            val res = AerixClientInstaller.installModpackFromModrinth("GGc38iHO", "Mx Boost")
+            val res = AerixClientInstaller.installModpackFromModrinth(activity, "GGc38iHO", "Mx Boost")
             res.onSuccess { r ->
                 val failedText = if (r.failed.isEmpty()) "" else " · failed: ${r.failed.joinToString(", ")}"
                 Toast.makeText(activity, "Mx Boost installed: ${r.installed} files$failedText — launch se active", Toast.LENGTH_LONG).show()

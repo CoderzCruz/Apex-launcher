@@ -528,7 +528,7 @@ fun AerixClientScreen(activity: FragmentActivity) {
     // One-tap Vortex mod packs: install into the client instance, then refresh + toast counts.
     val startPackInstall: (String, List<String>, List<String>) -> Unit = { title, slugs, purgePrefixes ->
         scope.launch {
-            val res = AerixClientInstaller.installVortexPack(title, slugs, purgePrefixes)
+            val res = AerixClientInstaller.installVortexPack(activity, title, slugs, purgePrefixes)
             refreshTick++
             PojavInstanceBridge.reload()
             res.onSuccess { r ->

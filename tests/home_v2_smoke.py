@@ -201,3 +201,8 @@ pres_src = (ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/di
 assert "Listening:" in pres_src and "Vortex Music" in pres_src, "music presence"
 common_src = (ROOT / "vortexmusic/src/main/java/com/vortex/music/ui/Common.kt").read_text()
 assert "embeddedPicture" in common_src, "embedded artwork fallback"
+
+prof_src = (ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/PackRuntimeProfiles.kt").read_text()
+assert "PACK_RAM_MB" in prof_src and "GL4ES_RENDERER" in prof_src and "maybeWrite" in prof_src, "pack runtime profiles"
+inst_src2 = (ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/AerixClientInstaller.kt").read_text()
+assert inst_src2.count("PackRuntimeProfiles.applyForPack") == 2, "profile applied on both pack installs"

@@ -407,6 +407,7 @@ object AerixClientInstaller {
      * [purgePrefixes] drops conflicting jars first (renderer swaps: sodium line <-> Vulkan).
      */
     suspend fun installVortexPack(
+        context: android.content.Context,
         packTitle: String,
         slugs: List<String>,
         purgePrefixes: List<String> = emptyList()
@@ -449,6 +450,7 @@ object AerixClientInstaller {
             }
             progressFraction = 1f
             statusDetail = "$installed/${slugs.size} mods ready"
+            PackRuntimeProfiles.applyForPack(context, packTitle, instance)
             Result.success(PackInstallResult(installed, failed))
         } finally {
             isInstalling = false
@@ -488,6 +490,7 @@ object AerixClientInstaller {
      * Path-traversal is rejected; server-only entries are skipped.
      */
     suspend fun installModpackFromModrinth(
+        context: android.content.Context,
         projectId: String,
         packTitle: String,
         expectedMcVersion: String? = null
@@ -592,6 +595,7 @@ object AerixClientInstaller {
                 }
                 progressFraction = 1f
                 statusDetail = "$applied files applied"
+                PackRuntimeProfiles.applyForPack(context, packTitle, instance)
                 Result.success(PackInstallResult(applied, failed))
             } finally {
                 mrpack.delete()
