@@ -18,13 +18,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -34,13 +39,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import net.kdt.pojavlaunch.R
+import net.kdt.pojavlaunch.aerix.bridge.AerixClientServers
+import net.kdt.pojavlaunch.aerix.bridge.PojavAccountBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavInstanceBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavLaunchBridge
 import net.kdt.pojavlaunch.aerix.client.AerixClientInstaller
@@ -52,63 +63,277 @@ import net.kdt.pojavlaunch.aerix.components.liquidGlass
 import net.kdt.pojavlaunch.aerix.theme.AerixRadii
 import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
 import net.kdt.pojavlaunch.aerix.theme.AerixSurface
+import net.kdt.pojavlaunch.aerix.ui.AerixNav
+import net.kdt.pojavlaunch.aerix.ui.LauncherSection
 import net.kdt.pojavlaunch.instances.Instances
+import net.kdt.pojavlaunch.utils.jre.GameRunner
 
 /**
  * Minimal Liquid Glass `Aerix Client` Sidebar Tab:
  * Transparent backdrop over the launcher's live wallpaper, showing ONLY `Aerix Client`
  * and Liquid Glass client version download / launch cards below it.
  */
-/** One showcase tile: crimson icon square + title + one-liner. */
+/**
+ * One CLIENT MENU button: angular crimson face, icon + label, and a one-line promise of what it
+ * opens. Every button is wired to a real destination — no decorative tiles.
+ */
 @Composable
-private fun ClientFeatureTile(
+private fun ClientMenuButton(
+    label: String,
+    caption: String,
     iconRes: Int,
-    title: String,
-    body: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) {
-    Box(
+    val shape = RoundedCornerShape(12.dp)
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(AerixRadii.cardSmall))
-            .background(AerixSurface.panelRaised)
-            .border(AerixSpacing.hairline, AerixSurface.borderSoft, RoundedCornerShape(AerixRadii.cardSmall))
-            .padding(horizontal = 10.dp, vertical = 9.dp)
+            .clip(shape)
+            .background(Brush.horizontalGradient(listOf(Color(0xFFE21F3D), Color(0xFF9E1728))))
+            .border(AerixSpacing.hairline, Color(0x66FF304F), shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = AerixSpacing.mdTight, vertical = AerixSpacing.smPlus)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(AerixSpacing.smCompact)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(30.dp)
-                    .clip(RoundedCornerShape(9.dp))
-                    .background(Brush.linearGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B)))),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(iconRes),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-            Column {
-                Text(
-                    text = title,
-                    color = Color.White,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    maxLines = 1
-                )
-                Text(
-                    text = body,
-                    color = Color.White.copy(alpha = 0.64f),
-                    fontSize = 9.sp,
-                    maxLines = 2
-                )
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(14.dp)
+            )
+            Text(
+                text = label,
+                color = Color.White,
+                fontSize = 10.5.sp,
+                letterSpacing = 0.9.sp,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 1
+            )
+        }
+        Text(
+            text = caption,
+            color = Color.White.copy(alpha = 0.78f),
+            fontSize = 8.5.sp,
+            maxLines = 2,
+            modifier = Modifier.padding(top = AerixSpacing.xxs)
+        )
+    }
+}
+
+/**
+ * MULTIPLAYER for the in-launcher client: saved servers, a REAL status ping and a one-tap join.
+ * The join only arms the launcher's normal pending-server path — no fake "connected" state.
+ */
+@Composable
+private fun ClientServersSection(accent: Color, onJoin: (String) -> Unit) {
+    val context = LocalContext.current
+    LaunchedEffect(Unit) { AerixClientServers.init(context) }
+    val servers = AerixClientServers.servers
+    val pings = remember { mutableStateMapOf<String, AerixClientServers.Ping?>() }
+    var adding by remember { mutableStateOf(false) }
+    var newName by remember { mutableStateOf("") }
+    var newAddress by remember { mutableStateOf("") }
+    var addError by remember { mutableStateOf<String?>(null) }
+
+    // Ping every saved server in parallel, once per list change (real handshake, ~2.5s timeout).
+    LaunchedEffect(servers) {
+        coroutineScope {
+            servers.forEach { server ->
+                launch { pings[server.address] = AerixClientServers.ping(server.address) }
             }
         }
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "MULTIPLAYER",
+                fontSize = 9.sp,
+                letterSpacing = 1.4.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = accent
+            )
+            Text(
+                text = "real ping · one-tap join",
+                fontSize = 9.sp,
+                color = Color.White.copy(alpha = 0.55f)
+            )
+        }
+
+        servers.forEach { server ->
+            val ping = pings[server.address]
+            GlassPanel(
+                modifier = Modifier.fillMaxWidth(),
+                radius = AerixRadii.card,
+                color = AerixSurface.panelRaised,
+                contentPadding = AerixSpacing.mdTight
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Brush.linearGradient(listOf(Color(0xFFDC2626), Color(0xFFB01B2B)))),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = server.name.take(1).uppercase(),
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = server.name,
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = server.address,
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontSize = 9.sp,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = when {
+                                ping == null -> "checking…"
+                                ping.online -> "\u25CF " + ping.label
+                                else -> "\u25CB " + ping.label
+                            },
+                            color = if (ping?.online == true) Color(0xFF4ADE80) else Color.White.copy(alpha = 0.45f),
+                            fontSize = 8.5.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(9.dp))
+                            .background(accent)
+                            .clickable { onJoin(server.address) }
+                            .padding(horizontal = AerixSpacing.mdTight, vertical = AerixSpacing.smCompact)
+                    ) {
+                        Text(
+                            text = "JOIN",
+                            color = Color.White,
+                            fontSize = 9.5.sp,
+                            letterSpacing = 1.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                    Icon(
+                        painter = painterResource(R.drawable.aerix_ic_close),
+                        contentDescription = "Remove " + server.name,
+                        tint = Color.White.copy(alpha = 0.45f),
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable { AerixClientServers.remove(server.address) }
+                    )
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(AerixRadii.card))
+                .border(AerixSpacing.hairline, accent.copy(alpha = 0.55f), RoundedCornerShape(AerixRadii.card))
+                .clickable {
+                    newName = ""
+                    newAddress = ""
+                    addError = null
+                    adding = true
+                }
+                .padding(vertical = AerixSpacing.smPlus),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "+ ADD SERVER",
+                color = accent,
+                fontSize = 10.sp,
+                letterSpacing = 1.2.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
+        }
+    }
+
+    if (adding) {
+        AlertDialog(
+            onDismissRequest = { adding = false },
+            containerColor = AerixSurface.panelRaised,
+            title = { Text("Add server", color = Color.White) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
+                    OutlinedTextField(
+                        value = newName,
+                        onValueChange = { newName = it },
+                        singleLine = true,
+                        label = { Text("Server name", color = AerixSurface.textSecondary) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = AerixSurface.borderSoft,
+                            cursorColor = accent
+                        )
+                    )
+                    OutlinedTextField(
+                        value = newAddress,
+                        onValueChange = { newAddress = it },
+                        singleLine = true,
+                        label = { Text("Address (host or host:port)", color = AerixSurface.textSecondary) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = AerixSurface.borderSoft,
+                            cursorColor = accent
+                        )
+                    )
+                    addError?.let { message ->
+                        Text(text = message, color = Color(0xFFFF6B6B), fontSize = 10.sp)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        when {
+                            AerixClientServers.normalizeAddress(newAddress) == null ->
+                                addError = "Address galat hai — host ya host:port likho"
+                            !AerixClientServers.add(newName, newAddress) ->
+                                addError = "Ye server already list me hai"
+                            else -> adding = false
+                        }
+                    }
+                ) {
+                    Text("ADD", color = accent, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { adding = false }) {
+                    Text("CANCEL", color = AerixSurface.textSecondary)
+                }
+            }
+        )
     }
 }
 
@@ -495,6 +720,16 @@ fun AerixClientScreen(activity: FragmentActivity) {
     var preparingLaunchVer by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val accent = AerixSurface.accent
+    // The page is one long scroll; the CLIENT MENU jumps to its own sections with real anchors.
+    val scrollState = rememberScrollState()
+    var viewportTop by remember { mutableIntStateOf(0) }
+    var modsTop by remember { mutableIntStateOf(0) }
+    var profilesTop by remember { mutableIntStateOf(0) }
+    var serversTop by remember { mutableIntStateOf(0) }
+    val scrollToAnchor: (Int) -> Unit = { anchorTop ->
+        val target = (scrollState.value + (anchorTop - viewportTop) - 90).coerceAtLeast(0)
+        scope.launch { scrollState.animateScrollTo(target) }
+    }
     var selectedVersion by remember {
         mutableStateOf(
             AerixClientStore.selectedClientVersion
@@ -546,7 +781,8 @@ fun AerixClientScreen(activity: FragmentActivity) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(AerixSpacing.md)
-                .verticalScroll(rememberScrollState()),
+                .onGloballyPositioned { viewportTop = it.positionInWindow().y.toInt() }
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(AerixSpacing.md)
         ) {
         // Big showcase hero (Feather/RKMC-style client landing).
@@ -672,29 +908,120 @@ fun AerixClientScreen(activity: FragmentActivity) {
             }
         }
 
-        // Feature showcase — 2 × 3 tiles.
+        // ── CLIENT MENU — the Vortex Client, right here in the launcher ──
+        // Every button opens something real: Library, the server list below, the mod packs,
+        // the cape shop, the config profiles, Settings, Accounts and the music engine.
         Column(verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                ClientFeatureTile(R.drawable.ic_px_fps, "FPS Boost", "Optimised frames", Modifier.weight(1f))
-                ClientFeatureTile(R.drawable.aerix_ic_person_outlined, "Capes & Cosmetics", "WaveyCapes in-game", Modifier.weight(1f))
+                Text(
+                    text = "CLIENT MENU",
+                    fontSize = 9.sp,
+                    letterSpacing = 1.4.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = accent
+                )
+                Text(
+                    text = "Welcome back, " + (PojavAccountBridge.current?.username ?: "Player"),
+                    fontSize = 9.sp,
+                    color = Color.White.copy(alpha = 0.6f)
+                )
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
             ) {
-                ClientFeatureTile(R.drawable.aerix_ic_dashboard_outlined, "Custom HUD", "CPS, coords & armor", Modifier.weight(1f))
-                ClientFeatureTile(R.drawable.aerix_ic_touch_app_outlined, "Gyro Aim", "Motion controls", Modifier.weight(1f))
+                ClientMenuButton(
+                    label = "SINGLEPLAYER",
+                    caption = "Your worlds · Library",
+                    iconRes = R.drawable.aerix_ic_dashboard_outlined,
+                    modifier = Modifier.weight(1f)
+                ) { AerixNav.navigate(LauncherSection.LIBRARY) }
+                ClientMenuButton(
+                    label = "MULTIPLAYER",
+                    caption = "Ping + one-tap join",
+                    iconRes = R.drawable.aerix_ic_style_outlined,
+                    modifier = Modifier.weight(1f)
+                ) { scrollToAnchor(serversTop) }
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
             ) {
-                ClientFeatureTile(R.drawable.aerix_ic_update, "One-tap Sync", "Updates before launch", Modifier.weight(1f))
-                ClientFeatureTile(R.drawable.aerix_ic_format_paint_outlined, "Dark Theme", "Custom menu & panorama", Modifier.weight(1f))
+                ClientMenuButton(
+                    label = "MODS",
+                    caption = "Vortex Modpack · Vulkan",
+                    iconRes = R.drawable.ic_px_fps,
+                    modifier = Modifier.weight(1f)
+                ) { scrollToAnchor(modsTop) }
+                ClientMenuButton(
+                    label = "COSMETICS",
+                    caption = "Capes & cosmetics",
+                    iconRes = R.drawable.aerix_ic_person_outlined,
+                    modifier = Modifier.weight(1f)
+                ) { AerixNav.navigate(LauncherSection.CAPE_SHOP) }
             }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+            ) {
+                ClientMenuButton(
+                    label = "PERFORMANCE",
+                    caption = "PvP · FPS · Builder",
+                    iconRes = R.drawable.aerix_ic_video_settings,
+                    modifier = Modifier.weight(1f)
+                ) { scrollToAnchor(profilesTop) }
+                ClientMenuButton(
+                    label = "MUSIC",
+                    caption = "Play while you play",
+                    iconRes = R.drawable.aerix_ic_music_note,
+                    modifier = Modifier.weight(1f)
+                ) { AerixNav.navigate(LauncherSection.MUSIC) }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+            ) {
+                ClientMenuButton(
+                    label = "ACCOUNTS",
+                    caption = "Microsoft · Ely.by",
+                    iconRes = R.drawable.aerix_ic_person_outlined,
+                    modifier = Modifier.weight(1f)
+                ) { AerixNav.navigate(LauncherSection.ACCOUNTS) }
+                ClientMenuButton(
+                    label = "SETTINGS",
+                    caption = "Renderer · Java · Controls",
+                    iconRes = R.drawable.aerix_ic_settings_filled,
+                    modifier = Modifier.weight(1f)
+                ) { AerixNav.navigate(LauncherSection.SETTINGS) }
+            }
+        }
+
+        // ── MULTIPLAYER: the client's server list, inside the launcher ──
+        Box(modifier = Modifier.onGloballyPositioned { serversTop = it.positionInWindow().y.toInt() }) {
+            ClientServersSection(
+                accent = accent,
+                onJoin = { address ->
+                    val installed = selectedInstalled
+                    if (installed != null) {
+                        Instances.setSelectedInstance(installed)
+                        PojavInstanceBridge.reload()
+                    }
+                    if (PojavInstanceBridge.selected != null) {
+                        GameRunner.setPendingServerAddress(address)
+                        PojavLaunchBridge.play(activity)
+                    } else {
+                        Toast.makeText(
+                            activity,
+                            "Pehle ek instance banao — Library me Add Version se",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            )
         }
 
         // Active download progress banner in Liquid Glass
@@ -979,7 +1306,9 @@ fun AerixClientScreen(activity: FragmentActivity) {
                 )
                 // ── VORTEX MODS: one-tap curated packs for this instance ──
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onGloballyPositioned { modsTop = it.positionInWindow().y.toInt() },
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -1029,7 +1358,9 @@ fun AerixClientScreen(activity: FragmentActivity) {
                 )
                 // ── CONFIG PROFILES: one-tap video settings for this instance ──
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onGloballyPositioned { profilesTop = it.positionInWindow().y.toInt() },
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {

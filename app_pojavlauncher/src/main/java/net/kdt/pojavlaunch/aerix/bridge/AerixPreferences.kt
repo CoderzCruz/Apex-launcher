@@ -47,6 +47,8 @@ object AerixPreferences {
     /** Default Vortex MC server the quick-join page joins. */
     const val DEFAULT_VORTEX_MC_SERVER = "in1.madflex.shop:19135"
     const val KEY_VORTEX_MC_SERVER = "vortexMcServerAddress"
+    /** Saved multiplayer servers of the in-launcher Vortex Client page (JSON array). */
+    const val KEY_CLIENT_SERVERS = "vortexClientServers"
     /** One-time flag: transparent shell restored (the wallpaper comes back after the black era). */
     const val KEY_VORTEX_TRANSPARENT_DONE = "vortexTransparentDone"
     /** The player's own Apex Service key; blank falls back to the CI-baked one. */
@@ -99,6 +101,9 @@ object AerixPreferences {
     var colorTheme by mutableStateOf(AerixColorTheme.AERIX)
         private set
     var vortexMcServer by mutableStateOf(DEFAULT_VORTEX_MC_SERVER)
+        private set
+    /** Client page server bookmarks as JSON; null means "never saved" (seed Vortex MC). */
+    var clientServersJson by mutableStateOf<String?>(null)
         private set
     /** Player-entered Gemini key for Apex Service; blank means use the baked key. */
     var googleAiKey by mutableStateOf("")
@@ -231,6 +236,7 @@ object AerixPreferences {
         guidePlayed = p.getBoolean(KEY_GUIDE_PLAYED, false)
         vortexMcServer = p.getString(KEY_VORTEX_MC_SERVER, DEFAULT_VORTEX_MC_SERVER)
             ?: DEFAULT_VORTEX_MC_SERVER
+        clientServersJson = p.getString(KEY_CLIENT_SERVERS, null)
         notificationPromptShown = p.getBoolean(KEY_NOTIFICATION_PROMPT_SHOWN, false)
         loadingWallpaper = p.getBoolean(KEY_LOADING_WALLPAPER, false)
         logTextSize = p.getInt(KEY_LOG_TEXT_SIZE, 15).coerceIn(5, 20)
@@ -300,6 +306,11 @@ object AerixPreferences {
     fun saveVortexMcServer(value: String) {
         vortexMcServer = value.trim().ifBlank { DEFAULT_VORTEX_MC_SERVER }
         edit { putString(KEY_VORTEX_MC_SERVER, vortexMcServer) }
+    }
+
+    fun saveClientServersJson(value: String) {
+        clientServersJson = value
+        edit { putString(KEY_CLIENT_SERVERS, value) }
     }
 
     /** The key Apex Service should actually use: the player's own if set, else the built-in one. */
