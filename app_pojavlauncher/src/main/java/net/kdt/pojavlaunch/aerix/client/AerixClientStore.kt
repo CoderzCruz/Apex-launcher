@@ -122,6 +122,8 @@ object AerixClientStore {
     var packRgbBowStages by mutableStateOf(false)
     var packMiningProgressBar by mutableStateOf(false)
     var packCustomMainMenu by mutableStateOf(true)
+    /** Gentle panorama drift on the title screen (the menu's parallax); off = still image. */
+    var packMenuParallax by mutableStateOf(true)
     var packCustomMojangSplash by mutableStateOf(true)
     var packSkyboxTheme by mutableStateOf(SkyboxTheme.DEEP_VOID)
     var packHitSound by mutableStateOf(HitSoundPreset.VANILLA)
@@ -225,6 +227,7 @@ object AerixClientStore {
         prefs = p
 
         packVanillaAnimatedGear = p.getBoolean("packVanillaAnimatedGear", true)
+        packMenuParallax = p.getBoolean("packMenuParallax", true)
         packAnimateAllItemSprites = p.getBoolean("packAnimateAllItemSprites", false)
         packEnhancedGlint = p.getBoolean("packEnhancedGlint", true)
         packGlintColor = p.getString("packGlintColor", "CRIMSON")?.takeIf { it in setOf("CRIMSON", "VIOLET", "BLUE", "GOLD", "GREEN", "WHITE") } ?: "CRIMSON"
@@ -328,6 +331,7 @@ object AerixClientStore {
         val p = prefs ?: return
         p.edit().apply {
             putBoolean("packVanillaAnimatedGear", packVanillaAnimatedGear)
+            putBoolean("packMenuParallax", packMenuParallax)
             putBoolean("packAnimateAllItemSprites", packAnimateAllItemSprites)
             putBoolean("packEnhancedGlint", packEnhancedGlint)
             putString("packGlintColor", packGlintColor)

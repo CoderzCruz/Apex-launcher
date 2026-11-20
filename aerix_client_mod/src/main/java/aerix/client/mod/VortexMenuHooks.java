@@ -24,10 +24,15 @@ import java.util.Properties;
  *                    Builder.build method_46431, onPress interface class_4185$class_4241)
  *  - Screen.addDrawableChild method_37063
  *
- * While a TitleScreen is open it repaints the splash crimson and adds one
- * "VORTEX FULLBRIGHT" button above the title buttons. The button flips
- * config/aerix_live.properties gamma (1.0 <-> 100.0); the existing animator
- * worker already hot-applies that file every few ticks.
+ * The VORTEX RED FOREST main menu itself is pure resource-pack texture work (shipped by
+ * AerixClientPackGenerator from assets/vortex_menu/): logo sheet, red-forest cubemap panorama,
+ * nine-slice crimson buttons and splashes. Nothing here replaces Minecraft's screens, so every
+ * vanilla button (Singleplayer, Multiplayer, Realms, Mods, Options, Quit) keeps its own action.
+ *
+ * While a TitleScreen is open this hook only does two cosmetic things:
+ *  - repaints the yellow splash crimson ("VORTEX CLIENT!"),
+ *  - adds the "VORTEX FULLBRIGHT" button above the title buttons, which flips
+ *    config/aerix_live.properties gamma (1.0 <-> 100.0); the animator worker hot-applies it.
  */
 public final class VortexMenuHooks {
 

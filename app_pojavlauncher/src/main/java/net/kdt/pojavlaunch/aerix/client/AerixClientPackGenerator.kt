@@ -34,8 +34,15 @@ object AerixClientPackGenerator {
 
     /** Pre-rename pack file; removed on sync and hidden from the pack picker. */
     const val LEGACY_PACK_FILE_NAME = "Aerix-Client-Pack.zip"
-    private const val PACK_SCHEMA_REV = "v6_aerix_dark_landscape_2026"
+    private const val PACK_SCHEMA_REV = "v7_vortex_red_forest_menu_2026"
     internal const val CLIENT_BACKGROUND_ASSET = "aerix/client_dark_background.webp"
+
+    /**
+     * VORTEX RED FOREST main-menu art (`tools/vortex_menu_art.py` renders every file here).
+     * Shipping pre-rendered textures keeps the phone-side pack build cheap and the menu pixel
+     * exact on every version, from 1.16.5's 256x256 logo sheet to 26.3's LogoRenderer sheet.
+     */
+    internal const val MENU_ASSET_DIR = "vortex_menu"
 
     fun packFormatForVersion(mcVersion: String): Int = ClientVersions.format(mcVersion)
 
@@ -116,48 +123,30 @@ object AerixClientPackGenerator {
             putText(zos, "pack.mcmeta", mcmeta)
             putBitmap(zos, "pack.png", buildPackIcon(context))
 
-            // 1. Title Screen: Replace "MINECRAFT JAVA EDITION" with "VORTEX CLIENT" + Misty Forest Background
+            // 1. Title Screen: the VORTEX RED FOREST menu (logo, panorama, crimson buttons).
             if (AerixClientStore.packCustomMainMenu) {
-                val logoBmp = if (packFmt >= 13) {
-                    buildAerixTitleLogoModern(context)
-                } else {
-                    buildAerixTitleLogoLegacySplit(context)
+                if (!appendVortexRedForestMenu(context, zos, packFmt)) {
+                    // Asset missing (stripped build): fall back to the runtime-drawn crimson logo.
+                    val logoBmp = if (packFmt >= 13) {
+                        buildAerixTitleLogoModern(context)
+                    } else {
+                        buildAerixTitleLogoLegacySplit(context)
+                    }
+                    putBitmap(zos, "assets/minecraft/textures/gui/title/minecraft.png", logoBmp)
+                    putBitmap(zos, "assets/minecraft/textures/gui/title/minceraft.png", logoBmp)
+                    putBitmap(zos, "assets/minecraft/textures/gui/title/edition.png", transparentBitmap(128, 16))
+                    putBitmap(
+                        zos,
+                        "assets/minecraft/textures/gui/title/background/panorama_overlay.png",
+                        transparentBitmap(16, 128)
+                    )
+                    buildClientPanoramaFaces(context).forEachIndexed { idx, face ->
+                        putBitmap(zos, "assets/minecraft/textures/gui/title/background/panorama_$idx.png", face)
+                    }
+                    if (packFmt < 18) {
+                        putBitmap(zos, "assets/minecraft/textures/gui/widgets.png", buildCrimsonDarkWidgets())
+                    }
                 }
-                putBitmap(zos, "assets/minecraft/textures/gui/title/minecraft.png", logoBmp)
-                putBitmap(zos, "assets/minecraft/textures/gui/title/minceraft.png", logoBmp)
-
-                // Transparent edition.png so vanilla "JAVA EDITION" never appears over "VORTEX CLIENT"
-                val emptyEdition = Bitmap.createBitmap(128, 16, Bitmap.Config.ARGB_8888)
-                emptyEdition.eraseColor(Color.TRANSPARENT)
-                putBitmap(zos, "assets/minecraft/textures/gui/title/edition.png", emptyEdition)
-
-                // Transparent panorama_overlay.png so Minecraft never adds milky white gradient washout
-                val clearOverlay = Bitmap.createBitmap(16, 128, Bitmap.Config.ARGB_8888)
-                clearOverlay.eraseColor(Color.TRANSPARENT)
-                putBitmap(zos, "assets/minecraft/textures/gui/title/background/panorama_overlay.png", clearOverlay)
-
-                // Cubemap faces projected from the shared Client landscape.
-                val panoFaces = buildClientPanoramaFaces(context)
-                panoFaces.forEachIndexed { idx, face ->
-                    putBitmap(zos, "assets/minecraft/textures/gui/title/background/panorama_$idx.png", face)
-                }
-
-                // Crimson & Dark Gray GUI widgets (1.16.5 - 1.20.1; 1.20.2+ uses gui/sprites which keep crisp defaults)
-                if (packFmt < 18) {
-                    putBitmap(zos, "assets/minecraft/textures/gui/widgets.png", buildCrimsonDarkWidgets())
-                }
-
-                putText(
-                    zos,
-                    "assets/minecraft/texts/splashes.txt",
-                    listOf(
-                        "✦ Vortex Client!",
-                        "Crimson & Obsidian!",
-                        "Maximum Mobile FPS!",
-                        "Waving 3D Animated Capes!",
-                        "Powered by Vortex Launcher!"
-                    ).joinToString("\n")
-                )
             }
 
             // 2. 100% Genuine Vanilla Item, Tool, Weapon & Armor Skins + Shimmer & Sparkle Particle Animation!
@@ -247,8 +236,12 @@ object AerixClientPackGenerator {
             }
         }
 
-        if (!map.containsKey("panoramaScrollSpeed")) map["panoramaScrollSpeed"] = "0.0"
-        if (!map.containsKey("monochromeLogo")) map["monochromeLogo"] = if (AerixClientStore.packCustomMojangSplash) "true" else "false"
+        // Gentle vanilla panorama drift = the menu's parallax. It reuses the cubemap Minecraft
+        // already renders, so it costs no extra draw calls on a phone GPU.
+        map["panoramaScrollSpeed"] =
+            if (AerixClientStore.packCustomMainMenu && AerixClientStore.packMenuParallax) "1.0" else "0.0"
+        // The VORTEX wordmark is crimson: monochromeLogo would flatten it to grey.
+        map["monochromeLogo"] = if (AerixClientStore.packCustomMojangSplash) "true" else "false"
         map["gamma"] = if (AerixClientStore.fullbrightEnabled) "100.0" else "1.0"
         // Owner chat banner: the in-game mod highlights chat from this account's name.
         runCatching {
@@ -296,6 +289,95 @@ object AerixClientPackGenerator {
     /* ═══════════════════════════════════════════════════════════════════════
      * 1. TITLE SCREEN "VORTEX CLIENT" LOGO BUILDERS (EXACT LEGACY & MODERN UV)
      * ═══════════════════════════════════════════════════════════════════════ */
+
+    /* ═══════════════════════════════════════════════════════════════════════
+     * 0. VORTEX RED FOREST MAIN MENU (shipped art, version-correct UV layout)
+     * ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * Writes the whole title screen from `assets/vortex_menu/`:
+     * - `minecraft.png` logo: 256x64 sheet for 1.19.4+ (`packFmt >= 13`), 256x256 split sheet before
+     * - red-forest panorama cubemap (projected on device, so no seam and no stretch at any aspect)
+     * - readability scrim over the panorama (replaces vanilla's milky white gradient)
+     * - crimson buttons: `gui/sprites/widget/*.png` + nine_slice `.mcmeta` for 1.20.2+,
+     *   legacy `gui/widgets.png` sheet before that
+     * - VORTEX splashes
+     *
+     * Every button label the player sees is still drawn by Minecraft itself, so SINGLEPLAYER,
+     * MULTIPLAYER, REALMS, MODS, OPTIONS and QUIT keep their real vanilla behaviour.
+     *
+     * @return false when the menu assets are missing, so the caller can fall back.
+     */
+    private fun appendVortexRedForestMenu(context: Context, zos: ZipOutputStream, packFmt: Int): Boolean {
+        val logo = menuBitmap(context, if (packFmt >= 13) "logo_modern.png" else "logo_legacy.png")
+            ?: return false
+
+        putBitmap(zos, "assets/minecraft/textures/gui/title/minecraft.png", logo)
+        putBitmap(zos, "assets/minecraft/textures/gui/title/minceraft.png", logo)
+        // Transparent edition strip so "JAVA EDITION" never lands on the VORTEX wordmark.
+        putBitmap(zos, "assets/minecraft/textures/gui/title/edition.png", transparentBitmap(128, 16))
+
+        // Red forest panorama: projected cubemap so the scene never stretches on 4:3 / 16:10 / phones.
+        menuBitmap(context, "menu_red_forest.webp")?.let { scene ->
+            buildPanoramaFacesFrom(scene).forEachIndexed { idx, face ->
+                putBitmap(zos, "assets/minecraft/textures/gui/title/background/panorama_$idx.png", face)
+            }
+        }
+        menuBitmap(context, "panorama_overlay.png")?.let {
+            putBitmap(zos, "assets/minecraft/textures/gui/title/background/panorama_overlay.png", it)
+        }
+
+        if (packFmt >= 18) {
+            // 1.20.2+: GUI sprite system with nine-slice scaling (dark red face, bright red hover).
+            for ((sprite, file) in listOf(
+                "button" to "button.png",
+                "button_highlighted" to "button_highlighted.png",
+                "button_disabled" to "button_disabled.png"
+            )) {
+                val bmp = menuBitmap(context, file) ?: continue
+                putBitmap(zos, "assets/minecraft/textures/gui/sprites/widget/$sprite.png", bmp)
+                val border = if (sprite == "button_disabled") 1 else 3
+                putText(
+                    zos,
+                    "assets/minecraft/textures/gui/sprites/widget/$sprite.png.mcmeta",
+                    """{"gui":{"scaling":{"type":"nine_slice","width":200,"height":20,"border":$border}}}"""
+                )
+                // Tab/cycle buttons share the widget look; they get the same crimson face.
+                if (sprite == "button") {
+                    for (alias in listOf("tab", "tab_highlighted", "tab_selected")) {
+                        putBitmap(zos, "assets/minecraft/textures/gui/sprites/widget/$alias.png", bmp)
+                        putText(
+                            zos,
+                            "assets/minecraft/textures/gui/sprites/widget/$alias.png.mcmeta",
+                            """{"gui":{"scaling":{"type":"nine_slice","width":130,"height":24,"border":3}}}"""
+                        )
+                    }
+                }
+            }
+        } else {
+            // 1.16.5 - 1.20.1: one 256x256 widgets sheet (hotbar + button states).
+            menuBitmap(context, "widgets_legacy.png")?.let {
+                putBitmap(zos, "assets/minecraft/textures/gui/widgets.png", it)
+            }
+        }
+
+        menuText(context, "splashes.txt")?.let {
+            putText(zos, "assets/minecraft/texts/splashes.txt", it)
+        }
+        return true
+    }
+
+    private fun menuAsset(context: Context, name: String): java.io.InputStream? =
+        runCatching { context.assets.open("$MENU_ASSET_DIR/$name") }.getOrNull()
+
+    private fun menuBitmap(context: Context, name: String): Bitmap? =
+        menuAsset(context, name)?.use { BitmapFactory.decodeStream(it) }
+
+    private fun menuText(context: Context, name: String): String? =
+        menuAsset(context, name)?.use { it.readBytes().toString(Charsets.UTF_8) }
+
+    private fun transparentBitmap(width: Int, height: Int): Bitmap =
+        Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.TRANSPARENT) }
 
     /** Draw the supplied A and handwritten wordmark on the Minecraft title's 44px strip. */
     private fun renderAerixBanner(context: Context, logicalWidth: Int, scale: Int = 4): Bitmap {
@@ -376,6 +458,11 @@ object AerixClientPackGenerator {
         val raw = runCatching {
             context.assets.open(CLIENT_BACKGROUND_ASSET).use { BitmapFactory.decodeStream(it) }
         }.getOrNull()
+        return buildPanoramaFacesFrom(raw)
+    }
+
+    /** Cubemap projection of any source scene (`null` yields the flat dark fallback faces). */
+    private fun buildPanoramaFacesFrom(raw: Bitmap?): List<Bitmap> {
 
         if (raw == null) {
             return List(6) {

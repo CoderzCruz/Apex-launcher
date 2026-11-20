@@ -47,7 +47,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.aerix.bridge.AerixClientServers
@@ -55,6 +57,7 @@ import net.kdt.pojavlaunch.aerix.bridge.PojavAccountBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavInstanceBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavLaunchBridge
 import net.kdt.pojavlaunch.aerix.client.AerixClientInstaller
+import net.kdt.pojavlaunch.aerix.client.AerixClientPackGenerator
 import net.kdt.pojavlaunch.aerix.client.ClientConfigProfiles
 import net.kdt.pojavlaunch.aerix.client.ClientVersionSpec
 import net.kdt.pojavlaunch.aerix.client.AerixClientStore
@@ -760,6 +763,46 @@ fun AerixClientScreen(activity: FragmentActivity) {
             }
         }
     }
+    // In-game title screen: apply menu options (parallax) or rebuild the whole pack.
+    val applyMenuOptions: () -> Unit = {
+        val target = selectedInstalled?.gameDirectory
+        if (target == null) {
+            Toast.makeText(activity, "Pehle Vortex Client instance install karo", Toast.LENGTH_LONG).show()
+        } else {
+            scope.launch {
+                val ok = withContext(Dispatchers.IO) {
+                    runCatching { AerixClientPackGenerator.applyClientOptionsTxt(target, selectedVersion) }.isSuccess
+                }
+                Toast.makeText(
+                    activity,
+                    if (ok) "Menu settings saved — next launch se apply honge" else "Menu settings apply failed",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+    val rebuildMenuPack: () -> Unit = {
+        val target = selectedInstalled?.gameDirectory
+        if (target == null) {
+            Toast.makeText(activity, "Pehle Vortex Client instance install karo", Toast.LENGTH_LONG).show()
+        } else {
+            scope.launch {
+                val ok = withContext(Dispatchers.IO) {
+                    runCatching {
+                        AerixClientPackGenerator.buildAndApplyToInstance(activity, target, selectedVersion)
+                        AerixClientPackGenerator.ensurePackUpToDate(activity, target, selectedVersion)
+                    }.isSuccess
+                }
+                refreshTick++
+                Toast.makeText(
+                    activity,
+                    if (ok) "Vortex Red Forest menu rebuilt" else "Menu pack rebuild failed",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
     // One-tap Vortex mod packs: install into the client instance, then refresh + toast counts.
     val startPackInstall: (String, List<String>, List<String>) -> Unit = { title, slugs, purgePrefixes ->
         scope.launch {
@@ -997,6 +1040,87 @@ fun AerixClientScreen(activity: FragmentActivity) {
                     iconRes = R.drawable.aerix_ic_settings_filled,
                     modifier = Modifier.weight(1f)
                 ) { AerixNav.navigate(LauncherSection.SETTINGS) }
+            }
+        }
+
+        // ── MAIN MENU: the in-game title screen (VORTEX RED FOREST) ──
+        // Texture work only — every label is still drawn by Minecraft, so SINGLEPLAYER,
+        // MULTIPLAYER, REALMS, MODS, OPTIONS and QUIT keep their real vanilla screens.
+        GlassPanel(
+            modifier = Modifier.fillMaxWidth(),
+            radius = AerixRadii.card,
+            color = AerixSurface.panelRaised
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "MAIN MENU",
+                    fontSize = 9.sp,
+                    letterSpacing = 1.4.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = accent
+                )
+                Text(
+                    text = "in-game title screen",
+                    fontSize = 9.sp,
+                    color = Color.White.copy(alpha = 0.55f)
+                )
+            }
+            Text(
+                text = "VORTEX RED FOREST",
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 1.sp
+            )
+            Text(
+                text = "Red autumn forest panorama, crimson VORTEX logo and dark-red buttons. " +
+                    "Minecraft ke apne screens: Singleplayer, Multiplayer, Realms, Mods, Options, Quit.",
+                color = Color.White.copy(alpha = 0.68f),
+                fontSize = 10.sp
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
+                // onToggle is passed by name: the trailing lambda would otherwise bind to modifier.
+                ClientModuleChip(
+                    label = "Menu parallax",
+                    enabled = AerixClientStore.packMenuParallax,
+                    onToggle = {
+                        AerixClientStore.packMenuParallax = !AerixClientStore.packMenuParallax
+                        AerixClientStore.persist()
+                        applyMenuOptions()
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+                ClientModuleChip(
+                    label = "Crimson menu",
+                    enabled = AerixClientStore.packCustomMainMenu,
+                    onToggle = {
+                        AerixClientStore.packCustomMainMenu = !AerixClientStore.packCustomMainMenu
+                        AerixClientStore.persist()
+                        rebuildMenuPack()
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Brush.horizontalGradient(listOf(Color(0xFFE21F3D), Color(0xFF9E1728))))
+                    .clickable { rebuildMenuPack() }
+                    .padding(vertical = AerixSpacing.smPlus),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "REBUILD MENU PACK",
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    letterSpacing = 1.2.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
             }
         }
 

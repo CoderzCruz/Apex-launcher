@@ -160,6 +160,7 @@ object AerixClientInstaller {
                     }
                 }
                 ensureWaveyCapes(modsDir, mcVersion)
+                ensureModMenu(modsDir, mcVersion)
                 AerixClientPackGenerator.ensurePackUpToDate(context, gameDir, mcVersion)
             }
         }
@@ -329,6 +330,19 @@ object AerixClientInstaller {
         installClientVersion(context, "1.16.5")
 
     /** WaveyCapes is essential to the waving option. Do not silently claim success if absent. */
+    /**
+     * Mod Menu is what makes the title screen's MODS button real: without it Fabric shows no
+     * mods entry at all. Installed on older Client installs too, never overwriting a user copy.
+     */
+    private fun ensureModMenu(modsDir: File, mcVersion: String) {
+        val present = modsDir.listFiles()?.any {
+            it.isFile && it.extension.equals("jar", true) &&
+                it.name.replace("-", "").replace("_", "").contains("modmenu", true)
+        } == true
+        if (present) return
+        runCatching { ensureModrinthJar(modsDir, "modmenu", mcVersion, 0) }
+    }
+
     private fun ensureWaveyCapes(modsDir: File, mcVersion: String) {
         fun present(): Boolean = modsDir.listFiles()?.any {
             it.isFile && it.extension.equals("jar", true) &&
