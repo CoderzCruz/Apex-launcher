@@ -24,20 +24,6 @@ internal fun LauncherUpdateNoticeHost(activity: FragmentActivity) {
             }
         }
     }
-    // Heads-up "Update now" notification, once per release (bridge.* already imported).
-    LaunchedEffect(LauncherUpdater.phase, release?.version, release?.vortex) {
-        val prefs = activity.getSharedPreferences("vortex_update_notify", android.content.Context.MODE_PRIVATE)
-        if (LauncherUpdater.phase == LauncherUpdatePhase.AVAILABLE && release?.vortex == true) {
-            val v = release.version
-            val vc = v.major * 1_000_000L + v.minor * 1_000L + v.patch
-            if (prefs.getString("last", null) != v.toString()) {
-                VortexUpdateNotification.show(activity, vc)
-                prefs.edit().putString("last", v.toString()).apply()
-            }
-        } else if (LauncherUpdater.phase == LauncherUpdatePhase.CURRENT) {
-            VortexUpdateNotification.cancel(activity)
-        }
-    }
     // Auto-download the moment an update is offered — only Android's install sheet needs a tap.
     LaunchedEffect(LauncherUpdater.phase, release?.tag) {
         if (LauncherUpdater.phase == LauncherUpdatePhase.AVAILABLE && release?.vortex == true) {
