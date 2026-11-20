@@ -318,7 +318,9 @@ object AerixClientPackGenerator {
         putBitmap(zos, "assets/minecraft/textures/gui/title/edition.png", transparentBitmap(128, 16))
 
         // Red forest panorama: projected cubemap so the scene never stretches on 4:3 / 16:10 / phones.
-        menuBitmap(context, "menu_red_forest.webp")?.let { scene ->
+        // Sampled at half size: the faces are 384px, and a launch-time OOM on a small phone is worse
+        // than the extra detail nobody can see behind the scrim.
+        menuBitmap(context, "menu_red_forest.webp", inSampleSize = 2)?.let { scene ->
             buildPanoramaFacesFrom(scene).forEachIndexed { idx, face ->
                 putBitmap(zos, "assets/minecraft/textures/gui/title/background/panorama_$idx.png", face)
             }
@@ -370,8 +372,11 @@ object AerixClientPackGenerator {
     private fun menuAsset(context: Context, name: String): java.io.InputStream? =
         runCatching { context.assets.open("$MENU_ASSET_DIR/$name") }.getOrNull()
 
-    private fun menuBitmap(context: Context, name: String): Bitmap? =
-        menuAsset(context, name)?.use { BitmapFactory.decodeStream(it) }
+    private fun menuBitmap(context: Context, name: String, inSampleSize: Int = 1): Bitmap? =
+        menuAsset(context, name)?.use {
+            val options = BitmapFactory.Options().apply { this.inSampleSize = inSampleSize }
+            BitmapFactory.decodeStream(it, null, options)
+        }
 
     private fun menuText(context: Context, name: String): String? =
         menuAsset(context, name)?.use { it.readBytes().toString(Charsets.UTF_8) }

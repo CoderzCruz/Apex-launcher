@@ -48,7 +48,7 @@ assert "private fun appendVortexRedForestMenu(context: Context, zos: ZipOutputSt
 assert 'if (packFmt >= 13) "logo_modern.png" else "logo_legacy.png"' in pack
 assert '"assets/minecraft/textures/gui/title/minecraft.png"' in pack
 assert '"assets/minecraft/textures/gui/title/edition.png"' in pack
-assert 'menuBitmap(context, "menu_red_forest.webp")' in pack, "red forest panorama"
+assert 'menuBitmap(context, "menu_red_forest.webp", inSampleSize = 2)' in pack, "red forest panorama"
 assert 'buildPanoramaFacesFrom(scene)' in pack
 assert '"assets/minecraft/textures/gui/title/background/panorama_$idx.png"' in pack
 assert 'menuBitmap(context, "panorama_overlay.png")' in pack
