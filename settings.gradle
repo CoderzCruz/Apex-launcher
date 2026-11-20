@@ -18,6 +18,7 @@ rootProject.name='PojavLauncher'
 include ':app_pojavlauncher'
 include ':vortexmusic'
 include ':vortexclient'
+include ':vortexclientapp'
 
 include ':forge_installer'
 include ':aerix_client_mod'
