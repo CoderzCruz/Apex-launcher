@@ -1,0 +1,32 @@
+plugins {
+    id 'application'
+}
+
+// Standalone desktop client: pure Java + Swing, one runnable fat jar.
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    implementation 'org.json:json:20240303'
+}
+
+application {
+    mainClass = 'com.vortex.client.VortexClientApp'
+}
+
+jar {
+    // Fat jar: bundle org.json so `java -jar Vortex.Client.jar` needs only a JRE.
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    } exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    manifest {
+        attributes 'Main-Class': 'com.vortex.client.VortexClientApp',
+                   'Implementation-Title': 'Vortex Client',
+                   'Implementation-Version': '1.0.0'
+    }
+    archiveBaseName.set('Vortex.Client')
+    archiveVersion.set('1.0.0')
+}

@@ -1,0 +1,74 @@
+name: Vortex Client
+
+# Builds the standalone desktop Vortex Client (Swing) fat jar and publishes
+# it to the `client-latest` release.
+
+on:
+  push:
+    branches: [ "v3_openjdk", "arena/**" ]
+    paths:
+      - "vortexclient/**"
+      - ".github/workflows/vortex-client.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vortex-client
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.14.3"
+
+      - name: Build Vortex Client jar
+        run: |
+          if ! ./gradlew :vortexclient:jar --console=plain > /tmp/client.log 2>&1; then
+            grep -E "error:|FAILURE|What went wrong|\.java" /tmp/client.log | head -30 | cut -c1-300 | while IFS= read -r l; do
+              echo "::error title=vortex-client::$l"
+            done
+            tail -40 /tmp/client.log
+            exit 1
+          fi
+
+      - name: Publish to client-latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          JAR="vortexclient/build/libs/Vortex.Client-1.0.0.jar"
+          test -f "$JAR"
+          STAGE="$(mktemp -d)"
+          cp "$JAR" "$STAGE/Vortex.Client.jar"
+          SHA256="$(sha256sum "$STAGE/Vortex.Client.jar" | cut -d' ' -f1)"
+          {
+            echo "Vortex Client1.0.0 — standalone desktop Minecraft client"
+            echo ""
+            echo "- **Download:** [\`Vortex.Client.jar\`](https://github.com/$GITHUB_REPOSITORY/releases/download/client-latest/Vortex.Client.jar)"
+            echo "- **Run:** \`java -jar Vortex.Client.jar\` (JRE17+)"
+            echo "- **SHA-256:** \`$SHA256\`"
+          } > "$STAGE/NOTES.md"
+          TAG="client-latest"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" --clobber "$STAGE/Vortex.Client.jar"
+            gh release edit "$TAG" --title "Vortex Client (desktop)" --notes-file "$STAGE/NOTES.md"
+          else
+            gh release create "$TAG" --prerelease --title "Vortex Client (desktop)" \
+              --notes-file "$STAGE/NOTES.md" "$STAGE/Vortex.Client.jar"
+          fi
+          echo "::notice title=vortex-client::https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/Vortex.Client.jar"
