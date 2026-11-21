@@ -23,15 +23,17 @@ class SocialCosmeticsSmoke(unittest.TestCase):
         self.assertIn("widthIn(max = 148.dp)", card)
         self.assertIn("height(130.dp)", card)
         character = screen.split("private fun ProfileCharacter(", 1)[1].split("private fun ProfileCosmeticsPage(", 1)[0]
-        for feature in ("clipToBounds()", "detectDragGestures", "onClick = onClick", "AerixSkinPreview3D", "useClientCape = clientCape"):
+        for feature in ("clipToBounds()", "detectDragGestures", "onClick = onClick", "AerixSkinPreview3D", "showOfficialCape = true"):
             self.assertIn(feature, character)
 
     def test_skin_and_cape_actions_use_existing_account_paths(self):
         screen = (ROOT / "ui/screens/SocialProfileScreen.kt").read_text()
         page = screen.split("private fun ProfileCosmeticsPage(", 1)[1].split("private fun CountCell(", 1)[0]
-        for method in ("equipSkinFromUri", "equipCapeFromUri", "canEquipCape", "syncCapeAssetsToAllClientInstances"):
+        for method in ("equipSkinFromUri", "equipCapeFromUri"):
             self.assertIn(method, page)
-        self.assertIn("AerixClientStore.persist()", page)
+        # The Vortex Client cape wardrobe was removed with the client feature.
+        for gone in ("AerixClientStore", "AerixClientCosmetics", "Vortex Client capes"):
+            self.assertNotIn(gone, page)
         self.assertIn("BackHandler(enabled = view != ProfileView.CARD)", screen)
 
     def test_rendered_skin_and_cape_share_equipped_sources(self):
@@ -42,7 +44,8 @@ class SocialCosmeticsSmoke(unittest.TestCase):
         view = (ROOT / "components/AerixPlayerSkin.kt").read_text()
         self.assertIn("PojavAccountBridge.resolveAccountSkinBytes(account)", view)
         self.assertIn("PojavAccountBridge.resolveCapeBytes(account, includeOfficial = showOfficialCape)", view)
-        self.assertIn("AerixClientCosmetics.resolveInGameCapeBytes(context)", view)
+        self.assertNotIn("AerixClientCosmetics", view, "no client capes in the 3D preview")
+        self.assertNotIn("useClientCape", view, "client cape parameter removed")
 
 
 if __name__ == "__main__":

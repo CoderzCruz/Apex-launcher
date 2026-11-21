@@ -23,9 +23,8 @@ public abstract class TouchEventProcessor {
     }
 
     protected void applyMoveVector(float x, float y) {
-        float clientAimMultiplier = net.kdt.pojavlaunch.aerix.client.AerixClientInputBridge.touchAimMultiplier();
-        Platform.cursorX += x * LauncherPreferences.PREF_MOUSESPEED * clientAimMultiplier;
-        Platform.cursorY += y * LauncherPreferences.PREF_MOUSESPEED * clientAimMultiplier;
+        Platform.cursorX += x * LauncherPreferences.PREF_MOUSESPEED;
+        Platform.cursorY += y * LauncherPreferences.PREF_MOUSESPEED;
         Platform.sendCursorPosition();
     }
 

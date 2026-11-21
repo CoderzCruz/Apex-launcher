@@ -100,29 +100,17 @@ assert "MusicRepository" in music and "PlayerState" in music, "vortex music engi
 assert "MiniPlayer" in music and "HomeScreen(" in music, "music tabs + mini player"
 discover = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/DiscoverScreen.kt").read_text()
 assert "Brush.horizontalGradient" in discover and "borderHighlight" in discover, "premium mod cards"
-client = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/AerixClientScreen.kt").read_text()
-assert "VORTEX CLIENT" in client and "FPS Boost" in client and "CLIENT MENU" in client, "client hero + menu"
-assert "ClientModuleSection" in client and "PvP preset applied" in client, "modules manager + presets"
-assert "SUPPORTED" in client and "horizontalScroll" in client and "DOWNLOADS" in client, "supported-versions strip"
-assert "ClientVersionTile" in client and "ClientActionDock" in client, "custom client UI"
-assert "VORTEX MODS" in client and "ClientPackCard" in client and "Vortex Modpack" in client and "vulkanmod" in client, "vortex mods packs"
-assert "CONFIG PROFILES" in client and "ClientConfigProfiles" in client and "applyConfigProfile" in client, "config profiles"
-cape_shop = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/AerixCapeShopScreen.kt").read_text()
-assert "CAPE SHOP" in cape_shop and "ClientCapeTile" in cape_shop and "equippedCapeId" in cape_shop, "cape shop screen"
-assert '"Cape Shop"' in rail and "aerix_ic_style_outlined" in rail, "rail cape shop entry"
-assert '"Vortex Client"' in rail and "onNavigate(LauncherSection.CLIENT)" in rail, "client has its own rail entry again"
-assert "AerixCapeShopScreen" in launcher, "cape shop hosted"
-assert "FastClientScreen" in launcher and "LauncherSection.FAST_CLIENT ->" in launcher, "fast client hosted"
-assert 'ic_px_zap, "Fast Client"' in rail, "fast client rail entry"
-fast = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/FastClientScreen.kt").read_text()
-assert "FAST CLIENT" in fast and "fastclient.net" in fast and "mxinspire" in fast.lower(), "fast client screen"
-assert "MX BOOST" in fast and "GGc38iHO" in fast and "AssetType.MODPACK" in fast, "mx boost modpack section"
-assert "Install in Vortex" in fast and "installModpackFromModrinth" in fast, "mx boost in-vortex install"
-inst = (APP / "java/net/kdt/pojavlaunch/aerix/client/AerixClientInstaller.kt").read_text()
-assert "installModpackFromModrinth" in inst and "modrinth.index.json" in inst, "mrpack installer"
-assert "FastClientScreen(activity, navigate)" in launcher, "fast client passes navigate"
+# The whole Vortex Client feature was removed (owner request): no client page, no cape shop,
+# no Fast Client page and no client-only rail entries.
+for screen in ("AerixClientScreen.kt", "AerixCapeShopScreen.kt", "FastClientScreen.kt"):
+    assert not (APP / ("java/net/kdt/pojavlaunch/aerix/ui/screens/" + screen)).exists(), screen + " removed"
+for section in ("LauncherSection.CLIENT", "LauncherSection.CAPE_SHOP", "LauncherSection.FAST_CLIENT"):
+    assert section not in rail and section not in launcher, section + " unregistered"
+for label in ('"Vortex Client"', '"Cape Shop"', '"Fast Client"'):
+    assert label not in rail, label + " gone from the rail"
+assert not (APP / "java/net/kdt/pojavlaunch/aerix/client").exists(), "client package removed"
 other = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/OtherReleasesScreen.kt").read_text()
-assert "FastClientReleaseCard" in other and "LauncherSection.FAST_CLIENT" in other, "fast client card"
+assert "FastClientReleaseCard" not in other, "fast client card removed"
 assert "selectedRed = Color(0xFFDC2626)" in rail, "opened section icon turns red"
 assert ".height(300.dp)" in home, "bigger skin stage"
 assert '"Welcome to Vortex Launcher"' in home, "welcome bubble"
@@ -158,14 +146,10 @@ assert "LauncherSection.OWNER_PANEL" in launcher, "owner panel hosted"
 settings_panel = (APP / "java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.kt").read_text()
 assert "Owner Panel" in settings_panel and "LauncherSection.OWNER_PANEL" in settings_panel, "owner panel entry"
 
-overlay_src = (APP / "java/net/kdt/pojavlaunch/aerix/client/AerixClientOverlayView.kt").read_text()
-assert "ownerAlert" in overlay_src and "OWNER" in overlay_src, "owner chat banner"
-watch = (ROOT_PARENT / "aerix_client_mod/src/main/java/aerix/client/mod/OwnerChatWatch.java").read_text() if False else open("aerix_client_mod/src/main/java/aerix/client/mod/OwnerChatWatch.java").read()
-assert "vortex_owner_alert.txt" in watch and "field_2061" in watch, "owner chat watch"
-assert "vortex_owner_name.txt" in open("app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/AerixClientPackGenerator.kt").read(), "owner name write"
+# The owner chat banner lived inside the removed client HUD overlay / client mod.
+assert not (APP / "java/net/kdt/pojavlaunch/aerix/client").exists(), "no client overlay host"
+assert not (ROOT / "aerix_client_mod").exists(), "no client mod to read the owner broadcast"
 assert "cancelRun" in panel, "panel cancel run"
-
-assert "vortex_broadcast.txt" in overlay_src, "broadcast poll"
 assert "sendBroadcast" in panel and "Broadcast" in panel, "panel broadcast"
 
 prefs_src = (APP / "java/net/kdt/pojavlaunch/prefs/LauncherPreferences.java").read_text()
@@ -202,7 +186,6 @@ assert "Listening:" in pres_src and "Vortex Music" in pres_src, "music presence"
 common_src = (ROOT / "vortexmusic/src/main/java/com/vortex/music/ui/Common.kt").read_text()
 assert "embeddedPicture" in common_src, "embedded artwork fallback"
 
-prof_src = (ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/PackRuntimeProfiles.kt").read_text()
-assert "PACK_RAM_MB" in prof_src and "GL4ES_RENDERER" in prof_src and "maybeWrite" in prof_src, "pack runtime profiles"
-inst_src2 = (ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/AerixClientInstaller.kt").read_text()
-assert inst_src2.count("PackRuntimeProfiles.applyForPack") == 2, "profile applied on both pack installs"
+# .mrpack install/export still works through the normal launcher path (no client module needed).
+mr_src = (ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/modloaders/modpacks/api/ModrinthApi.java").read_text()
+assert "installMrpack" in mr_src and "modrinth.index.json" in mr_src, "mrpack installer intact"

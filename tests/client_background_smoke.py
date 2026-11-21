@@ -1,31 +1,25 @@
-"""Guard the shared boot/title artwork and instance-specific version wiring."""
+"""The VORTEX client skin (in-game HUD, title-screen pack) is gone.
+
+This smoke pins the removal: no client overlay, no generated main-menu pack and no
+Client-only activity wiring may creep back into the launcher.
+"""
 from pathlib import Path
 
-root = Path(__file__).resolve().parents[1]
-client = root / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client"
-pack = (client / "AerixClientPackGenerator.kt").read_text()
-overlay = (client / "AerixClientOverlayView.kt").read_text()
-bridge = (client / "AerixClientInputBridge.kt").read_text()
-activity = (root / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/game/GameActivity.java").read_text()
-asset = root / "app_pojavlauncher/src/main/assets/aerix/client_dark_background.webp"
-data = asset.read_bytes()
-assert data[:4] == b"RIFF" and data[8:12] == b"WEBP"
-assert len(data) < 500_000
-assert 'CLIENT_BACKGROUND_ASSET = "aerix/client_dark_background.webp"' in pack
-assert 'assets.open(CLIENT_BACKGROUND_ASSET)' in pack
-assert 'assets.open(AerixClientPackGenerator.CLIENT_BACKGROUND_ASSET)' in overlay
-assert 'v9_vortex_glass_buttons' in pack
-assert 'append(PACK_SCHEMA_REV)' in pack
-assert 'if (AerixClientStore.packCustomMainMenu)' in pack
-assert 'for (faceIdx in 0..5)' in pack
-assert 'panorama_$idx.png' in pack
-assert 'instance.isAerixClient && mAerixClientOverlay != null' in activity
-assert 'resetSessionState(instance.versionId)' in overlay
-assert 'ClientBootLabels.fromProfile(profileId)' in bridge
-assert 'ClientBootLabels.fromLoadingLog(line)' in bridge
-assert 'ClientBootLabels.loadingMods(sessionMinecraftVersion)' in bridge
-assert 'ClientBootLabels.textureAtlases(sessionMinecraftVersion)' in bridge
-assert 'ClientBootLabels.header(AerixClientInputBridge.sessionMinecraftVersion)' in overlay
-assert 'Loading Fabric 1.16.5' not in bridge
-assert 'Stitching 1.16.5' not in bridge
-print('Client background and version wiring smoke test passed')
+ROOT = Path(__file__).resolve().parents[1]
+JAVA = ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch"
+
+assert not (JAVA / "aerix/client").exists(), "client feature package removed"
+assert not (ROOT / "aerix_client_mod").exists(), "client mod removed"
+assert not (ROOT / "app_pojavlauncher/src/main/assets/vortex_menu").exists(), "menu art removed"
+
+activity = (JAVA / "game/GameActivity.java").read_text()
+for gone in ("AerixClientOverlayView", "AerixClientInstaller", "isAerixClient", "aerix_client_overlay"):
+    assert gone not in activity, f"{gone} still wired into the game activity"
+
+layout = (ROOT / "app_pojavlauncher/src/main/res/layout/activity_basemain.xml").read_text()
+assert "aerix_client_overlay" not in layout, "overlay view removed from the layout"
+
+pack_json = (ROOT / "settings.gradle").read_text()
+assert "aerix_client_mod" not in pack_json, "client mod module unregistered"
+
+print("Client removal: overlay, pack generator, mod and wiring are gone")

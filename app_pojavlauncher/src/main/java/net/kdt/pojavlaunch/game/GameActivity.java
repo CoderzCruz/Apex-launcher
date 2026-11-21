@@ -1,6 +1,5 @@
 package net.kdt.pojavlaunch.game;
 
-
 import static net.kdt.pojavlaunch.Tools.dialogForceClose;
 import static net.kdt.pojavlaunch.game.platform.Platform.PLATFORM;
 import static net.kdt.pojavlaunch.prefs.LauncherPreferences.PREF_ENABLE_GYRO;
@@ -107,7 +106,6 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
     private View mDrawerPullButton;
     private FpsView mFpsView;
     private GameMenuOverlayView mGameMenuOverlay;
-    private net.kdt.pojavlaunch.aerix.client.AerixClientOverlayView mAerixClientOverlay;
     private GyroControl mGyroControl = null;
     private ControlLayout mControlLayout;
     private HotbarView mHotbarView;
@@ -290,17 +288,6 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
             }
 
             @Override
-            public boolean isClientMenuAvailable() {
-                return instance != null && instance.isAerixClient && mAerixClientOverlay != null;
-            }
-
-            @Override
-            public void onOpenClientMenu() {
-                hideGameMenu();
-                if (mAerixClientOverlay != null) mAerixClientOverlay.openClientMenu();
-            }
-
-            @Override
             public void onForceCloseGame() {
                 dialogForceClose(GameActivity.this);
             }
@@ -443,11 +430,8 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
         mDrawerPullButton = findViewById(R.id.drawer_button);
         mFpsView = findViewById(R.id.main_fps_view);
         mGameMenuOverlay = findViewById(R.id.game_menu_overlay);
-        mAerixClientOverlay = findViewById(R.id.aerix_client_overlay);
         mHotbarView = findViewById(R.id.hotbar_view);
-        if (instance != null && instance.isAerixClient && mAerixClientOverlay != null) {
-            mAerixClientOverlay.attachForInstance(instance);
-        } else if (mControlLayout != null) {
+        if (mControlLayout != null) {
             // The wallpaper that can stand in for the black screen while the game starts. It is added
             // inside the control layout, above the game surface and under the buttons, so the controls
             // and the Aerix menu button stay usable and visible the whole time.
@@ -467,9 +451,7 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
     /** Show the frame rate readout only when the player asked for it and the Aerix menu is hidden. */
     private void updateFpsViewVisibility() {
         if (mFpsView == null) return;
-        boolean isClient = instance != null && instance.isAerixClient;
-        boolean show = !isClient
-                && LauncherPreferences.PREF_SHOW_FPS
+        boolean show = LauncherPreferences.PREF_SHOW_FPS
                 && (mGameMenuOverlay == null || !mGameMenuOverlay.isMenuShown());
         mFpsView.setVisibility(show ? View.VISIBLE : View.GONE);
     }
@@ -514,7 +496,6 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
         // Nothing of ours outlives the activity: if the player backs out during the boot, the
         // wallpaper goes with the screen.
         net.kdt.pojavlaunch.aerix.loading.AerixLoadingWallpaper.detach();
-        if (mAerixClientOverlay != null) mAerixClientOverlay.onHostDestroy();
         // The loopback endpoint that gave the game its profile and skin is done with the game.
         net.kdt.pojavlaunch.aerix.bridge.AerixSkinServer.stop();
         if (mRecorder != null) mRecorder.destroy();
@@ -585,11 +566,6 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
             Toast.makeText(this, R.string.angelica_found_sfpew_notice, Toast.LENGTH_LONG).show();
         }
 
-        if (instance.isAerixClient) {
-            net.kdt.pojavlaunch.aerix.client.AerixClientInstaller.syncLocalAssetsAtGameStart(this, instance);
-        }
-        // Every other instance (plain version, modded, modpack) still gets the VORTEX title screen.
-        net.kdt.pojavlaunch.aerix.client.AerixClientInstaller.syncMainMenuAssetsAtGameStart(this, instance);
         GameRunner.launchGame(this, account, instance, versionId, classpath, mGameRenderer);
         //Note that we actually stall in the above function, even if the game crashes. But let's be safe.
         Tools.runOnUiThread(()-> mServiceBinder.isActive = false);
@@ -722,21 +698,6 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
             super.dispatchKeyEvent(event);
             return true;
         }
-        if (mAerixClientOverlay != null && mAerixClientOverlay.isBlockingModalOpen()) {
-            int keyCode = event.getKeyCode();
-            if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
-                    || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE) {
-                return super.dispatchKeyEvent(event);
-            }
-            if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_ESCAPE) {
-                if (event.getAction() == KeyEvent.ACTION_UP) {
-                    mAerixClientOverlay.handleBackPress();
-                }
-                return true;
-            }
-            super.dispatchKeyEvent(event);
-            return true;
-        }
         if(isInEditor) {
             if(event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
                 if(event.getAction() == KeyEvent.ACTION_DOWN) mControlLayout.askToExit(this);
@@ -780,7 +741,6 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
         updateFpsViewVisibility();
         // The game window is here: the wallpaper, and anything decoding it, goes now.
         net.kdt.pojavlaunch.aerix.loading.AerixLoadingWallpaper.detach();
-        if (mAerixClientOverlay != null) mAerixClientOverlay.onGlWindowReady();
     }
 
     @Override

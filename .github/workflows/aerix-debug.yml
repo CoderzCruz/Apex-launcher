@@ -17,7 +17,6 @@ on:
       - "app_pojavlauncher/proguard-rules.pro"
       - "app_pojavlauncher/libs/**"
       - "forge_installer/**"
-      - "aerix_client_mod/**"
       - "vortexmusic/**"
       - "tests/**"
       - "glfw/**"
@@ -68,7 +67,6 @@ jobs:
         run: |
           python3 tests/branding_identity_smoke.py
           python3 tests/discord_presence_logo_smoke.py
-          python3 tests/modern_cape_smoke.py
           python3 tests/social_profile_cosmetics_smoke.py
           python3 tests/client_background_smoke.py
           python3 tests/home_v2_smoke.py
@@ -78,8 +76,6 @@ jobs:
           python3 tests/vortex_music_smoke.py
           python3 tests/vortex_client_smoke.py
           python3 tests/vortex_client_mobile_smoke.py
-          python3 tests/vortex_client_menu_smoke.py
-          python3 tests/vortex_menu_smoke.py
           python3 tests/vortex_update_channel_smoke.py
           mkdir -p "$RUNNER_TEMP/aerix-memory-test"
           javac -d "$RUNNER_TEMP/aerix-memory-test" \
@@ -87,26 +83,9 @@ jobs:
             tests/InstanceMemorySmokeTest.java
           java -cp "$RUNNER_TEMP/aerix-memory-test" InstanceMemorySmokeTest
           javac -d "$RUNNER_TEMP/aerix-memory-test" \
-            app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/ClientLogoMigration.java \
-            tests/ClientLogoMigrationSmokeTest.java
-          java -cp "$RUNNER_TEMP/aerix-memory-test" ClientLogoMigrationSmokeTest
-          javac -d "$RUNNER_TEMP/aerix-memory-test" \
-            app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/ClientVersions.java \
-            tests/ClientVersionsSmokeTest.java
-          java -cp "$RUNNER_TEMP/aerix-memory-test" ClientVersionsSmokeTest
-          javac -d "$RUNNER_TEMP/aerix-memory-test" \
-            app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/ClientVersions.java \
-            app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/ClientBootLabels.java \
-            tests/ClientBootLabelsSmokeTest.java
-          java -cp "$RUNNER_TEMP/aerix-memory-test" ClientBootLabelsSmokeTest
-          javac -d "$RUNNER_TEMP/aerix-memory-test" \
-            app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/ClientVersionOptions.java \
-            tests/ClientVersionOptionsSmokeTest.java
-          java -cp "$RUNNER_TEMP/aerix-memory-test" ClientVersionOptionsSmokeTest
-          javac -d "$RUNNER_TEMP/aerix-memory-test" \
-            app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/ClientOptionLines.java \
-            tests/ClientOptionLinesSmokeTest.java
-          java -cp "$RUNNER_TEMP/aerix-memory-test" ClientOptionLinesSmokeTest
+            app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/bridge/ClientPackResidue.java \
+            tests/RetiredClientCleanupSmokeTest.java
+          java -cp "$RUNNER_TEMP/aerix-memory-test" RetiredClientCleanupSmokeTest
           javac -d "$RUNNER_TEMP/aerix-memory-test" \
             app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/game/FrameTimingStats.java \
             tests/FrameTimingStatsSmokeTest.java
@@ -115,20 +94,6 @@ jobs:
             -I app_pojavlauncher/src/main/jni/fps tests/frame_counter_smoke.c \
             app_pojavlauncher/src/main/jni/fps/frame_counter.c -o "$RUNNER_TEMP/aerix-frame-test"
           "$RUNNER_TEMP/aerix-frame-test"
-          javac -d "$RUNNER_TEMP/aerix-memory-test" \
-            aerix_client_mod/src/main/java/aerix/client/mod/ClientTelemetry.java tests/ModernTelemetrySmokeTest.java
-          java -cp "$RUNNER_TEMP/aerix-memory-test" aerix.client.mod.ModernTelemetrySmokeTest
-          javac -d "$RUNNER_TEMP/aerix-memory-test" \
-            aerix_client_mod/src/main/java/aerix/client/mod/ClientVisualOverrides.java \
-            tests/ClientVisualOverridesSmokeTest.java
-          java -cp "$RUNNER_TEMP/aerix-memory-test" aerix.client.mod.ClientVisualOverridesSmokeTest
-          javac -d "$RUNNER_TEMP/aerix-memory-test" \
-            app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/client/AdaptiveDistanceController.java \
-            tests/AdaptiveDistanceSmokeTest.java \
-            aerix_client_mod/src/main/java/aerix/client/mod/ClientAdaptiveDistance.java \
-            tests/ClientAdaptiveDistanceSmokeTest.java
-          java -cp "$RUNNER_TEMP/aerix-memory-test" AdaptiveDistanceSmokeTest
-          java -cp "$RUNNER_TEMP/aerix-memory-test" aerix.client.mod.ClientAdaptiveDistanceSmokeTest
 
       - name: Get LTW
         uses: dawidd6/action-download-artifact@v6

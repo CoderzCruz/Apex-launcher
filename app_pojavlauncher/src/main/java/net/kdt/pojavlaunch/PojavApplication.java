@@ -129,6 +129,10 @@ public class PojavApplication extends MGApplication {
 				// Implicitly initializes early constants and storage constants.
 				// Required to run the main activity properly.
 				LauncherPreferences.loadPreferences(this);
+				// The Vortex Client feature is retired: drop its menu pack and mod jar from the
+				// instances that still carry them (one-time, off the main thread).
+				sExecutorService.execute(() ->
+						net.kdt.pojavlaunch.aerix.bridge.RetiredClientCleanup.clean(getApplicationContext()));
 			} else {
 				// In other cases, only initialize enough for the basicmost basics to work
 				// and not explode.

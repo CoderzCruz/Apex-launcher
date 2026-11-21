@@ -29,14 +29,14 @@ assert 'name="lazy_service_default_title">Vortex Foreground Service<' in strings
 aerix_strings = (RES / "values/aerix_strings.xml").read_text()
 assert 'name="aerix_brand" translatable="false">Vortex<' in aerix_strings
 
-# ── Vortex Client is hosted again as its own rail section (old id gone) ───
+# ── Vortex Client sections were removed on request (old id stays gone too) ─
 rail = RAIL.read_text()
 assert "AERIX_CLIENT" not in rail, "legacy client id stays gone"
-assert 'RailIconItem(R.drawable.ic_px_fps, "Vortex Client"' in rail, "client has its own rail entry"
-assert 'RailIconItem(R.drawable.aerix_ic_style_outlined, "Cape Shop"' in rail, "cape shop keeps its own"
+for gone in ('"Vortex Client"', '"Cape Shop"', '"Fast Client"', "LauncherSection.CLIENT", "LauncherSection.CAPE_SHOP"):
+    assert gone not in rail, gone + " removed from the rail"
 assert '"Rules"' in rail and "LauncherSection.RULES" in rail
 launcher = LAUNCHER.read_text()
-assert "LauncherSection.CLIENT -> AerixClientScreen(" in launcher, "client page hosted"
+assert "AerixClientScreen" not in launcher, "client page unhosted"
 assert "LauncherSection.RULES -> RulesScreen(" in launcher
 
 # ── Rules page: banner art, big heading, Discord invite ───────────────────
@@ -100,11 +100,7 @@ for rel, banned in [
     ("java/net/kdt/pojavlaunch/aerix/ui/screens/ContributionScreen.kt", "Aerix Launcher"),
     ("java/net/kdt/pojavlaunch/aerix/bridge/PojavInstanceBridge.kt", "Exported by Aerix Launcher"),
     ("java/net/kdt/pojavlaunch/aerix/ui/screens/SocialProfileScreen.kt", "Aerix Client capes"),
-    ("java/net/kdt/pojavlaunch/aerix/client/AerixClientInputBridge.kt", "Aerix Client \u00b7"),
-    ("java/net/kdt/pojavlaunch/aerix/client/AerixClientOverlayView.kt", "Enable Aerix gyroscope"),
     ("java/net/kdt/pojavlaunch/aerix/ui/screens/LauncherUpdateDialog.kt", "A new Aerix is ready"),
-    ("java/net/kdt/pojavlaunch/aerix/client/AerixClientPackGenerator.kt", "Powered by Aerix Launcher"),
-    ("java/net/kdt/pojavlaunch/aerix/client/AerixClientStore.kt", 'CLIENT_INSTANCE_NAME = "Aerix Client'),
     ("java/net/kdt/pojavlaunch/aerix/ui/screens/SettingsScreen.kt", "maintainer of Aerix Launcher"),
 ]:
     body = (APP / rel).read_text()

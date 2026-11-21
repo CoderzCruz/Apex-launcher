@@ -81,8 +81,6 @@ import kotlin.math.roundToInt
 import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.aerix.bridge.PojavAccountBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavInstanceBridge
-import net.kdt.pojavlaunch.aerix.client.AerixClientCosmetics
-import net.kdt.pojavlaunch.aerix.client.AerixClientStore
 import net.kdt.pojavlaunch.aerix.components.AerixSkinPreview3D
 import net.kdt.pojavlaunch.aerix.social.SocialBackend
 import net.kdt.pojavlaunch.aerix.social.SocialPresenceMode
@@ -670,15 +668,8 @@ private fun ProfileCard(
 @Composable
 private fun ProfileCharacter(modifier: Modifier, onClick: () -> Unit) {
     val account = PojavAccountBridge.current
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val clientCape = PojavInstanceBridge.selected?.isAerixClient == true
     var azimuth by remember(account?.key) { mutableFloatStateOf(25f) }
     var pitch by remember(account?.key) { mutableFloatStateOf(10f) }
-    var clientReady by remember(clientCape) { mutableStateOf(!clientCape) }
-    LaunchedEffect(clientCape) {
-        if (clientCape) AerixClientStore.init(context)
-        clientReady = true
-    }
     Box(
         modifier = modifier.clipToBounds()
             .clickable(role = Role.Button, onClick = onClick)
@@ -692,24 +683,20 @@ private fun ProfileCharacter(modifier: Modifier, onClick: () -> Unit) {
             },
         contentAlignment = Alignment.Center
     ) {
-        if (clientReady) {
-            AerixSkinPreview3D(
-                account = account,
-                azimuth = azimuth.roundToInt(),
-                pitch = pitch.roundToInt(),
-                interactionEnabled = false,
-                useClientCape = clientCape,
-                showOfficialCape = true,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+        AerixSkinPreview3D(
+            account = account,
+            azimuth = azimuth.roundToInt(),
+            pitch = pitch.roundToInt(),
+            interactionEnabled = false,
+            showOfficialCape = true,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 
 @Composable
 private fun ProfileCosmeticsPage(activity: FragmentActivity, onBack: () -> Unit) {
     val account = PojavAccountBridge.current
-    val selectedClient = PojavInstanceBridge.selected?.isAerixClient == true
     var skinTarget by remember { mutableStateOf<net.kdt.pojavlaunch.aerix.bridge.AerixAccount?>(null) }
     var capeTarget by remember { mutableStateOf<net.kdt.pojavlaunch.aerix.bridge.AerixAccount?>(null) }
     val skinPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -722,8 +709,6 @@ private fun ProfileCosmeticsPage(activity: FragmentActivity, onBack: () -> Unit)
         capeTarget = null
         if (uri != null && target != null) PojavAccountBridge.equipCapeFromUri(activity, target, uri)
     }
-    LaunchedEffect(Unit) { AerixClientStore.init(activity) }
-
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(AerixSpacing.lg),
         verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
@@ -751,39 +736,13 @@ private fun ProfileCosmeticsPage(activity: FragmentActivity, onBack: () -> Unit)
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Cape", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AerixSurface.textPrimary)
                 Text(
-                    if (selectedClient) "Vortex Client uses the selected Client cape below. An imported cape is used by other instances."
-                    else "Import a cape for this account, or choose a Vortex Client cape below.",
+                    "Import a cape for this account as a PNG image.",
                     fontSize = 11.sp, color = AerixSurface.textSecondary
                 )
                 SocialButton("Import cape PNG", filled = false) {
                     capeTarget = account
                     runCatching { capePicker.launch(arrayOf("image/png")) }
                         .onFailure { capeTarget = null; Toast.makeText(activity, "Unable to open file picker", Toast.LENGTH_SHORT).show() }
-                }
-                Text("Vortex Client capes", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AerixSurface.textPrimary)
-                AerixClientCosmetics.capes.chunked(2).forEach { row ->
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        row.forEach { cape ->
-                            val unlocked = AerixClientCosmetics.canEquipCape(cape)
-                            val selected = AerixClientCosmetics.effectiveCapeSpec().id == cape.id
-                            SocialButton(
-                                label = cape.title + if (!unlocked) " (locked)" else if (selected) " ✓" else "",
-                                modifier = Modifier.weight(1f), filled = selected, enabled = unlocked
-                            ) {
-                                if (AerixClientCosmetics.canEquipCape(cape)) {
-                                    AerixClientStore.equippedCapeId = cape.id
-                                    AerixClientStore.persist()
-                                    val context = activity.applicationContext
-                                    net.kdt.pojavlaunch.PojavApplication.sExecutorService.execute {
-                                        synchronized(AerixClientCosmetics) {
-                                            AerixClientCosmetics.syncCapeAssetsToAllClientInstances(context)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if (row.size == 1) Spacer(Modifier.weight(1f))
-                    }
                 }
             }
         }

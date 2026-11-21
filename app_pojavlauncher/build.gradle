@@ -400,7 +400,6 @@ afterEvaluate {
         registrar.setVariant(variant)
 
         registrar.projectJarDependency project(":forge_installer"), "components/forge_installer"
-        registrar.projectJarDependency project(":aerix_client_mod"), "components/aerix_client"
 
 		if (variant.getName().toLowerCase().contains("full")) {
             registrar.jreRuntimeDependency 8, "components/jre"

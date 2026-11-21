@@ -104,7 +104,7 @@ object AerixSkinServer {
     fun launchArguments(context: Context, account: Account): List<String> {
         stop()
         return try {
-            prepare(context, account)
+            prepare(account)
         } catch (error: Throwable) {
             Logger.appendToLog("Skin server failed: ${error.javaClass.simpleName}: ${error.message}")
             Log.e(TAG, "Could not start the skin server", error)
@@ -127,34 +127,15 @@ object AerixSkinServer {
         port = 0
     }
 
-    private fun prepare(context: Context, account: Account): List<String> {
+    private fun prepare(account: Account): List<String> {
         val authType = account.authType ?: AuthType.LOCAL
         if (authType.injectorUrl != null) return emptyList()
-
-        val isSlim = PojavAccountBridge.isSlimModelFor(context, account)
-        val isClientSession = runCatching {
-            net.kdt.pojavlaunch.instances.Instances.loadSelectedInstance()?.isAerixClient == true
-        }.getOrDefault(false)
 
         val skinFile = PojavAccountBridge.customSkinFile(account)
         val capeFile = PojavAccountBridge.customCapeFile(account)
         val rawSkinBytes = if (skinFile.isFile && skinFile.length() > 0) skinFile.readBytes() else null
-        val normalizedSkin = rawSkinBytes?.let { PojavAccountBridge.normalizeSkinBytesForGame(it) }
-        val skinBytes = if (isClientSession) {
-            net.kdt.pojavlaunch.aerix.client.AerixClientCosmetics.applyHatAccessoryToSkin(
-                context,
-                normalizedSkin,
-                isSlim
-            )
-        } else {
-            normalizedSkin
-        }
-        val capeBytes = if (isClientSession) {
-            net.kdt.pojavlaunch.aerix.client.AerixClientCosmetics.resolveInGameCapeBytes(context)
-                ?: (if (capeFile.isFile && capeFile.length() > 0) capeFile.readBytes() else null)
-        } else {
-            if (capeFile.isFile && capeFile.length() > 0) capeFile.readBytes() else null
-        }
+        val skinBytes = rawSkinBytes?.let { PojavAccountBridge.normalizeSkinBytesForGame(it) }
+        val capeBytes = if (capeFile.isFile && capeFile.length() > 0) capeFile.readBytes() else null
         if (skinBytes == null && capeBytes == null) return emptyList()
 
         val jar = File(Tools.DIR_DATA, "$AUTHLIB_FOLDER/$AUTHLIB_JAR")
