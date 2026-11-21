@@ -23,6 +23,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -62,6 +64,7 @@ import net.kdt.pojavlaunch.aerix.client.ClientConfigProfiles
 import net.kdt.pojavlaunch.aerix.client.ClientVersionSpec
 import net.kdt.pojavlaunch.aerix.client.AerixClientStore
 import net.kdt.pojavlaunch.aerix.components.GlassPanel
+import net.kdt.pojavlaunch.aerix.components.apexPress
 import net.kdt.pojavlaunch.aerix.components.liquidGlass
 import net.kdt.pojavlaunch.aerix.theme.AerixRadii
 import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
@@ -95,7 +98,7 @@ private fun ClientMenuButton(
             .clip(shape)
             .background(Brush.horizontalGradient(listOf(Color(0xFFE21F3D), Color(0xFF9E1728))))
             .border(AerixSpacing.hairline, Color(0x66FF304F), shape)
-            .clickable(onClick = onClick)
+            .apexPress(onClick = onClick)
             .padding(horizontal = AerixSpacing.mdTight, vertical = AerixSpacing.smPlus)
     ) {
         Row(
@@ -336,6 +339,81 @@ private fun ClientServersSection(accent: Color, onJoin: (String) -> Unit) {
                     Text("CANCEL", color = AerixSurface.textSecondary)
                 }
             }
+        )
+    }
+}
+
+/** Section label + its one-line status, used by every client block. */
+@Composable
+private fun ClientSectionHeader(label: String, trailing: String, accent: Color) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontSize = 9.sp,
+            letterSpacing = 1.4.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = accent
+        )
+        Text(text = trailing, fontSize = 9.sp, color = Color.White.copy(alpha = 0.55f))
+    }
+}
+
+/**
+ * One full-width client option: label + caption on the left, a real Material switch on the right.
+ * Full-width rows read far better on a phone than the cramped half-width chips.
+ */
+@Composable
+private fun ClientOptionRow(
+    label: String,
+    caption: String,
+    enabled: Boolean,
+    accent: Color,
+    onChange: () -> Unit
+) {
+    val shape = RoundedCornerShape(12.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(AerixSurface.panel.copy(alpha = 0.55f))
+            .border(
+                AerixSpacing.hairline,
+                if (enabled) accent.copy(alpha = 0.45f) else AerixSurface.borderSoft,
+                shape
+            )
+            .clickable(onClick = onChange)
+            .padding(horizontal = AerixSpacing.mdTight, vertical = AerixSpacing.smPlus),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
+            Text(
+                text = caption,
+                color = Color.White.copy(alpha = 0.55f),
+                fontSize = 9.sp,
+                maxLines = 2
+            )
+        }
+        Switch(
+            checked = enabled,
+            onCheckedChange = { onChange() },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = accent,
+                uncheckedThumbColor = Color.White.copy(alpha = 0.75f),
+                uncheckedTrackColor = Color.White.copy(alpha = 0.16f)
+            )
         )
     }
 }
@@ -955,24 +1033,11 @@ fun AerixClientScreen(activity: FragmentActivity) {
         // Every button opens something real: Library, the server list below, the mod packs,
         // the cape shop, the config profiles, Settings, Accounts and the music engine.
         Column(verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "CLIENT MENU",
-                    fontSize = 9.sp,
-                    letterSpacing = 1.4.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = accent
-                )
-                Text(
-                    text = "Welcome back, " + (PojavAccountBridge.current?.username ?: "Player"),
-                    fontSize = 9.sp,
-                    color = Color.White.copy(alpha = 0.6f)
-                )
-            }
+            ClientSectionHeader(
+                label = "CLIENT MENU",
+                trailing = "Welcome back, " + (PojavAccountBridge.current?.username ?: "Player"),
+                accent = accent
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
@@ -1043,7 +1108,7 @@ fun AerixClientScreen(activity: FragmentActivity) {
             }
         }
 
-        // ── MAIN MENU: the in-game title screen (VORTEX RED FOREST) ──
+        // ── CLIENT OPTIONS: the in-game title screen (VORTEX RED FOREST) ──
         // Texture work only — every label is still drawn by Minecraft, so SINGLEPLAYER,
         // MULTIPLAYER, REALMS, MODS, OPTIONS and QUIT keep their real vanilla screens.
         GlassPanel(
@@ -1051,60 +1116,48 @@ fun AerixClientScreen(activity: FragmentActivity) {
             radius = AerixRadii.card,
             color = AerixSurface.panelRaised
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "MAIN MENU",
-                    fontSize = 9.sp,
-                    letterSpacing = 1.4.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = accent
-                )
-                Text(
-                    text = "in-game title screen",
-                    fontSize = 9.sp,
-                    color = Color.White.copy(alpha = 0.55f)
-                )
-            }
+            ClientSectionHeader(
+                label = "CLIENT OPTIONS",
+                trailing = if (AerixClientStore.packCustomMainMenu) "menu on" else "vanilla menu",
+                accent = accent
+            )
+            // Title block: the wordmark the pack draws, then what it is.
             Text(
                 text = "VORTEX RED FOREST",
                 color = Color.White,
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 1.sp
             )
             Text(
-                text = "Red autumn forest panorama, crimson VORTEX logo and dark-red buttons. " +
-                    "Minecraft ke apne screens: Singleplayer, Multiplayer, Realms, Mods, Options, Quit.",
-                color = Color.White.copy(alpha = 0.68f),
-                fontSize = 10.sp
+                text = "Red autumn forest title screen — crimson VORTEX logo, dark-red buttons. " +
+                    "Minecraft ke apne screens khulte hain: Singleplayer, Multiplayer, Realms, Mods, Options, Quit.",
+                color = Color.White.copy(alpha = 0.66f),
+                fontSize = 10.sp,
+                lineHeight = 14.sp
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
-                // onToggle is passed by name: the trailing lambda would otherwise bind to modifier.
-                ClientModuleChip(
-                    label = "Menu parallax",
-                    enabled = AerixClientStore.packMenuParallax,
-                    onToggle = {
-                        AerixClientStore.packMenuParallax = !AerixClientStore.packMenuParallax
-                        AerixClientStore.persist()
-                        applyMenuOptions()
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-                ClientModuleChip(
-                    label = "Crimson menu",
-                    enabled = AerixClientStore.packCustomMainMenu,
-                    onToggle = {
-                        AerixClientStore.packCustomMainMenu = !AerixClientStore.packCustomMainMenu
-                        AerixClientStore.persist()
-                        rebuildMenuPack()
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            ClientOptionRow(
+                label = "Crimson menu",
+                caption = "VORTEX logo · red buttons",
+                enabled = AerixClientStore.packCustomMainMenu,
+                accent = accent,
+                onChange = {
+                    AerixClientStore.packCustomMainMenu = !AerixClientStore.packCustomMainMenu
+                    AerixClientStore.persist()
+                    rebuildMenuPack()
+                }
+            )
+            ClientOptionRow(
+                label = "Menu parallax",
+                caption = "Panorama drift · no extra GPU cost",
+                enabled = AerixClientStore.packMenuParallax,
+                accent = accent,
+                onChange = {
+                    AerixClientStore.packMenuParallax = !AerixClientStore.packMenuParallax
+                    AerixClientStore.persist()
+                    applyMenuOptions()
+                }
+            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

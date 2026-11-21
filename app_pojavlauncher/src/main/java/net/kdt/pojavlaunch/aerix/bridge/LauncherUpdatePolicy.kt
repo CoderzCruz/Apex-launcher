@@ -26,11 +26,19 @@ internal data class LauncherUpdateAsset(val name: String, val url: String, val s
 
 internal object LauncherUpdatePolicy {
     const val MAX_APK_BYTES = 512L * 1024 * 1024
+    /**
+     * Owner directive: the only launcher update that may ever be offered is our own
+     * `debug-latest` release on CoderzCruz/Apex-launcher. Upstream (entitybrian69-bit) releases
+     * — the "v2.4.4 arm64" prompt — must never surface inside Vortex.
+     */
+    const val OWNER_REPO = "CoderzCruz/Apex-launcher"
+    const val OWNER_RELEASE_TAG = "debug-latest"
+
     fun trustedAsset(url: String): Boolean = runCatching {
         val uri = URI(url)
         uri.scheme == "https" && uri.host == "github.com" && uri.port == -1 && uri.userInfo == null &&
             uri.query == null && uri.fragment == null && uri.path == URI(null, null, uri.path, null).normalize().path &&
-            uri.path.startsWith("/entitybrian69-bit/Aerix-launcher/releases/download/")
+            uri.path.startsWith("/$OWNER_REPO/releases/download/$OWNER_RELEASE_TAG/")
     }.getOrDefault(false)
 
     /**
@@ -60,6 +68,11 @@ internal object LauncherUpdatePolicy {
         }
     }
 
+    /**
+     * Parses a release payload for OUR repo only. It is kept for the release-shape tests; the
+     * app itself offers updates exclusively through [LauncherUpdater]'s debug-latest reader,
+     * so an upstream payload can never produce a prompt.
+     */
     fun release(json: String, noRuntime: Boolean, abi: String? = null): LauncherRelease {
         val root = JsonParser().parse(json).asJsonObject
         require(!root.get("draft").asBoolean && !root.get("prerelease").asBoolean) { "This is not a stable release" }
@@ -75,7 +88,10 @@ internal object LauncherUpdatePolicy {
             .firstOrNull()
             ?: error("This release has no APK for your launcher edition")
         val url = selected.get("browser_download_url").asString
-        require(trustedAsset(url) && URI(url).path == "/entitybrian69-bit/Aerix-launcher/releases/download/$tag/${selected.get("name").asString}") { "Untrusted update download location" }
+        require(
+            trustedAsset(url) &&
+                URI(url).path == "/$OWNER_REPO/releases/download/$OWNER_RELEASE_TAG/${selected.get("name").asString}"
+        ) { "Untrusted update download location" }
         val size = selected.get("size").asLong
         require(size in 1..MAX_APK_BYTES) { "Invalid update size" }
         val digest = selected.get("digest")?.takeUnless { it.isJsonNull }?.asString

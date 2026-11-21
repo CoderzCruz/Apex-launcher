@@ -68,12 +68,17 @@ assert "var packMenuParallax by mutableStateOf(true)" in store
 assert 'putBoolean("packMenuParallax", packMenuParallax)' in store
 
 # ── In-launcher control on the client page ───────────────────────────────
-assert '"MAIN MENU"' in screen and '"VORTEX RED FOREST"' in screen
+assert '"CLIENT OPTIONS"' in screen and '"VORTEX RED FOREST"' in screen
 assert '"REBUILD MENU PACK"' in screen
+# Full-width option rows with real switches beat the cramped half-width chips.
+assert "private fun ClientOptionRow(" in screen and "Switch(" in screen
+assert 'label = "Crimson menu"' in screen and 'label = "Menu parallax"' in screen
+assert ".apexPress(onClick = onClick)" in screen, "menu buttons press with motion"
 assert "AerixClientPackGenerator.buildAndApplyToInstance(activity, target, selectedVersion)" in screen
 assert "AerixClientPackGenerator.applyClientOptionsTxt(target, selectedVersion)" in screen
 assert "packMenuParallax = !AerixClientStore.packMenuParallax" in screen
-assert "onToggle = {" in screen, "chip lambda must not bind to modifier"
+assert "onChange = {" in screen, "option lambda is passed by name"
+assert "onCheckedChange = { onChange() }" in screen
 
 # ── Real functionality: no re-implemented or fake menu screens ───────────
 assert "class " not in mod.replace("public final class VortexMenuHooks", ""), "mod adds no screen class"

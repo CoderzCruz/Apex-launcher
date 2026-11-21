@@ -77,7 +77,9 @@ assert struct.unpack(">II", fg[16:24]) == (108, 108)
 
 # ── Upstream contract untouched (standing rule) ───────────────────────────
 policy = (APP / "java/net/kdt/pojavlaunch/aerix/bridge/LauncherUpdatePolicy.kt").read_text()
-assert '"Aerix-Launcher-$plain"' in policy, "updater asset names stay upstream"
+assert 'const val OWNER_REPO = "CoderzCruz/Apex-launcher"' in policy, "only our repo is trusted"
+assert 'const val OWNER_RELEASE_TAG = "debug-latest"' in policy, "only debug-latest is trusted"
+assert "entitybrian69-bit/Aerix-launcher/releases" not in policy, "upstream download path banned"
 updater = (APP / "java/net/kdt/pojavlaunch/aerix/bridge/LauncherUpdater.kt").read_text()
 assert 'userAgent = "AerixLauncher/${BuildConfig.VERSION_NAME}"' in updater
 
