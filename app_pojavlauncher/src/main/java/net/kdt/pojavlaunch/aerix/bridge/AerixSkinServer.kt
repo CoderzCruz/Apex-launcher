@@ -104,7 +104,7 @@ object AerixSkinServer {
     fun launchArguments(context: Context, account: Account): List<String> {
         stop()
         return try {
-            prepare(account)
+            prepare(context, account)
         } catch (error: Throwable) {
             Logger.appendToLog("Skin server failed: ${error.javaClass.simpleName}: ${error.message}")
             Log.e(TAG, "Could not start the skin server", error)
@@ -127,10 +127,11 @@ object AerixSkinServer {
         port = 0
     }
 
-    private fun prepare(account: Account): List<String> {
+    private fun prepare(context: Context, account: Account): List<String> {
         val authType = account.authType ?: AuthType.LOCAL
         if (authType.injectorUrl != null) return emptyList()
 
+        val isSlim = PojavAccountBridge.isSlimModelFor(context, account)
         val skinFile = PojavAccountBridge.customSkinFile(account)
         val capeFile = PojavAccountBridge.customCapeFile(account)
         val rawSkinBytes = if (skinFile.isFile && skinFile.length() > 0) skinFile.readBytes() else null
