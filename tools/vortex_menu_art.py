@@ -254,34 +254,42 @@ def make_logo_legacy() -> Image.Image:
 # ─────────────────────────────────────────────────────────────────────────────
 # Buttons / widgets
 # ─────────────────────────────────────────────────────────────────────────────
-def make_button(state: str) -> Image.Image:
-    """200x20 button sprite at its NATIVE size.
+#: Glass alpha for the widget faces: the red-forest panorama must stay visible through every
+#: button (reference menu look), while white labels keep their contrast.
+BUTTON_FILL_ALPHA = 132
+BUTTON_BORDER_ALPHA = 214
 
-    Minecraft's nine-slice widgets expect exactly this size (border 3). Shipping them at 4x was
-    what rendered the title screen's buttons as magenta missing-texture bars.
+
+def make_button(state: str) -> Image.Image:
+    """200x20 semi-transparent button sprite at its NATIVE size.
+
+    Minecraft's nine-slice widgets expect exactly this size (border 3); 4x art rendered as
+    magenta missing-texture bars. The face is intentionally translucent so the panorama shows
+    through the button, like the reference red-forest menu.
     """
     w, h = 200, 20
     if state == "disabled":
         top, bottom, border = (52, 52, 52), (36, 36, 36), (26, 26, 26)
-        inner = None
+        fill_alpha, inner = 96, None
     elif state == "highlighted":
         top, bottom, border = (232, 46, 70), (176, 8, 26), (255, 82, 100)
-        inner = (255, 150, 158)
+        fill_alpha, inner = 168, (255, 150, 158)
     else:
         top, bottom, border = (150, 10, 24), (104, 2, 12), (58, 0, 8)
-        inner = (206, 34, 48)
+        fill_alpha, inner = BUTTON_FILL_ALPHA, (206, 34, 48)
 
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     for row in range(h):
         t = row / (h - 1)
-        colour = tuple(int(top[i] + (bottom[i] - top[i]) * t) for i in range(3)) + (255,)
+        colour = tuple(int(top[i] + (bottom[i] - top[i]) * t) for i in range(3)) + (fill_alpha,)
         draw.line([(0, row), (w - 1, row)], fill=colour)
-    # 3-texel border on every side (matches the vanilla nine_slice `border`).
-    draw.rectangle([0, 0, w - 1, h - 1], outline=border + (255,), width=3)
+    # 3-texel border on every side (matches the vanilla nine_slice `border`). The rim stays more
+    # opaque than the face so the button keeps a crisp outline over the busy panorama.
+    draw.rectangle([0, 0, w - 1, h - 1], outline=border + (BUTTON_BORDER_ALPHA,), width=3)
     if inner is not None:
-        draw.line([(3, 3), (w - 4, 3)], fill=inner + (150,))
-        draw.line([(3, h - 4), (w - 4, h - 4)], fill=(0, 0, 0, 160))
+        draw.line([(3, 3), (w - 4, 3)], fill=inner + (120,))
+        draw.line([(3, h - 4), (w - 4, h - 4)], fill=(0, 0, 0, 130))
     return img
 
 
@@ -291,22 +299,25 @@ def make_tab(state: str) -> Image.Image:
     if state == "selected":
         top, bottom, border = (150, 10, 24), (104, 2, 12), (58, 0, 8)
         edge = (232, 46, 70)
+        fill_alpha = BUTTON_FILL_ALPHA
     elif state == "highlighted":
         top, bottom, border = (196, 24, 42), (132, 4, 16), (255, 82, 100)
         edge = (255, 120, 130)
+        fill_alpha = 168
     else:
         top, bottom, border = (64, 60, 66), (38, 34, 40), (26, 24, 28)
         edge = (92, 86, 94)
+        fill_alpha = 110
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     for row in range(h):
         t = row / (h - 1)
-        colour = tuple(int(top[i] + (bottom[i] - top[i]) * t) for i in range(3)) + (255,)
+        colour = tuple(int(top[i] + (bottom[i] - top[i]) * t) for i in range(3)) + (fill_alpha,)
         draw.line([(0, row), (w - 1, row)], fill=colour)
-    draw.line([(0, 0), (w - 1, 0)], fill=edge + (255,), width=2)
-    draw.line([(0, 0), (0, h - 1)], fill=edge + (255,), width=2)
-    draw.line([(w - 2, 0), (w - 2, h - 1)], fill=edge + (255,), width=2)
-    draw.line([(0, h - 1), (w - 1, h - 1)], fill=border + (255,), width=2)
+    draw.line([(0, 0), (w - 1, 0)], fill=edge + (BUTTON_BORDER_ALPHA,), width=2)
+    draw.line([(0, 0), (0, h - 1)], fill=edge + (BUTTON_BORDER_ALPHA,), width=2)
+    draw.line([(w - 2, 0), (w - 2, h - 1)], fill=edge + (BUTTON_BORDER_ALPHA,), width=2)
+    draw.line([(0, h - 1), (w - 1, h - 1)], fill=border + (BUTTON_BORDER_ALPHA,), width=2)
     return img
 
 
@@ -323,11 +334,11 @@ def make_widgets_legacy() -> Image.Image:
     draw = ImageDraw.Draw(sheet)
 
     # Hotbar: dark crimson glass with a bright hairline.
-    draw.rectangle([0, 0, 181, 21], fill=(22, 8, 12, 205))
-    draw.rectangle([0, 0, 181, 21], outline=(196, 30, 48, 225), width=1)
+    draw.rectangle([0, 0, 181, 21], fill=(22, 8, 12, BUTTON_FILL_ALPHA))
+    draw.rectangle([0, 0, 181, 21], outline=(196, 30, 48, BUTTON_BORDER_ALPHA), width=1)
     # Selection highlight (24x24) with a hot inner glow.
-    draw.rectangle([0, 22, 23, 45], outline=(255, 92, 102, 235), width=1)
-    draw.rectangle([2, 24, 21, 43], fill=(255, 37, 37, 46))
+    draw.rectangle([0, 22, 23, 45], outline=(255, 92, 102, BUTTON_BORDER_ALPHA), width=1)
+    draw.rectangle([2, 24, 21, 43], fill=(255, 37, 37, 52))
 
     def blit(state: str, y: int) -> None:
         sheet.alpha_composite(make_button(state), (0, y))

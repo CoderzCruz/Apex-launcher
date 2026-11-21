@@ -43,12 +43,32 @@ assert png_size(ASSETS / "tab.png") == (130, 24)
 assert png_size(ASSETS / "tab_highlighted.png") == (130, 24)
 assert png_size(ASSETS / "tab_selected.png") == (130, 24)
 assert png_size(ASSETS / "widgets_legacy.png") == (256, 256)
+
+# ── Glass buttons: the panorama must stay visible through every widget ────
+# A fully opaque face hides the red forest again (owner asked for transparency).
+def _alpha(path: Path, xy) -> int:
+    from PIL import Image  # noqa: PLC0415  (test-only dependency)
+    return Image.open(path).convert("RGBA").getpixel(xy)[3]
+
+
+try:
+    import PIL  # noqa: F401
+except ImportError:  # pragma: no cover - CI installs pillow for this check
+    pass
+else:
+    for name in ("button.png", "button_highlighted.png"):
+        face = _alpha(ASSETS / name, (100, 10))
+        rim = _alpha(ASSETS / name, (1, 10))
+        assert 90 <= face <= 200, f"{name} face alpha {face} must be glass, not solid"
+        assert rim >= 200, f"{name} rim must stay readable ({rim})"
+    assert _alpha(ASSETS / "button_disabled.png", (100, 10)) < 120, "disabled stays dimmer"
+    assert 80 <= _alpha(ASSETS / "tab.png", (60, 12)) <= 160, "tabs are glass too"
 assert png_size(ASSETS / "panorama_overlay.png") == (16, 128)
 assert "VORTEX CLIENT!" in (ASSETS / "splashes.txt").read_text()
 
 # ── Pack generator writes them into the version-correct paths ────────────
 assert 'internal const val MENU_ASSET_DIR = "vortex_menu"' in pack
-assert "v8_vortex_menu_native_widgets" in pack, "new art invalidates old packs"
+assert "v9_vortex_glass_buttons" in pack, "new art invalidates old packs"
 assert "private fun appendVortexRedForestMenu(context: Context, zos: ZipOutputStream, packFmt: Int)" in pack
 assert 'if (packFmt >= 13) "logo_modern.png" else "logo_legacy.png"' in pack
 assert '"assets/minecraft/textures/gui/title/minecraft.png"' in pack
@@ -61,7 +81,7 @@ assert 'assets/minecraft/textures/gui/sprites/widget/$sprite.png' in pack, "1.20
 assert '"nine_slice"' in pack and '"width":200,"height":20,"border":$border' in pack
 assert '\"border\":{\"left\":2,\"top\":2,\"right\":2,\"bottom\":0}' in pack, "vanilla tab border"
 assert 'menuBitmap(context, "$alias.png")' in pack, "tabs ship their own 130x24 sprites"
-assert "v8_vortex_menu_native_widgets" in pack, "old broken packs are rebuilt"
+assert "v9_vortex_glass_buttons" in pack, "old broken packs are rebuilt"
 assert 'menuBitmap(context, "widgets_legacy.png")' in pack, "legacy widget sheet"
 assert 'menuText(context, "splashes.txt")' in pack
 # Missing art must degrade to the old renderer, never to a missing texture / crash.

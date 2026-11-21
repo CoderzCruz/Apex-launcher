@@ -34,7 +34,7 @@ object AerixClientPackGenerator {
 
     /** Pre-rename pack file; removed on sync and hidden from the pack picker. */
     const val LEGACY_PACK_FILE_NAME = "Aerix-Client-Pack.zip"
-    private const val PACK_SCHEMA_REV = "v8_vortex_menu_native_widgets"
+    private const val PACK_SCHEMA_REV = "v9_vortex_glass_buttons"
     internal const val CLIENT_BACKGROUND_ASSET = "aerix/client_dark_background.webp"
 
     /**
