@@ -52,6 +52,7 @@ import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import java.io.File
 import kotlinx.coroutines.launch
 import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.aerix.bridge.AerixClientServers
@@ -842,21 +843,43 @@ fun AerixClientScreen(activity: FragmentActivity) {
         }
     }
     // In-game title screen: apply menu options (parallax) or rebuild the whole pack.
+    // Menu switches touch two places: the Client instance's options.txt, and the menu-only pack
+    // every other instance gets. Both are refreshed here, so the next launch shows the choice.
     val applyMenuOptions: () -> Unit = {
-        val target = selectedInstalled?.gameDirectory
-        if (target == null) {
-            Toast.makeText(activity, "Pehle Vortex Client instance install karo", Toast.LENGTH_LONG).show()
-        } else {
-            scope.launch {
-                val ok = withContext(Dispatchers.IO) {
-                    runCatching { AerixClientPackGenerator.applyClientOptionsTxt(target, selectedVersion) }.isSuccess
-                }
-                Toast.makeText(
-                    activity,
-                    if (ok) "Menu settings saved — next launch se apply honge" else "Menu settings apply failed",
-                    Toast.LENGTH_LONG
-                ).show()
+        val clientDir = selectedInstalled?.gameDirectory
+        scope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                runCatching {
+                    if (clientDir != null) {
+                        AerixClientPackGenerator.applyClientOptionsTxt(clientDir, selectedVersion)
+                    }
+                    // Normal instances: rewrite/clear the menu pack + their options.txt right away.
+                    runCatching { Instances.loadAllInstances() }.getOrDefault(emptyList())
+                        .filterNot { it.isAerixClient }
+                        .forEach { inst ->
+                            val dir = inst.gameDirectory ?: return@forEach
+                            val ver = AerixClientPackGenerator.resolveMcVersionFromInstance(
+                                inst.versionId ?: inst.name,
+                                "1.20.1"
+                            )
+                            val enabled = AerixClientStore.packCustomMainMenu &&
+                                AerixClientStore.packMenuAllInstances
+                            val pack = AerixClientPackGenerator.ensureMainMenuPackFor(
+                                activity, dir, ver, enabled
+                            )
+                            AerixClientPackGenerator.enableMainMenuPackOptions(dir, pack != null)
+                            runCatching {
+                                File(dir, "resourcepacks/.vortex_menu_options")
+                                    .writeText(AerixClientPackGenerator.packStampFor(enabled))
+                            }
+                        }
+                }.isSuccess
             }
+            Toast.makeText(
+                activity,
+                if (ok) "Menu settings saved — next launch se apply honge" else "Menu settings apply failed",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
     val rebuildMenuPack: () -> Unit = {
@@ -1145,6 +1168,17 @@ fun AerixClientScreen(activity: FragmentActivity) {
                     AerixClientStore.packCustomMainMenu = !AerixClientStore.packCustomMainMenu
                     AerixClientStore.persist()
                     rebuildMenuPack()
+                }
+            )
+            ClientOptionRow(
+                label = "Har instance pe menu",
+                caption = "Normal versions, modded aur modpacks — sab pe VORTEX title screen",
+                enabled = AerixClientStore.packMenuAllInstances,
+                accent = accent,
+                onChange = {
+                    AerixClientStore.packMenuAllInstances = !AerixClientStore.packMenuAllInstances
+                    AerixClientStore.persist()
+                    applyMenuOptions()
                 }
             )
             ClientOptionRow(

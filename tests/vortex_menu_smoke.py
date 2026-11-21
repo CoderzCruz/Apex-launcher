@@ -75,7 +75,7 @@ assert "private fun ClientOptionRow(" in screen and "Switch(" in screen
 assert 'label = "Crimson menu"' in screen and 'label = "Menu parallax"' in screen
 assert ".apexPress(onClick = onClick)" in screen, "menu buttons press with motion"
 assert "AerixClientPackGenerator.buildAndApplyToInstance(activity, target, selectedVersion)" in screen
-assert "AerixClientPackGenerator.applyClientOptionsTxt(target, selectedVersion)" in screen
+assert "AerixClientPackGenerator.applyClientOptionsTxt(clientDir, selectedVersion)" in screen
 assert "packMenuParallax = !AerixClientStore.packMenuParallax" in screen
 assert "onChange = {" in screen, "option lambda is passed by name"
 assert "onCheckedChange = { onChange() }" in screen
@@ -88,5 +88,29 @@ assert "method_37063" in mod, "only adds a widget to the real title screen"
 assert 'ClientModEntry("modmenu", "Mod Menu", "Client UI")' in installer
 assert "private fun ensureModMenu(modsDir: File, mcVersion: String)" in installer
 assert "ensureModMenu(modsDir, mcVersion)" in installer
+
+# ── The menu also lands on NON-Client instances (plain, modded, modpacks) ──
+assert 'const val MENU_PACK_FILE_NAME = "Vortex-Main-Menu.zip"' in pack
+assert "fun ensureMainMenuPackFor(" in pack, "menu-only pack writer"
+assert "fun enableMainMenuPackOptions(" in pack, "options.txt merge for normal instances"
+assert 'if (!found && enabled) rewritten += "resourcePacks:"' in pack, "adds the pack when missing"
+assert "for (i in packs.length() - 1 downTo 0)" in pack, "no duplicate entries"
+assert "fun packStampFor(enabled: Boolean)" in pack
+assert "if (!enabled) {" in pack and "zipFile.delete()" in pack, "switching off removes the pack"
+
+assert "fun syncMainMenuAssetsAtGameStart(context: Context, instance: Instance)" in installer
+assert "if (instance.isAerixClient) return" in installer, "client instances keep their own pack"
+assert "AerixClientStore.packCustomMainMenu &&" in installer and "packMenuAllInstances && !shipsOwnMenu" in installer
+assert "resourcepacks/.vortex_menu_options" in installer, "player's own pack choice is respected"
+assert "val shipsOwnMenu" in installer, "a modpack that ships its own title keeps it"
+assert "packCustomMainMenu &&\n                AerixClientStore.packMenuAllInstances && !shipsOwnMenu" in installer
+
+activity = (ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/game/GameActivity.java").read_text()
+assert "syncMainMenuAssetsAtGameStart(this, instance)" in activity, "wired into every launch"
+assert "syncLocalAssetsAtGameStart(this, instance)" in activity
+
+assert "var packMenuAllInstances by mutableStateOf(true)" in store
+assert 'putBoolean("packMenuAllInstances", packMenuAllInstances)' in store
+assert 'label = "Har instance pe menu"' in screen
 
 print("Vortex Red Forest main menu smoke test passed")

@@ -122,6 +122,11 @@ object AerixClientStore {
     var packRgbBowStages by mutableStateOf(false)
     var packMiningProgressBar by mutableStateOf(false)
     var packCustomMainMenu by mutableStateOf(true)
+    /**
+     * The VORTEX title screen also on NON-Client instances (plain versions, modded, modpacks).
+     * Off keeps whatever menu those instances already ship.
+     */
+    var packMenuAllInstances by mutableStateOf(true)
     /** Gentle panorama drift on the title screen (the menu's parallax); off = still image. */
     var packMenuParallax by mutableStateOf(true)
     var packCustomMojangSplash by mutableStateOf(true)
@@ -228,6 +233,7 @@ object AerixClientStore {
 
         packVanillaAnimatedGear = p.getBoolean("packVanillaAnimatedGear", true)
         packMenuParallax = p.getBoolean("packMenuParallax", true)
+        packMenuAllInstances = p.getBoolean("packMenuAllInstances", true)
         packAnimateAllItemSprites = p.getBoolean("packAnimateAllItemSprites", false)
         packEnhancedGlint = p.getBoolean("packEnhancedGlint", true)
         packGlintColor = p.getString("packGlintColor", "CRIMSON")?.takeIf { it in setOf("CRIMSON", "VIOLET", "BLUE", "GOLD", "GREEN", "WHITE") } ?: "CRIMSON"
@@ -332,6 +338,7 @@ object AerixClientStore {
         p.edit().apply {
             putBoolean("packVanillaAnimatedGear", packVanillaAnimatedGear)
             putBoolean("packMenuParallax", packMenuParallax)
+            putBoolean("packMenuAllInstances", packMenuAllInstances)
             putBoolean("packAnimateAllItemSprites", packAnimateAllItemSprites)
             putBoolean("packEnhancedGlint", packEnhancedGlint)
             putString("packGlintColor", packGlintColor)

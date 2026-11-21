@@ -207,6 +207,36 @@ object AerixClientPackGenerator {
     }
 
     /**
+     * Enables `Vortex-Main-Menu.zip` in a NON-Client instance's options.txt, preserving every other
+     * line (graphics, keybinds, everything the player chose). Called at launch only, so the menu
+     * shows up on plain versions, modded instances and modpacks alike.
+     */
+    fun enableMainMenuPackOptions(instanceGameDir: File, enabled: Boolean) {
+        val optFile = File(instanceGameDir, "options.txt")
+        if (!optFile.isFile) return // Minecraft writes it on first run; the next launch picks it up.
+        val lines = runCatching { optFile.readLines().toMutableList() }.getOrNull() ?: return
+        val entry = "file/$MENU_PACK_FILE_NAME"
+        var found = false
+        val rewritten = lines.map { line ->
+            val at = line.indexOf(':')
+            if (at <= 0 || line.substring(0, at) != "resourcePacks") return@map line
+            found = true
+            val packs = runCatching { org.json.JSONArray(line.substring(at + 1)) }
+                .getOrElse { org.json.JSONArray().put("vanilla") }
+            for (i in packs.length() - 1 downTo 0) {
+                if (packs.optString(i) == entry) packs.remove(i)
+            }
+            if (enabled) packs.put(entry)
+            "resourcePacks:" + packs.toString()
+        }.toMutableList()
+        if (!found && enabled) rewritten += "resourcePacks:" + org.json.JSONArray().put("vanilla").put(entry)
+        val text = rewritten.joinToString("\n") + "\n"
+        if (text != lines.joinToString("\n") + "\n") {
+            runCatching { optFile.writeText(text) }
+        }
+    }
+
+    /**
      * Syncs `<instanceGameDir>/options.txt` with all competitive FPS boosters & active client settings.
      */
     fun applyClientOptionsTxt(instanceGameDir: File, mcVersion: String) {
@@ -384,6 +414,80 @@ object AerixClientPackGenerator {
 
     private fun transparentBitmap(width: Int, height: Int): Bitmap =
         Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.TRANSPARENT) }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+     * EVERY INSTANCE: the VORTEX main menu on any version the player launches
+     * ═══════════════════════════════════════════════════════════════════════ */
+
+    /** Marker value for "this instance's options.txt already reflects this menu choice". */
+    fun packStampFor(enabled: Boolean): String = "$PACK_SCHEMA_REV|menu=" + enabled
+
+    /** Name of the menu-only pack a normal (non-Client) instance gets. */
+    const val MENU_PACK_FILE_NAME = "Vortex-Main-Menu.zip"
+
+    /**
+     * Installs the VORTEX RED FOREST title screen into ANY instance's `resourcepacks/`:
+     * plain vanilla versions, modded instances, modpack builds — whatever the player launches.
+     *
+     * The pack only contains title-screen textures (logo, panorama, button sprites, splashes),
+     * so it never touches gameplay or mod behaviour. Every button is still Minecraft's own, so
+     * Singleplayer / Multiplayer / Realms / Mods / Options / Quit keep working exactly as before.
+     *
+     * Writes nothing (returns null) when the player disabled the crimson menu or the menu art
+     * assets are missing, so a stripped build simply keeps the vanilla title screen.
+     */
+    fun ensureMainMenuPackFor(
+        context: Context,
+        instanceGameDir: File,
+        mcVersion: String,
+        enabled: Boolean
+    ): File? {
+        val rpDir = File(instanceGameDir, "resourcepacks").apply { mkdirs() }
+        val zipFile = File(rpDir, MENU_PACK_FILE_NAME)
+        val stampFile = File(rpDir, ".vortex_menu_stamp")
+        if (!enabled) {
+            if (zipFile.isFile) zipFile.delete()
+            runCatching { stampFile.delete() }
+            return null
+        }
+        val packFmt = packFormatForVersion(mcVersion)
+        val desiredStamp = "$PACK_SCHEMA_REV|$packFmt|$mcVersion"
+        val current = if (stampFile.isFile) runCatching { stampFile.readText().trim() }.getOrDefault("") else ""
+        if (zipFile.isFile && zipFile.length() > 1024L && current == desiredStamp) return zipFile
+
+        val temp = File(rpDir, MENU_PACK_FILE_NAME + ".tmp")
+        val wrote = runCatching {
+            ZipOutputStream(FileOutputStream(temp)).use { zos ->
+                val mcmeta = if (packFmt >= 69) {
+                    """{"pack":{"pack_format":$packFmt,"min_format":[$packFmt,${ClientVersions.formatMinor(mcVersion)}],"max_format":[$packFmt,${ClientVersions.formatMinor(mcVersion)}],"description":"\u00a7c\u2726 Vortex Client \u00a78\u00b7 Red Forest menu"}}"""
+                } else {
+                    """{"pack":{"pack_format":$packFmt,"description":"\u00a7c\u2726 Vortex Client \u00a78\u00b7 Red Forest menu"}}"""
+                }
+                putText(zos, "pack.mcmeta", mcmeta)
+                putBitmap(zos, "pack.png", buildPackIcon(context))
+                if (!appendVortexRedForestMenu(context, zos, packFmt)) {
+                    error("menu assets missing")
+                }
+            }
+            true
+        }.getOrElse {
+            temp.delete()
+            false
+        }
+        if (!wrote) {
+            // Keep whatever the player already had; never leave a half-written pack behind.
+            zipFile.delete()
+            runCatching { stampFile.delete() }
+            return null
+        }
+        if (zipFile.isFile) zipFile.delete()
+        if (!temp.renameTo(zipFile)) {
+            temp.delete()
+            return null
+        }
+        runCatching { stampFile.writeText(desiredStamp) }
+        return zipFile
+    }
 
     /** Draw the supplied A and handwritten wordmark on the Minecraft title's 44px strip. */
     private fun renderAerixBanner(context: Context, logicalWidth: Int, scale: Int = 4): Bitmap {

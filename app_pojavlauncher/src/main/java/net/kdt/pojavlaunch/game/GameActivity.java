@@ -588,6 +588,8 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
         if (instance.isAerixClient) {
             net.kdt.pojavlaunch.aerix.client.AerixClientInstaller.syncLocalAssetsAtGameStart(this, instance);
         }
+        // Every other instance (plain version, modded, modpack) still gets the VORTEX title screen.
+        net.kdt.pojavlaunch.aerix.client.AerixClientInstaller.syncMainMenuAssetsAtGameStart(this, instance);
         GameRunner.launchGame(this, account, instance, versionId, classpath, mGameRenderer);
         //Note that we actually stall in the above function, even if the game crashes. But let's be safe.
         Tools.runOnUiThread(()-> mServiceBinder.isActive = false);

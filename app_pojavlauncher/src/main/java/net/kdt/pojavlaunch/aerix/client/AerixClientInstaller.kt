@@ -169,6 +169,55 @@ object AerixClientInstaller {
      * Fast synchronous local-only sync safe to call inside `GameActivity.onCreate` (`attachForInstance`)
      * right after Pojav's `MinecraftDownloader` has verified `<mcVersion>.jar` on disk!
      */
+    /**
+     * The VORTEX RED FOREST title screen for EVERY instance, not just Vortex Client ones: a plain
+     * vanilla version, a modded instance, a modpack the player installed — the menu art is shared.
+     *
+     * Runs synchronously at game start (it writes one small zip at most, once per version) and
+     * only ever touches title-screen textures. Client instances already ship the menu inside their
+     * own pack, and the player's "Crimson menu" switch decides for all of them.
+     */
+    @JvmStatic
+    fun syncMainMenuAssetsAtGameStart(context: Context, instance: Instance) {
+        runCatching {
+            AerixClientStore.init(context)
+            val gameDir = instance.gameDirectory?.apply { mkdirs() } ?: return
+            // The fallback only matters when the instance has no parseable version; the menu art is
+            // almost entirely version-independent, so an unknown version still gets a real menu.
+            val mcVer = AerixClientPackGenerator.resolveMcVersionFromInstance(
+                instance.versionId ?: instance.name,
+                "1.20.1"
+            )
+            // Client instances get the menu inside Vortex-Client-Pack.zip; skip the duplicate.
+            if (instance.isAerixClient) return
+            // Respect a modpack that ships its own title screen: its identity is the pack owner's,
+            // so only instances without their own main-menu pack get the Vortex one.
+            val shipsOwnMenu = File(gameDir, "resourcepacks").listFiles()?.any { packFile ->
+                val n = packFile.name.lowercase()
+                packFile.isFile && n.endsWith(".zip") && n != AerixClientPackGenerator.MENU_PACK_FILE_NAME.lowercase() &&
+                    n.contains("menu", ignoreCase = true)
+            } == true
+            val enabled = AerixClientStore.packCustomMainMenu &&
+                AerixClientStore.packMenuAllInstances && !shipsOwnMenu
+            val pack = AerixClientPackGenerator.ensureMainMenuPackFor(context, gameDir, mcVer, enabled)
+            // Merge into options.txt only when the choice changed since the last merge, so a player
+            // who switches the pack OFF inside Minecraft's own resource-pack screen is respected
+            // instead of having it forced back on at every launch.
+            val marker = File(gameDir, "resourcepacks/.vortex_menu_options")
+            val desired = AerixClientPackGenerator.packStampFor(enabled)
+            val current = if (marker.isFile) runCatching { marker.readText().trim() }.getOrDefault("") else ""
+            if (current != desired) {
+                AerixClientPackGenerator.enableMainMenuPackOptions(gameDir, pack != null)
+                runCatching {
+                    marker.parentFile?.mkdirs()
+                    marker.writeText(desired)
+                }
+            }
+        }.onFailure { error ->
+            android.util.Log.w("AerixClient", "Vortex main menu could not be attached", error)
+        }
+    }
+
     @JvmStatic
     fun syncLocalAssetsAtGameStart(context: Context, instance: Instance) {
         runCatching {
