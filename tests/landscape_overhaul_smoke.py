@@ -19,16 +19,11 @@ for piece in ("fun AerixWidePage(", "fun GlassCard(", "fun CrimsonPill(", "fun Q
               "fun LandscapeColumns(", "fun isLandscapeLayout("):
     assert piece in shell, f"shell is missing {piece}"
 
-# ── Home: landscape routes to the mockup dashboard, portrait stays compact ────────────
-assert "WideMockupHomeDashboard(" in home, "landscape dashboard exists"
-assert "val landscape = maxWidth > maxHeight && maxWidth >= 840.dp" in home
-assert "CompactHomeDashboard(selected, recent, instances.size, accent, taskCount, actions)" in home, \
-    "portrait keeps the compact dashboard"
-# every panel from the old home survives somewhere in the new one
+# ── Home moved to the floating layout (see floating_home_smoke.py) ────────────────────
+assert "FloatingHome(" in home, "Home renders the floating layout"
+# The old dashboards stay in the file as the pieces they are made of, unused by Home.
 for panel in ("TaskSummaryPanel(", "RecentWorldsPanel(", "SameVersionNudgeStrip("):
     assert panel in home, panel
-assert 'R.string.aerix_home_launch' in home or 'R.string.aerix_home_launch' in home, "LAUNCH label"
-assert "LandscapeColumns(" in home and "leftWeight = 1.45f" in home, "three-column home"
 
 # ── Library: landscape branch, catalog grid, detail pane ──────────────────────────────
 assert "val wideLandscape = maxWidth > maxHeight && maxWidth >= 840.dp" in library

@@ -234,31 +234,10 @@ fun HomeScreen(activity: FragmentActivity, navigate: (LauncherSection) -> Unit) 
         importSkin = { navigate(LauncherSection.ACCOUNTS) }
     )
 
-    // One dashboard at every width: the v2 layout is the ONLY layout. The old right-hand
-    // ActionMenu Steve card went as the duplicate, and the old wide dashboard went with it —
-    // that branch was the glitchy squeezed landscape screen the player caught.
-    Box(modifier = Modifier.fillMaxSize()) {
-        androidx.compose.foundation.layout.BoxWithConstraints {
-            val landscape = maxWidth > maxHeight && maxWidth >= 840.dp
-            if (landscape) {
-                // Landscape overhaul: the mockup's YOUR VERSION / LAUNCH / QUICK ACTIONS /
-                // RECENT WORLDS columns, with every existing panel kept.
-                WideMockupHomeDashboard(selected, recent, instances.size, accent, taskCount, actions)
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            start = AerixSpacing.mdPlus,
-                            end = AerixSpacing.smCompact,
-                            top = AerixSpacing.smPlus
-                        )
-                ) {
-                    CompactHomeDashboard(selected, recent, instances.size, accent, taskCount, actions)
-                }
-            }
-        }
-    }
+    // Home is the floating layout from the owner's reference: wallpaper edge to edge, glass
+    // chrome floating over it, the player model in the middle and one action dock at the bottom.
+    // It is the same layout in portrait and landscape — only the model and spacing scale.
+    FloatingHome(selected = selected, accent = accent, actions = actions)
 }
 
 /**

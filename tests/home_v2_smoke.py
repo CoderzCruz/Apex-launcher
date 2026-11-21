@@ -26,7 +26,8 @@ assert "QuickToolsPanel" not in compact
 home_all = home
 assert "WideHomeDashboard(selected" not in home_all, "wide branch removed"
 assert "showActionMenu" not in home_all
-assert home_all.count("CompactHomeDashboard(selected, recent") == 1
+# Home is the floating layout now; the compact dashboard remains in the file for reference.
+assert "FloatingHome(selected = selected" in home_all, "home renders the floating layout"
 
 # ── Skin stage: drag + fling rotation, account pill, login quick row ──────
 stage = home[home.index("private fun PhoneSkinStage"):home.index("private fun LoginPill")]
