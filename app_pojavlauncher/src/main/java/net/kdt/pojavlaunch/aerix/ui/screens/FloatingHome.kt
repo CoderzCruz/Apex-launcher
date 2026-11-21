@@ -73,7 +73,7 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences
  * rest of Home uses, so no feature exists in one layout and not in the other.
  */
 @Composable
-fun FloatingHome(
+internal fun FloatingHome(
     selected: AerixInstance?,
     accent: Color,
     actions: HomeActions
