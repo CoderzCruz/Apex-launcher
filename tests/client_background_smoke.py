@@ -14,7 +14,7 @@ assert len(data) < 500_000
 assert 'CLIENT_BACKGROUND_ASSET = "aerix/client_dark_background.webp"' in pack
 assert 'assets.open(CLIENT_BACKGROUND_ASSET)' in pack
 assert 'assets.open(AerixClientPackGenerator.CLIENT_BACKGROUND_ASSET)' in overlay
-assert 'v7_vortex_red_forest_menu_2026' in pack
+assert 'v8_vortex_menu_native_widgets' in pack
 assert 'append(PACK_SCHEMA_REV)' in pack
 assert 'if (AerixClientStore.packCustomMainMenu)' in pack
 assert 'for (faceIdx in 0..5)' in pack

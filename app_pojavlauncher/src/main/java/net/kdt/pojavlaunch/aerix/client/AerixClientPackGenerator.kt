@@ -34,7 +34,7 @@ object AerixClientPackGenerator {
 
     /** Pre-rename pack file; removed on sync and hidden from the pack picker. */
     const val LEGACY_PACK_FILE_NAME = "Aerix-Client-Pack.zip"
-    private const val PACK_SCHEMA_REV = "v7_vortex_red_forest_menu_2026"
+    private const val PACK_SCHEMA_REV = "v8_vortex_menu_native_widgets"
     internal const val CLIENT_BACKGROUND_ASSET = "aerix/client_dark_background.webp"
 
     /**
@@ -375,14 +375,16 @@ object AerixClientPackGenerator {
                     "assets/minecraft/textures/gui/sprites/widget/$sprite.png.mcmeta",
                     """{"gui":{"scaling":{"type":"nine_slice","width":200,"height":20,"border":$border}}}"""
                 )
-                // Tab/cycle buttons share the widget look; they get the same crimson face.
+                // Tabs use their own 130x24 sprites; vanilla's tab border is asymmetric
+                // (left 2, top 2, right 2, bottom 0), so they ship as real files, not aliases.
                 if (sprite == "button") {
                     for (alias in listOf("tab", "tab_highlighted", "tab_selected")) {
-                        putBitmap(zos, "assets/minecraft/textures/gui/sprites/widget/$alias.png", bmp)
+                        val tab = menuBitmap(context, "$alias.png") ?: continue
+                        putBitmap(zos, "assets/minecraft/textures/gui/sprites/widget/$alias.png", tab)
                         putText(
                             zos,
                             "assets/minecraft/textures/gui/sprites/widget/$alias.png.mcmeta",
-                            """{"gui":{"scaling":{"type":"nine_slice","width":130,"height":24,"border":3}}}"""
+                            """{"gui":{"scaling":{"type":"nine_slice","width":130,"height":24,"border":{"left":2,"top":2,"right":2,"bottom":0}}}}"""
                         )
                     }
                 }

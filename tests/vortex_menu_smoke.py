@@ -35,15 +35,20 @@ assert len(raw) < 400_000, "menu scene stays small enough for a phone APK"
 # Logo sheets: modern = 256x64 logical at 4x, legacy = 256x256 split at 4x.
 assert png_size(ASSETS / "logo_modern.png") == (1024, 256)
 assert png_size(ASSETS / "logo_legacy.png") == (1024, 1024)
+# Widget sprites must be at NATIVE size: nine-slice UVs are absolute. 4x art rendered as
+# magenta missing-texture bars on the title screen (owner screenshot, 1.21.11).
 for name in ("button.png", "button_highlighted.png", "button_disabled.png"):
-    assert png_size(ASSETS / name) == (800, 80), name
-assert png_size(ASSETS / "widgets_legacy.png") == (1024, 1024)
+    assert png_size(ASSETS / name) == (200, 20), name
+assert png_size(ASSETS / "tab.png") == (130, 24)
+assert png_size(ASSETS / "tab_highlighted.png") == (130, 24)
+assert png_size(ASSETS / "tab_selected.png") == (130, 24)
+assert png_size(ASSETS / "widgets_legacy.png") == (256, 256)
 assert png_size(ASSETS / "panorama_overlay.png") == (16, 128)
 assert "VORTEX CLIENT!" in (ASSETS / "splashes.txt").read_text()
 
 # ── Pack generator writes them into the version-correct paths ────────────
 assert 'internal const val MENU_ASSET_DIR = "vortex_menu"' in pack
-assert "v7_vortex_red_forest_menu_2026" in pack, "new art invalidates old packs"
+assert "v8_vortex_menu_native_widgets" in pack, "new art invalidates old packs"
 assert "private fun appendVortexRedForestMenu(context: Context, zos: ZipOutputStream, packFmt: Int)" in pack
 assert 'if (packFmt >= 13) "logo_modern.png" else "logo_legacy.png"' in pack
 assert '"assets/minecraft/textures/gui/title/minecraft.png"' in pack
@@ -54,6 +59,9 @@ assert '"assets/minecraft/textures/gui/title/background/panorama_$idx.png"' in p
 assert 'menuBitmap(context, "panorama_overlay.png")' in pack
 assert 'assets/minecraft/textures/gui/sprites/widget/$sprite.png' in pack, "1.20.2+ buttons"
 assert '"nine_slice"' in pack and '"width":200,"height":20,"border":$border' in pack
+assert '\"border\":{\"left\":2,\"top\":2,\"right\":2,\"bottom\":0}' in pack, "vanilla tab border"
+assert 'menuBitmap(context, "$alias.png")' in pack, "tabs ship their own 130x24 sprites"
+assert "v8_vortex_menu_native_widgets" in pack, "old broken packs are rebuilt"
 assert 'menuBitmap(context, "widgets_legacy.png")' in pack, "legacy widget sheet"
 assert 'menuText(context, "splashes.txt")' in pack
 # Missing art must degrade to the old renderer, never to a missing texture / crash.

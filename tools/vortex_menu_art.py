@@ -255,60 +255,89 @@ def make_logo_legacy() -> Image.Image:
 # Buttons / widgets
 # ─────────────────────────────────────────────────────────────────────────────
 def make_button(state: str) -> Image.Image:
-    """200x20 logical button sprite at 4x. Text is drawn by Minecraft on top."""
-    scale = 4
-    w, h = 200 * scale, 20 * scale
+    """200x20 button sprite at its NATIVE size.
+
+    Minecraft's nine-slice widgets expect exactly this size (border 3). Shipping them at 4x was
+    what rendered the title screen's buttons as magenta missing-texture bars.
+    """
+    w, h = 200, 20
     if state == "disabled":
-        top, bottom, border = (46, 46, 46), (32, 32, 32), (24, 24, 24)
-        inner, glow = None, None
+        top, bottom, border = (52, 52, 52), (36, 36, 36), (26, 26, 26)
+        inner = None
     elif state == "highlighted":
-        top, bottom, border = (226, 31, 61), (169, 0, 22), (255, 67, 84)
-        inner, glow = (255, 120, 130), (255, 37, 37, 90)
+        top, bottom, border = (232, 46, 70), (176, 8, 26), (255, 82, 100)
+        inner = (255, 150, 158)
     else:
-        top, bottom, border = (122, 4, 16), (74, 2, 9), (48, 0, 6)
-        inner, glow = (198, 26, 42), None
+        top, bottom, border = (150, 10, 24), (104, 2, 12), (58, 0, 8)
+        inner = (206, 34, 48)
 
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    if glow:
-        pad = Image.new("RGBA", (w + 24, h + 24), (0, 0, 0, 0))
-        ImageDraw.Draw(pad).rounded_rectangle([12, 12, w + 11, h + 11], radius=8, fill=glow)
-        img = Image.alpha_composite(img, pad.filter(ImageFilter.GaussianBlur(6)).crop((0, 0, w, h)))
-        draw = ImageDraw.Draw(img)
     for row in range(h):
         t = row / (h - 1)
         colour = tuple(int(top[i] + (bottom[i] - top[i]) * t) for i in range(3)) + (255,)
         draw.line([(0, row), (w - 1, row)], fill=colour)
-    draw.rectangle([0, 0, w - 1, h - 1], outline=border + (255,), width=scale)
-    if inner:
-        draw.line([(scale, scale), (w - 1 - scale, scale)], fill=inner + (140,), width=scale // 2)
-        draw.line([(scale, h - 1 - scale), (w - 1 - scale, h - 1 - scale)], fill=(0, 0, 0, 150), width=scale // 2)
+    # 3-texel border on every side (matches the vanilla nine_slice `border`).
+    draw.rectangle([0, 0, w - 1, h - 1], outline=border + (255,), width=3)
+    if inner is not None:
+        draw.line([(3, 3), (w - 4, 3)], fill=inner + (150,))
+        draw.line([(3, h - 4), (w - 4, h - 4)], fill=(0, 0, 0, 160))
+    return img
+
+
+def make_tab(state: str) -> Image.Image:
+    """130x24 tab sprite (vanilla border: left 2, top 2, right 2, bottom 0)."""
+    w, h = 130, 24
+    if state == "selected":
+        top, bottom, border = (150, 10, 24), (104, 2, 12), (58, 0, 8)
+        edge = (232, 46, 70)
+    elif state == "highlighted":
+        top, bottom, border = (196, 24, 42), (132, 4, 16), (255, 82, 100)
+        edge = (255, 120, 130)
+    else:
+        top, bottom, border = (64, 60, 66), (38, 34, 40), (26, 24, 28)
+        edge = (92, 86, 94)
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    for row in range(h):
+        t = row / (h - 1)
+        colour = tuple(int(top[i] + (bottom[i] - top[i]) * t) for i in range(3)) + (255,)
+        draw.line([(0, row), (w - 1, row)], fill=colour)
+    draw.line([(0, 0), (w - 1, 0)], fill=edge + (255,), width=2)
+    draw.line([(0, 0), (0, h - 1)], fill=edge + (255,), width=2)
+    draw.line([(w - 2, 0), (w - 2, h - 1)], fill=edge + (255,), width=2)
+    draw.line([(0, h - 1), (w - 1, h - 1)], fill=border + (255,), width=2)
     return img
 
 
 def make_widgets_legacy() -> Image.Image:
-    """1.16.5-1.19.2 gui/widgets.png (256x256) in the Vortex crimson palette."""
-    scale = 4
-    sheet = Image.new("RGBA", (256 * scale, 256 * scale), (0, 0, 0, 0))
+    """1.16.5-1.20.1 gui/widgets.png (256x256) at NATIVE scale.
+
+    Vanilla blits these rows by exact UV, so every piece sits at its vanilla offset:
+      (0,0) 182x22 hotbar, (0,22) 24x24 selection, (0,46) 200x20 button,
+      (0,66) highlighted, (0,86) disabled, (0,106) slider, (0,126) slider highlighted.
+    Shipping this sheet at 4x put the art nowhere near those UVs, which is why the legacy
+    title screen drew magenta buttons.
+    """
+    sheet = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
     draw = ImageDraw.Draw(sheet)
 
-    def blit(state: str, x: int, y: int) -> None:
-        btn = make_button(state)
-        sheet.alpha_composite(btn, (x * scale, y * scale))
+    # Hotbar: dark crimson glass with a bright hairline.
+    draw.rectangle([0, 0, 181, 21], fill=(22, 8, 12, 205))
+    draw.rectangle([0, 0, 181, 21], outline=(196, 30, 48, 225), width=1)
+    # Selection highlight (24x24) with a hot inner glow.
+    draw.rectangle([0, 22, 23, 45], outline=(255, 92, 102, 235), width=1)
+    draw.rectangle([2, 24, 21, 43], fill=(255, 37, 37, 46))
 
-    # Hotbar + selection highlight.
-    draw.rectangle([0, 0, 181 * scale, 21 * scale], fill=(18, 6, 10, 210))
-    draw.rectangle([0, 0, 181 * scale, 21 * scale], outline=(190, 26, 44, 220), width=scale)
-    draw.rectangle([0, 21 * scale, 23 * scale, 44 * scale], outline=(255, 90, 100, 220), width=scale)
-    draw.rectangle([2 * scale, 23 * scale, 21 * scale, 42 * scale], fill=(255, 37, 37, 40))
+    def blit(state: str, y: int) -> None:
+        sheet.alpha_composite(make_button(state), (0, y))
 
-    blit("disabled", 0, 46)
-    blit("normal", 0, 66)
-    blit("highlighted", 0, 86)
-    # Sliders reuse button-sized rows in legacy sheets; crimson variants keep them consistent.
-    blit("normal", 0, 106)
-    blit("highlighted", 0, 126)
-    blit("disabled", 0, 146)
+    blit("disabled", 46)
+    blit("normal", 66)
+    blit("highlighted", 86)
+    blit("normal", 106)
+    blit("highlighted", 126)
+    blit("disabled", 146)
     return sheet
 
 
@@ -335,7 +364,7 @@ def make_preview(scene: Image.Image, logo: Image.Image) -> Image.Image:
     rows = [["SINGLEPLAYER"], ["MULTIPLAYER"], ["MINECRAFT REALMS", "MODS"], ["OPTIONS...", "QUIT GAME"]]
     for row in rows:
         if len(row) == 1:
-            img = make_button("normal").resize((btn_w, btn_h), Image.LANCZOS)
+            img = make_button("normal").resize((btn_w, btn_h), Image.NEAREST)
             preview.alpha_composite(img, (x, y))
             label = row[0]
             tw = text_width(label, 5, tracking=1)
@@ -346,7 +375,7 @@ def make_preview(scene: Image.Image, logo: Image.Image) -> Image.Image:
             for i, label in enumerate(row):
                 bx = x + i * (half + 16)
                 state = "normal"
-                img = make_button(state).resize((half, btn_h), Image.LANCZOS)
+                img = make_button(state).resize((half, btn_h), Image.NEAREST)
                 preview.alpha_composite(img, (bx, y))
                 tw = text_width(label, 4, tracking=1)
                 draw_pixel_text(preview, label, bx + (half - tw) // 2, y + (btn_h - 28) // 2, 4, (255, 255, 255))
@@ -366,6 +395,9 @@ def main() -> None:
     for state in ("normal", "highlighted", "disabled"):
         name = "button" if state == "normal" else f"button_{state}"
         make_button(state).save(OUT / f"{name}.png")
+    for state in ("normal", "highlighted", "selected"):
+        name = "tab" if state == "normal" else f"tab_{state}"
+        make_tab(state).save(OUT / f"{name}.png")
     make_widgets_legacy().save(OUT / "widgets_legacy.png")
     make_overlay().save(OUT / "panorama_overlay.png")
 
