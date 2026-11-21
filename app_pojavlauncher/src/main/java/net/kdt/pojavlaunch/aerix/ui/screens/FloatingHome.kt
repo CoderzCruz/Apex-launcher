@@ -52,10 +52,12 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import net.kdt.pojavlaunch.BuildConfig
 import net.kdt.pojavlaunch.R
 import net.kdt.pojavlaunch.aerix.bridge.AerixInstance
 import net.kdt.pojavlaunch.aerix.bridge.GameDownloadTarget
 import net.kdt.pojavlaunch.aerix.bridge.PojavAccountBridge
+import net.kdt.pojavlaunch.aerix.bridge.PojavCreateInstanceBridge
 import net.kdt.pojavlaunch.aerix.bridge.PojavInstanceBridge
 import net.kdt.pojavlaunch.aerix.components.AerixImageWell
 import net.kdt.pojavlaunch.aerix.components.AerixSkinPreview3D
@@ -112,7 +114,7 @@ fun FloatingHome(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Android ${net.kdt.pojavlaunch.BuildConfig.VERSION_NAME} \u00b7 build ${net.kdt.pojavlaunch.BuildConfig.VERSION_CODE}",
+                            text = "Android ${BuildConfig.VERSION_NAME} \u00b7 build ${BuildConfig.VERSION_CODE}",
                             color = Color.White.copy(alpha = 0.72f),
                             fontSize = 10.5.sp
                         )

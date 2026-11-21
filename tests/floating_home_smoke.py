@@ -40,4 +40,57 @@ for action in ("actions.play", "actions.create", "actions.mods", "actions.explor
                "actions.library", "actions.accounts", "actions.settings", "actions.controls"):
     assert action in floating, f"{action} not wired"
 
+# ── No dangling symbols: every capitalised name in the CODE is imported or declared here ─
+import re
+
+
+def _code_only(text: str) -> str:
+    """Drop comments and string literals so prose never looks like a symbol."""
+    out, i, n = [], 0, len(text)
+    while i < n:
+        if text.startswith("//", i):
+            j = text.find("\n", i)
+            i = n if j < 0 else j
+        elif text.startswith("/*", i):
+            depth, i = 1, i + 2
+            while i < n and depth:
+                if text.startswith("/*", i):
+                    depth, i = depth + 1, i + 2
+                elif text.startswith("*/", i):
+                    depth, i = depth - 1, i + 2
+                else:
+                    i += 1
+        elif text[i] == '"':
+            i += 1
+            while i < n:
+                if text[i] == "\\":
+                    i += 2
+                elif text[i] == '"':
+                    i += 1
+                    break
+                else:
+                    i += 1
+        else:
+            out.append(text[i])
+            i += 1
+    return "".join(out)
+
+
+_code = _code_only(floating)
+_imported = set(re.findall(r"^import .*\.(\w+)$", floating, re.M))
+_declared = set(re.findall(r"^(?:private |internal )?(?:fun|class|data class|object|val) (\w+)", floating, re.M))
+_imported |= _declared
+_used = set(re.findall(r"(?<![.\w])([A-Z][A-Za-z0-9]+)\b", _code))
+# Known-good names: types declared in other files of the app, stdlib, and Compose/Android types.
+_known = {
+    "AerixInstance", "AerixSkinPreview3D", "AerixImageWell", "AerixRadii", "AerixSpacing", "AerixSurface",
+    "HomeActions", "R", "Modifier", "Dp", "BuildConfig", "LauncherPreferences", "Alignment", "Arrangement",
+    "Box", "BoxWithConstraints", "Column", "Row", "Spacer", "Icon", "Text", "Color", "Brush", "RoundedCornerShape",
+    "FontWeight", "Role", "Offset", "LocalConfiguration", "mutableFloatStateOf", "Composable",
+    # Kotlin/stdlib builtins, never imported
+    "Boolean", "Int", "String", "Unit", "Regex", "Float", "Double",
+}
+_dangling = {u for u in _used if u not in _imported and u not in _known}
+assert not _dangling, f"symbols used but never imported: {sorted(_dangling)}"
+
 print("Floating Home: glass chrome, model stage, dock and real actions passed")
