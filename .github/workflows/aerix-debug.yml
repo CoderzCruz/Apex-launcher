@@ -70,6 +70,7 @@ jobs:
           python3 tests/social_profile_cosmetics_smoke.py
           python3 tests/client_background_smoke.py
           python3 tests/home_v2_smoke.py
+          python3 tests/landscape_overhaul_smoke.py
           python3 tests/apex_ai_smoke.py
           python3 tests/vortex_rules_smoke.py
           python3 tests/vortex_mc_card_smoke.py

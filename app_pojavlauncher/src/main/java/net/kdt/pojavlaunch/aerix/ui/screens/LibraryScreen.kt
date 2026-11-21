@@ -58,6 +58,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -253,6 +256,7 @@ fun LibraryScreen(activity: FragmentActivity) {
     // on a short display, the list and the detail each get the whole height instead.
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val sideBySide = maxHeight < 500.dp
+        val wideLandscape = maxWidth > maxHeight && maxWidth >= 840.dp
         // Read here, in the scope that owns it: inside the Row below, the receiver is the row and
         // maxWidth would not resolve.
         val listPaneWidth = (maxWidth * 0.34f).coerceIn(196.dp, 288.dp)
@@ -281,7 +285,59 @@ fun LibraryScreen(activity: FragmentActivity) {
         val selectedIsActive = selectedInstance != null && selectedInstance == activeInstance
         val selectedIsPinned = selectedInstance != null && selectedInstance.name in pinnedNames
 
-        if (sideBySide) {
+        if (wideLandscape) {
+            // Landscape overhaul (mockup): title + search + filters on top, a two-column card
+            // grid on the left and the selected instance's pane on the right.
+            AerixWidePage(
+                title = "Library",
+                subtitle = "${displayedInstances.size} installed",
+                trailing = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+                    ) {
+                        ModrinthCompactSearchField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = "Search instances...",
+                            modifier = Modifier.width(260.dp)
+                        )
+                        CrimsonPill(label = "+ New instance", onClick = actions.onInstall, height = 36.dp)
+                    }
+                }
+            ) {
+                LibraryWideFilterRow(
+                    filter = selectedFilter,
+                    onFilterChange = { selectedFilter = it },
+                    sortMode = sortMode,
+                    onSortChange = { sortMode = it }
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(AerixSpacing.md)
+                ) {
+                    InstanceCatalogGrid(
+                        modifier = Modifier.weight(1.45f).fillMaxHeight(),
+                        instances = displayedInstances,
+                        selected = selectedInstance,
+                        active = activeInstance,
+                        pinned = pinnedNames,
+                        vanilla = vanilla,
+                        totalInstalled = instances.size,
+                        actions = actions,
+                        onSelect = { PojavInstanceBridge.select(it) }
+                    )
+                    InstanceDetailCard(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        instance = selectedInstance,
+                        selectedIsActive = selectedIsActive,
+                        selectedIsPinned = selectedIsPinned,
+                        vanilla = vanilla,
+                        actions = actions
+                    )
+                }
+            }
+        } else if (sideBySide) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1519,4 +1575,253 @@ internal fun ModpackExportDialog(
             }
         }
     )
+}
+
+// ============================================================================================
+// Landscape overhaul: filter chips above a two-column catalog grid (mockup layout).
+// ============================================================================================
+
+/** Filter + sort chips over the landscape grid: All / Modpacks / Vanilla / Pinned, then the sort. */
+@Composable
+private fun LibraryWideFilterRow(
+    filter: LibraryFilterGroup,
+    onFilterChange: (LibraryFilterGroup) -> Unit,
+    sortMode: LibrarySortMode,
+    onSortChange: (LibrarySortMode) -> Unit
+) {
+    var sortMenu by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+    ) {
+        LibraryFilterGroup.entries.forEach { group ->
+            val selected = filter == group
+            val accent = AerixSurface.accent
+            val shape = RoundedCornerShape(AerixRadii.control)
+            Row(
+                modifier = Modifier
+                    .height(36.dp)
+                    .liquidGlass(shape = shape, tint = accent, strength = if (selected) 0.9f else 0.4f)
+                    .background(if (selected) accent.copy(alpha = 0.22f) else AerixSurface.panel)
+                    .apexPressClickable { onFilterChange(group) }
+                    .padding(horizontal = AerixSpacing.mdPlus),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.xs)
+            ) {
+                Text(
+                    text = group.label,
+                    color = if (selected) Color.White else AerixSurface.textSecondary,
+                    fontSize = 12.sp,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                )
+            }
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        Box {
+            Row(
+                modifier = Modifier
+                    .height(36.dp)
+                    .liquidGlass(shape = RoundedCornerShape(AerixRadii.control), strength = 0.4f)
+                    .background(AerixSurface.panel)
+                    .apexPressClickable { sortMenu = true }
+                    .padding(horizontal = AerixSpacing.md),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.xs)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.aerix_ic_sort),
+                    contentDescription = null,
+                    tint = AerixSurface.textSecondary,
+                    modifier = Modifier.size(15.dp)
+                )
+                Text(sortMode.label, color = AerixSurface.textSecondary, fontSize = 12.sp)
+            }
+            DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
+                LibrarySortMode.entries.forEach { mode ->
+                    DropdownMenuItem(
+                        text = { Text(if (sortMode == mode) "${mode.label} \u2713" else mode.label) },
+                        onClick = { onSortChange(mode); sortMenu = false }
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The catalog: instance cards in a two-column grid, each with its own thumbnail, version chip,
+ * RAM badge and a PLAY pill, exactly like the landscape mockup. The active instance carries the
+ * crimson rim so the player can see at a glance what LAUNCH would start.
+ */
+@Composable
+private fun InstanceCatalogGrid(
+    modifier: Modifier = Modifier,
+    instances: List<AerixInstance>,
+    selected: AerixInstance?,
+    active: AerixInstance?,
+    pinned: Set<String>,
+    vanilla: String,
+    totalInstalled: Int,
+    actions: LibraryActions,
+    onSelect: (AerixInstance) -> Unit
+) {
+    if (instances.isEmpty()) {
+        GlassCard(modifier = modifier) {
+            Text(
+                text = if (totalInstalled == 0) "No instances yet \u2014 install one to get started."
+                else "No instances match this search.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = AerixSurface.textSecondary
+            )
+        }
+        return
+    }
+    LazyVerticalGrid(
+        modifier = modifier,
+        columns = GridCells.Fixed(2),
+        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.md),
+        verticalArrangement = Arrangement.spacedBy(AerixSpacing.md),
+        contentPadding = PaddingValues(bottom = AerixSpacing.md)
+    ) {
+        gridItemsIndexed(
+            items = instances,
+            key = { index, instance -> instanceRenderKey(index, instance.id) }
+        ) { _, instance ->
+            InstanceCatalogCard(
+                instance = instance,
+                selected = instance == selected,
+                active = instance == active,
+                pinned = instance.name in pinned,
+                vanilla = vanilla,
+                onSelect = { onSelect(instance) },
+                onPlay = { actions.onPlay(instance) },
+                onTogglePin = { actions.onTogglePin(instance) }
+            )
+        }
+    }
+}
+
+/** One catalog card: big thumbnail, title, version + RAM chips, and the PLAY pill. */
+@Composable
+private fun InstanceCatalogCard(
+    instance: AerixInstance,
+    selected: Boolean,
+    active: Boolean,
+    pinned: Boolean,
+    vanilla: String,
+    onSelect: () -> Unit,
+    onPlay: () -> Unit,
+    onTogglePin: () -> Unit
+) {
+    val accent = AerixSurface.accent
+    val shape = RoundedCornerShape(AerixRadii.panelSmall)
+    val loaderSummary = remember(instance.versionId, vanilla) { extractLoaderSummary(instance.versionId, vanilla) }
+    val gameVersion = remember(instance.versionId) { extractGameVersion(instance.versionId) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .liquidGlass(
+                shape = shape,
+                tint = accent,
+                strength = if (selected) 0.95f else 0.45f,
+                elevation = AerixMetrics.glassFloatingElevation
+            )
+            .background(if (selected) AerixSurface.panelRaised else AerixSurface.panel.copy(alpha = 0.75f))
+            .apexPressClickable(onSelect)
+            .padding(AerixSpacing.sm)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(126.dp)
+                .liquidGlass(shape = RoundedCornerShape(AerixRadii.card), strength = 0.25f)
+        ) {
+            AerixImageWell(
+                image = instance.icon,
+                fallback = R.drawable.aerix_loader_vanilla,
+                size = 96.dp,
+                modifier = Modifier.align(Alignment.Center),
+                radius = AerixRadii.card
+            )
+            // Pin toggle sits on the thumbnail, top-right, like the mockup's star.
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(AerixSpacing.xs)
+                    .size(30.dp)
+                    .liquidGlass(shape = RoundedCornerShape(AerixRadii.controlSmall), strength = 0.6f)
+                    .background(if (pinned) accent else AerixSurface.panelRaised)
+                    .apexPressClickable(onTogglePin),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(
+                        if (pinned) R.drawable.aerix_ic_favorite_filled else R.drawable.aerix_ic_favorite_outlined
+                    ),
+                    contentDescription = if (pinned) "Unpin instance" else "Pin instance",
+                    tint = if (pinned) Color.White else AerixSurface.textSecondary,
+                    modifier = Modifier.size(15.dp)
+                )
+            }
+            if (active) {
+                Surface(
+                    modifier = Modifier.align(Alignment.TopStart).padding(AerixSpacing.xs),
+                    shape = RoundedCornerShape(AerixRadii.pill),
+                    color = AerixSurface.success
+                ) {
+                    Text(
+                        text = "ACTIVE",
+                        color = Color(0xFF06251A),
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 0.8.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(AerixSpacing.smTight))
+        Text(
+            text = instance.name,
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = AerixSpacing.xs),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(AerixSpacing.xs)
+        ) {
+            CatalogChip("$gameVersion \u00b7 $loaderSummary")
+            Spacer(modifier = Modifier.weight(1f))
+            CrimsonPill(
+                label = "Play",
+                onClick = onPlay,
+                modifier = Modifier.width(76.dp),
+                height = 32.dp
+            )
+        }
+    }
+}
+
+/** Small neutral chip for the version / loader line on a catalog card. */
+@Composable
+private fun CatalogChip(text: String) {
+    Surface(
+        shape = RoundedCornerShape(AerixRadii.controlSmall),
+        color = AerixSurface.panelRaised,
+        border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
+    ) {
+        Text(
+            text = text,
+            color = AerixSurface.textSecondary,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
 }

@@ -237,12 +237,27 @@ fun HomeScreen(activity: FragmentActivity, navigate: (LauncherSection) -> Unit) 
     // One dashboard at every width: the v2 layout is the ONLY layout. The old right-hand
     // ActionMenu Steve card went as the duplicate, and the old wide dashboard went with it —
     // that branch was the glitchy squeezed landscape screen the player caught.
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(start = AerixSpacing.mdPlus, end = AerixSpacing.smCompact, top = AerixSpacing.smPlus)
-    ) {
-        CompactHomeDashboard(selected, recent, instances.size, accent, taskCount, actions)
+    Box(modifier = Modifier.fillMaxSize()) {
+        androidx.compose.foundation.layout.BoxWithConstraints {
+            val landscape = maxWidth > maxHeight && maxWidth >= 840.dp
+            if (landscape) {
+                // Landscape overhaul: the mockup's YOUR VERSION / LAUNCH / QUICK ACTIONS /
+                // RECENT WORLDS columns, with every existing panel kept.
+                WideMockupHomeDashboard(selected, recent, instances.size, accent, taskCount, actions)
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            start = AerixSpacing.mdPlus,
+                            end = AerixSpacing.smCompact,
+                            top = AerixSpacing.smPlus
+                        )
+                ) {
+                    CompactHomeDashboard(selected, recent, instances.size, accent, taskCount, actions)
+                }
+            }
+        }
     }
 }
 
@@ -1330,3 +1345,247 @@ private fun SameVersionNudgeStrip(
     }
 }
 
+
+// ============================================================================================
+// Landscape overhaul (mockup): YOUR VERSION + LAUNCH | QUICK ACTIONS | RECENT WORLDS + DOWNLOADS
+// ============================================================================================
+
+/**
+ * The landscape Home from the approved mockup. Three columns, every panel from the phone Home
+ * kept: the active world with its LAUNCH action on the left, the quick actions in the middle,
+ * recent worlds and the task summary on the right. Portrait never reaches this function.
+ */
+@Composable
+private fun WideMockupHomeDashboard(
+    selected: AerixInstance?,
+    recent: List<AerixInstance>,
+    count: Int,
+    accent: Color,
+    taskCount: Int,
+    actions: HomeActions
+) {
+    val vanilla = stringResource(R.string.aerix_home_vanilla)
+    val account = PojavAccountBridge.current
+
+    AerixWidePage(
+        title = "Home",
+        subtitle = account?.username?.let { "Signed in as $it" } ?: "START YOUR ADVENTURE",
+        trailing = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+            ) {
+                HeaderChip(label = "Background", icon = R.drawable.aerix_ic_format_paint_outlined, onClick = actions.background)
+                HeaderChip(label = "Import skin", icon = R.drawable.aerix_ic_style_outlined, onClick = actions.importSkin)
+            }
+        }
+    ) {
+        SameVersionNudgeStrip(selected = selected, accent = accent, onOpenSocials = actions.socials)
+        LandscapeColumns(
+            modifier = Modifier.weight(1f),
+            leftWeight = 1.45f,
+            middleWeight = 1.0f,
+            rightWeight = 1.15f,
+            left = {
+                GlassCard(modifier = Modifier.fillMaxSize()) {
+                    PanelLabel(
+                        text = stringResource(R.string.aerix_home_your_version).ifBlank { "Your version" },
+                        trailing = {
+                            Text(
+                                text = "Customize \u203a",
+                                color = accent,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.apexPressClickable { selected?.let(actions.edit) }
+                            )
+                        }
+                    )
+                    // Big instance thumbnail with the version chip, as in the mockup hero.
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .liquidGlass(shape = RoundedCornerShape(AerixRadii.card), tint = accent, strength = 0.5f)
+                    ) {
+                        AerixImageWell(
+                            image = selected?.icon,
+                            fallback = R.drawable.aerix_ic_videogame_asset_outlined,
+                            size = 120.dp,
+                            modifier = Modifier.align(Alignment.Center),
+                            radius = AerixRadii.card
+                        )
+                        if (selected != null) {
+                            Surface(
+                                modifier = Modifier.align(Alignment.BottomStart).padding(AerixSpacing.sm),
+                                shape = RoundedCornerShape(AerixRadii.control),
+                                color = Color(0xCC07131D),
+                                border = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
+                            ) {
+                                Text(
+                                    text = "${GameDownloadTarget.minecraftVersionIn(selected.versionId) ?: selected.versionId} \u00b7 ${loaderLabel(selected.versionId, vanilla)}",
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                                )
+                            }
+                        }
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+                    ) {
+                        Text(
+                            text = selected?.name ?: stringResource(R.string.aerix_home_no_active_world),
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(
+                            onClick = { selected?.let { actions.edit(it) } },
+                            enabled = selected != null,
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(CircleShape)
+                                .background(AerixSurface.panelTrack)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.aerix_ic_settings_filled),
+                                contentDescription = stringResource(R.string.aerix_home_instance_settings),
+                                tint = if (selected != null) AerixSurface.textPrimary else AerixSurface.textMuted,
+                                modifier = Modifier.size(17.dp)
+                            )
+                        }
+                    }
+                    // The LAUNCH pill: same action as MiddlePlayBlock, mockup styling.
+                    CrimsonPill(
+                        label = stringResource(R.string.aerix_home_launch),
+                        onClick = if (selected != null) actions.play else actions.create,
+                        modifier = Modifier.fillMaxWidth(),
+                        height = 52.dp
+                    )
+                    Text(
+                        text = stringResource(R.string.aerix_home_start_adventure),
+                        color = AerixSurface.textMuted,
+                        fontSize = 9.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                }
+            },
+            middle = {
+                GlassCard(modifier = Modifier.fillMaxSize()) {
+                    PanelLabel(text = stringResource(R.string.aerix_home_quick_actions))
+                    Column(verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
+                            QuickActionCard(
+                                iconRes = R.drawable.aerix_ic_package_2_outlined,
+                                title = stringResource(R.string.aerix_home_modpacks),
+                                subtitle = stringResource(R.string.aerix_home_modpacks_sub),
+                                onClick = actions.explore,
+                                modifier = Modifier.weight(1f)
+                            )
+                            QuickActionCard(
+                                iconRes = R.drawable.aerix_ic_extension_outlined,
+                                title = stringResource(R.string.aerix_home_mods),
+                                subtitle = stringResource(R.string.aerix_home_mods_sub),
+                                onClick = actions.mods,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)) {
+                            QuickActionCard(
+                                iconRes = R.drawable.aerix_ic_settings_filled,
+                                title = stringResource(R.string.aerix_home_settings),
+                                subtitle = stringResource(R.string.aerix_home_settings_sub),
+                                onClick = actions.settings,
+                                modifier = Modifier.weight(1f)
+                            )
+                            QuickActionCard(
+                                iconRes = R.drawable.aerix_ic_format_paint_outlined,
+                                title = stringResource(R.string.aerix_home_background),
+                                subtitle = stringResource(R.string.aerix_home_background_sub),
+                                onClick = actions.background,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                    // Everything the old wide dashboard had in this column, so nothing is lost.
+                    TaskSummaryPanel(taskCount, accent, Modifier.fillMaxWidth())
+                    Spacer(modifier = Modifier.weight(1f))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.xs)
+                    ) {
+                        HeaderChip(label = "Socials", icon = R.drawable.aerix_ic_people, modifier = Modifier.weight(1f), onClick = actions.socials)
+                        HeaderChip(label = "Files", icon = R.drawable.aerix_ic_folder_outlined, modifier = Modifier.weight(1f), onClick = actions.fileManager)
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(AerixSpacing.xs)
+                    ) {
+                        HeaderChip(label = "Library", icon = R.drawable.aerix_ic_dashboard_filled, modifier = Modifier.weight(1f), onClick = actions.library)
+                        HeaderChip(label = "Downloads", icon = R.drawable.aerix_ic_download, modifier = Modifier.weight(1f), onClick = actions.downloads)
+                    }
+                }
+            },
+            right = {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(AerixSpacing.md)
+                ) {
+                    RecentWorldsPanel(
+                        recent = recent,
+                        selected = selected,
+                        accent = accent,
+                        actions = actions,
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        lazy = true
+                    )
+                    BookkeepingStrip(count = count, taskCount = taskCount, accent = accent, actions = actions)
+                }
+            }
+        )
+    }
+}
+
+/** Thin footer strip: instance count, running tasks and the manage page, as in the mockup. */
+@Composable
+private fun BookkeepingStrip(count: Int, taskCount: Int, accent: Color, actions: HomeActions) {
+    GlassCard(modifier = Modifier.fillMaxWidth().height(84.dp), contentPadding = AerixSpacing.md) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.aerix_ic_download),
+                contentDescription = null,
+                tint = accent,
+                modifier = Modifier.size(18.dp)
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = if (taskCount > 0) stringResource(R.string.aerix_home_tasks_running, taskCount)
+                    else "$count instance${if (count == 1) "" else "s"} ready",
+                    color = Color.White,
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+                Text(
+                    text = stringResource(R.string.aerix_home_tasks_idle),
+                    color = AerixSurface.textMuted,
+                    fontSize = 10.sp,
+                    maxLines = 1
+                )
+            }
+            OutlinePill(label = "Manage", onClick = actions.library, height = 30.dp)
+        }
+    }
+}

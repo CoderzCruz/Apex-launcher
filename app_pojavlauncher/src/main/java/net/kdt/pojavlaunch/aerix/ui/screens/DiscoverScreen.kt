@@ -558,7 +558,10 @@ private fun SearchAssetsContent(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(AerixSpacing.sm)
     ) {
-        // Compact Horizontal Search & Filter Bar (Mirai SearchAssetsScreen.kt lines 357-609)
+        // Compact Horizontal Search & Filter Bar (Mirai SearchAssetsScreen.kt lines 357-609).
+        // On a landscape screen the bar grows to the mockup's 46dp so it reads as the page's
+        // search, not a chrome strip.
+        val wideBar = isLandscapeLayout()
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -568,7 +571,7 @@ private fun SearchAssetsContent(
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .height(36.dp)
+                    .height(if (wideBar) 46.dp else 36.dp)
                     .clip(RoundedCornerShape(AerixRadii.controlSmall))
                     .background(AerixSurface.panelRaised)
                     .border(AerixSpacing.hairline, AerixSurface.borderSoft, RoundedCornerShape(AerixRadii.controlSmall))
@@ -593,7 +596,7 @@ private fun SearchAssetsContent(
                 ) {
                     if (query.isEmpty()) {
                         Text(
-                            text = "Search...",
+                            text = if (wideBar) "Search modpacks, mods, creators..." else "Search...",
                             style = MaterialTheme.typography.bodySmall,
                             color = AerixSurface.textMuted,
                             maxLines = 1,
@@ -608,7 +611,11 @@ private fun SearchAssetsContent(
                             submittedQuery = it
                         },
                         singleLine = true,
-                        textStyle = TextStyle(color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium),
+                        textStyle = TextStyle(
+                            color = Color.White,
+                            fontSize = if (wideBar) 14.sp else 13.sp,
+                            fontWeight = FontWeight.Medium
+                        ),
                         cursorBrush = SolidColor(AerixThemeManager.currentAccent()),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(onSearch = {
@@ -776,9 +783,10 @@ private fun SearchAssetsContent(
                 .fillMaxWidth()
                 .weight(1f)
         ) {
+            // Landscape overhaul: roomier cards, the mockup's three-up grid on a tablet.
             val columns = when {
-                maxWidth > maxHeight && maxWidth >= 1040.dp -> 4
-                maxWidth > maxHeight && maxWidth >= 640.dp -> 3
+                maxWidth > maxHeight && maxWidth >= 1180.dp -> 4
+                maxWidth > maxHeight && maxWidth >= 760.dp -> 3
                 else -> 2
             }
             val currentPage = page
