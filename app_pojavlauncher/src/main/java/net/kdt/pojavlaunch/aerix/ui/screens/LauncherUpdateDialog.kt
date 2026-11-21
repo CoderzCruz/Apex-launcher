@@ -93,6 +93,12 @@ internal fun LauncherUpdateDialog(activity: FragmentActivity, automatic: Boolean
                 Column(Modifier.fillMaxWidth().heightIn(max = contentHeight).verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Text("Installed version · ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.labelLarge)
+                    // Players should never wonder whose update this is: Vortex publishes it.
+                    Text(
+                        "Vortex Launcher updates only · the Aerix publish channel is not used",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AerixSurface.textMuted
+                    )
                     if (release != null) {
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             FilterChip(selected = !showNotes, onClick = { showNotes = false }, label = { Text("Update") })

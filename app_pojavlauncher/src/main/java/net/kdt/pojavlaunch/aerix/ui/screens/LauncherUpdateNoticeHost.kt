@@ -30,11 +30,20 @@ internal fun LauncherUpdateNoticeHost(activity: FragmentActivity) {
             LauncherUpdater.download(activity)
         }
     }
-    LaunchedEffect(release?.tag, LauncherUpdater.phase, revision, manual) {
-        if (manual > 0) offeredTag = null
-        else if (offeredTag == null && LauncherUpdater.phase == LauncherUpdatePhase.AVAILABLE &&
-            LauncherUpdateNotices.shouldOffer(LauncherVersion.parse(BuildConfig.VERSION_NAME), release?.version,
-                LauncherUpdateNotices.acknowledged(activity))) offeredTag = release?.tag
+    // One dialog at a time: the first-run Notification ON/OFF prompt has its own full-screen
+    // card, and an update prompt landing on top of it was unreadable (two dialogs, one screen).
+    val notificationPromptAnswered = AerixPreferences.notificationPromptShown
+    LaunchedEffect(release?.tag, LauncherUpdater.phase, revision, manual, notificationPromptAnswered) {
+        val offerable = release?.vortex == true &&
+            LauncherUpdateNotices.shouldOffer(
+                LauncherVersion.parse(BuildConfig.VERSION_NAME),
+                release?.version,
+                LauncherUpdateNotices.acknowledged(activity)
+            )
+        if (manual > 0 || !notificationPromptAnswered) offeredTag = null
+        else if (offeredTag == null && LauncherUpdater.phase != LauncherUpdatePhase.CURRENT && offerable) {
+            offeredTag = release?.tag
+        }
     }
     if (offeredTag != null && manual == 0) {
         LauncherUpdateDialog(activity, automatic = true, onDismiss = { offeredTag = null })

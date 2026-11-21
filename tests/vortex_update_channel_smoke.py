@@ -50,4 +50,10 @@ assert '"A new Vortex is ready"' in dialog
 for banned in ("Aerix is ready", "A new Aerix", "New Aerix update"):
     assert banned not in dialog and banned not in host and banned not in updater, banned
 
+# ── One dialog at a time + honest copy ───────────────────────────────────
+assert "val notificationPromptAnswered = AerixPreferences.notificationPromptShown" in host
+assert "if (manual > 0 || !notificationPromptAnswered) offeredTag = null" in host, \
+    "an update prompt must never stack on the first-run notification card"
+assert "launcher\" updates only" in dialog or "Vortex Launcher updates only" in dialog
+
 print("Vortex-only update channel smoke test passed")
