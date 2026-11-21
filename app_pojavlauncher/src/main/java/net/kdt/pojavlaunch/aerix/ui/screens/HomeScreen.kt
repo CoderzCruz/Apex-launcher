@@ -154,7 +154,8 @@ private fun instanceVersionLabel(versionId: String, vanilla: String): String {
     return if (loader == vanilla) mcVersion else "$loader $mcVersion"
 }
 
-private class HomeActions(
+/** Actions of the Home page, shared by the floating layout in FloatingHome.kt. */
+internal class HomeActions(
     val play: () -> Unit,
     val playInstance: (AerixInstance) -> Unit,
     val select: (AerixInstance) -> Unit,
