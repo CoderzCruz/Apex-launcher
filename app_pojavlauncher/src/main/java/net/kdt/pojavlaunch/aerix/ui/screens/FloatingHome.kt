@@ -312,7 +312,6 @@ private fun FloatingTextPill(
     val shape = RoundedCornerShape(AerixRadii.pill)
     Row(
         modifier = Modifier
-            .then(if (wide) Modifier.widthIn(min = 168.dp) else Modifier)
             .clip(shape)
             .background(
                 if (emphasised) Brush.verticalGradient(listOf(Color(0x8CD42A44), Color(0x8C7E1626)))
@@ -341,7 +340,8 @@ private fun FloatingTextPill(
             color = Color.White,
             fontSize = 12.5.sp,
             fontWeight = FontWeight.SemiBold,
-            maxLines = 1
+            maxLines = 1,
+            modifier = if (wide) Modifier.widthIn(min = 132.dp, max = 240.dp) else Modifier
         )
     }
 }
