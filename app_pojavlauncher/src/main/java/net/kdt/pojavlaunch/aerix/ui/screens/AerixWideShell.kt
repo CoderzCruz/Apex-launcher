@@ -325,4 +325,6 @@ val shellHairline: BorderStroke
     @Composable get() = BorderStroke(AerixSpacing.hairline, AerixSurface.borderSoft)
 
 /** Press effect with an explicit button role, used by the pill-shaped controls. */
-internal fun Modifier.apexPressClickable(onClick: () -> Unit): Modifier = apexPress(onClick = onClick, role = Role.Button)
+@Composable
+internal fun Modifier.apexPressClickable(onClick: () -> Unit): Modifier =
+    apexPress(onClick = onClick, role = Role.Button)
