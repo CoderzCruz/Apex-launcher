@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -168,12 +169,9 @@ fun FloatingHome(
                 .width(stageWidth)
                 .height(stageHeight)
                 .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            val drag = event.changes.firstOrNull()?.positionChange()
-                            if (drag != null) azimuth = (azimuth + drag.x * 0.6f).mod(360f)
-                        }
+                    detectDragGestures { change, dragAmount ->
+                        change.consume()
+                        azimuth = (azimuth + dragAmount.x * 0.55f).mod(360f)
                     }
                 }
         ) {

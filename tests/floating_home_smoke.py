@@ -29,7 +29,7 @@ assert "Touch layout" in floating and "Profile 1" in floating, "quick pills"
 
 # The model in the middle is the real 3D skin preview, drag-to-rotate, paused when hidden.
 assert "AerixSkinPreview3D(" in floating
-assert "azimuth = (azimuth + drag.x * 0.6f).mod(360f)" in floating, "drag to rotate"
+assert "detectDragGestures" in floating and "azimuth = (azimuth + dragAmount.x * 0.55f).mod(360f)" in floating, "drag to rotate"
 
 # Glass chrome: translucent fills and a bright rim, never a solid black bar.
 assert "Color(0x590A1520)" in floating and "Color(0x7307131D)" in floating, "translucent plates"
