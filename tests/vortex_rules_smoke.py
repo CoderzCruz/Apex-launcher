@@ -58,11 +58,15 @@ assert "val panel = Color(0x2D152536)" in surface, "translucent panel (owner ord
 # All-black shell: the default wallpaper is dropped once, chip still available.
 
 assert "val panel = Color(0xFF000000)" not in surface, "black panel reverted"
-mark = (RES / "drawable-nodpi/ic_aerix_mark.png").read_bytes()
-assert mark == (RES / "drawable-nodpi/aerix_logo.png").read_bytes(), "mark = golden V"
-assert mark == (ROOT / "assets/aerix-logo.png").read_bytes()
+# The mark is the owner's raven artwork (2026-11): cut-out, colours intact, never tinted.
+mark_file = RES / "drawable-nodpi/ic_aerix_mark.png"
+assert mark_file.exists(), "in-app mark missing"
+assert mark_file.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
+raven = RES / "drawable-nodpi/ic_vortex_raven.png"
+assert raven.exists(), "raven artwork missing"
+assert struct.unpack(">II", raven.read_bytes()[16:24]) == (512, 512)
 
-# ── The golden V logo ships as the app icon at every density ──────────────
+# ── The raven ships as the app icon at every density ──────────────────────
 for density, size in (("mdpi", 48), ("hdpi", 72), ("xhdpi", 96), ("xxhdpi", 144), ("xxxhdpi", 192)):
     for name in ("ic_launcher.png", "ic_launcher_round.png"):
         data = (RES / ("mipmap-" + density) / name).read_bytes()
@@ -73,7 +77,7 @@ assert '@drawable/ic_launcher_foreground' in adaptive, "adaptive foreground = ne
 assert "monochrome" not in adaptive, "old aerix monochrome dropped"
 fg = (RES / "drawable-nodpi/ic_launcher_foreground.png").read_bytes()
 assert fg[:8] == b"\x89PNG\r\n\x1a\n"
-assert struct.unpack(">II", fg[16:24]) == (108, 108)
+assert struct.unpack(">II", fg[16:24]) == (432, 432), "108dp foreground at xxxhdpi density"
 
 # ── Upstream contract untouched (standing rule) ───────────────────────────
 policy = (APP / "java/net/kdt/pojavlaunch/aerix/bridge/LauncherUpdatePolicy.kt").read_text()

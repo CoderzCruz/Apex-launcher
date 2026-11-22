@@ -14,6 +14,7 @@ package net.kdt.pojavlaunch.aerix.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -95,24 +96,48 @@ internal fun FloatingHome(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
                 ) {
+                    // The raven mark, straight from the owner's artwork: dark plate so the
+                    // magenta bolt and the charcoal feathers both stay visible.
                     Box(
                         modifier = Modifier
                             .size(38.dp)
                             .clip(RoundedCornerShape(AerixRadii.control))
-                            .background(
-                                Brush.linearGradient(listOf(Color(0xFFE21F3D), Color(0xFF9E1728)))
-                            ),
+                            .background(Color(0xFF0F0F11)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("V+", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                        Image(
+                            painter = painterResource(R.drawable.ic_vortex_raven),
+                            contentDescription = "Vortex",
+                            modifier = Modifier.size(34.dp)
+                        )
                     }
                     Column {
-                        Text(
-                            text = stringResource(R.string.app_short_name),
-                            color = Color.White,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = stringResource(R.string.app_short_name),
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            // "Plus" mark on the card only: the app label stays "Vortex Launcher v1"
+                            // so shortcuts, the About page and the updater keep pointing at the
+                            // same installed identity.
+                            Spacer(Modifier.width(AerixSpacing.xs))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(AerixRadii.pill))
+                                    .background(Color(0xFFDC2626))
+                                    .padding(horizontal = 6.dp, vertical = 1.dp)
+                            ) {
+                                Text(
+                                    text = "PLUS",
+                                    color = Color.White,
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 0.8.sp
+                                )
+                            }
+                        }
                         Text(
                             text = "Android ${BuildConfig.VERSION_NAME} \u00b7 build ${BuildConfig.VERSION_CODE}",
                             color = Color.White.copy(alpha = 0.72f),
