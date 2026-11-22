@@ -16,6 +16,55 @@ def png_size(path: Path):
     return struct.unpack(">II", data[16:24])
 
 
+def alpha_coverage(path: Path) -> float:
+    """Share of pixels that are (mostly) transparent — the old glyphs were flat RGB."""
+    data = path.read_bytes()
+    colour_type = data[25]
+    if colour_type not in (4, 6):
+        return 0.0
+    # Decode just enough with zlib + unfiltering would be overkill; sample the IDAT
+    # entropy instead: a real cut-out has long transparent runs, a flat image does not.
+    import zlib
+    pos, idat = 8, b""
+    while pos < len(data):
+        length = struct.unpack(">I", data[pos:pos + 4])[0]
+        kind = data[pos + 4:pos + 8]
+        if kind == b"IDAT":
+            idat += data[pos + 8:pos + 8 + length]
+        pos += 12 + length
+    raw = zlib.decompress(idat)
+    width, height = struct.unpack(">II", data[16:24])
+    channels = 4 if colour_type == 6 else 2
+    stride = width * channels
+    prev = bytearray(stride)
+    clear = total = 0
+    i = 0
+    for _ in range(height):
+        filt = raw[i]
+        line = bytearray(raw[i + 1:i + 1 + stride])
+        i += 1 + stride
+        for x in range(stride):
+            a = line[x - channels] if x >= channels else 0
+            b = prev[x]
+            c = prev[x - channels] if x >= channels else 0
+            if filt == 1:
+                line[x] = (line[x] + a) & 0xFF
+            elif filt == 2:
+                line[x] = (line[x] + b) & 0xFF
+            elif filt == 3:
+                line[x] = (line[x] + (a + b) // 2) & 0xFF
+            elif filt == 4:
+                p = a + b - c
+                pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+                pr = a if (pa <= pb and pa <= pc) else (b if pb <= pc else c)
+                line[x] = (line[x] + pr) & 0xFF
+        alphas = line[channels - 1::channels]
+        clear += sum(1 for v in alphas if v < 24)
+        total += len(alphas)
+        prev = line
+    return clear / total
+
+
 # ── The mark: transparent cut-out, square, big enough for every slot ─────────────────
 mark = RES / "drawable-nodpi/ic_vortex_raven.png"
 assert mark.exists(), "raven mark missing"
@@ -40,6 +89,11 @@ for density, px in expected.items():
 screens = ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix"
 assert (RES / "drawable/ic_aerix_mark.png").exists(), "the in-app mark must be the raven"
 assert png_size(RES / "drawable/ic_aerix_mark.png")[0] >= 192, "in-app mark is too small"
+# Every surface that draws the launcher mark must show the raven, not an old glyph.
+for rel in ("drawable-nodpi/ic_aerix_mark.png", "drawable-nodpi/aerix_logo.png"):
+    f = RES / rel
+    assert f.exists(), f"missing {rel}"
+    assert alpha_coverage(f) > 0.30, f"{rel} is not the cut-out raven (no transparency)"
 
 floating = (screens / "ui/screens/FloatingHome.kt").read_text()
 assert "R.drawable.ic_vortex_raven" in floating, "Home does not show the raven"
