@@ -1,4 +1,4 @@
-"""Home is the floating layout from the owner's reference screenshot.
+"""Home is the floating layout from the owner's reference screenshot (classic is opt-in).
 
 Wallpaper edge to edge, every control a glass pill floating over it, the player model in the
 middle, and one action dock at the bottom with Play + the section shortcuts.
@@ -11,11 +11,13 @@ SCREENS = ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/ui/s
 floating = (SCREENS / "FloatingHome.kt").read_text()
 home = (SCREENS / "HomeScreen.kt").read_text()
 
-# Home renders the floating layout, not a card stack.
+# Home renders the floating layout by default; the classic dashboard is an opt-in switch.
 assert "FloatingHome(selected = selected, accent = accent, actions = actions)" in home, \
     "Home uses the floating layout"
-assert "WideMockupHomeDashboard(" not in home.split("private fun WideMockupHomeDashboard")[0], \
-    "the card dashboard is no longer the entry point"
+assert "if (AerixPreferences.classicHome)" in home, "classic layout switch missing"
+assert "ClassicHome(selected, recent, instances.size" in home, "classic dashboard wiring missing"
+assert home.index("if (AerixPreferences.classicHome)") < home.index("FloatingHome(selected = selected"), \
+    "the classic branch must not swallow the default floating layout"
 
 # The pieces the reference shows, all real controls.
 for piece in ("fun FloatingHome(", "fun GlassPlate(", "fun FloatingIconButton(",

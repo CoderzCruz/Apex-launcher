@@ -19,7 +19,7 @@ assert 'assets.put("small_image", currentSkinAvatarUrl() ?: AERIX_LOGO_URL)' in 
 assert 'clickable && inGameMode && isValidHttpAssetUrl(it)' in assets
 assert 'activity.put("assets", assets)' in links
 preview = (base / 'AerixDiscordPresenceCard.kt').read_text().split('fun DiscordRichPresenceLivePreview', 1)[1]
-assert 'painterResource(R.drawable.aerix_logo)' in preview
+assert 'painterResource(AerixPreferences.logoSkin)' in preview, "card follows the logo setting"
 assert 'https://discord.gg/wpjAVkf2V' in src, "our Discord invite"
 assert '"About Vortex"' in preview and '"Join Vortex Discord"' in preview, "renamed buttons"
 assert 'Website will Not Ready' in preview, "about button shows not-ready toast"

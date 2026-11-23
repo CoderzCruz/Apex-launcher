@@ -79,6 +79,7 @@ import net.kdt.pojavlaunch.aerix.theme.ThemeMotion
 import net.kdt.pojavlaunch.aerix.theme.accentGlow
 import net.kdt.pojavlaunch.aerix.theme.accentRing
 import net.kdt.pojavlaunch.aerix.theme.AerixThemeManager
+import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
 
 /** Primary destinations kept visible while the Aerix launcher is open. */
 enum class LauncherSection {
@@ -178,7 +179,7 @@ fun AerixNavigationRail(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.ic_aerix_mark),
+                            painter = painterResource(AerixPreferences.markSkin),
                             contentDescription = "Vortex",
                             tint = Color.Unspecified,
                             modifier = Modifier.size(if (compactRail) 20.dp else 24.dp)

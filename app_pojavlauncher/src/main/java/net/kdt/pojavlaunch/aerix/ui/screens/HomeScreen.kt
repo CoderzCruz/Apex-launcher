@@ -37,6 +37,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -235,10 +236,46 @@ fun HomeScreen(activity: FragmentActivity, navigate: (LauncherSection) -> Unit) 
         importSkin = { navigate(LauncherSection.ACCOUNTS) }
     )
 
-    // Home is the floating layout from the owner's reference: wallpaper edge to edge, glass
-    // chrome floating over it, the player model in the middle and one action dock at the bottom.
-    // It is the same layout in portrait and landscape — only the model and spacing scale.
-    FloatingHome(selected = selected, accent = accent, actions = actions)
+    // Two Home layouts the player can switch between in Settings > Appearance:
+    //  - floating (default): wallpaper edge to edge, glass chrome over it, the player model in
+    //    the middle and one action dock at the bottom, same in portrait and landscape;
+    //  - classic: the previous dashboard (your version / launch / quick actions / recent worlds).
+    if (AerixPreferences.classicHome) {
+        ClassicHome(selected, recent, instances.size, accent, taskCount, actions)
+    } else {
+        FloatingHome(selected = selected, accent = accent, actions = actions)
+    }
+}
+
+/** The classic dashboard Home: wide columns in landscape/tablets, the phone stack otherwise. */
+@Composable
+private fun ClassicHome(
+    selected: AerixInstance?,
+    recent: List<AerixInstance>,
+    count: Int,
+    accent: Color,
+    taskCount: Int,
+    actions: HomeActions
+) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        if (maxWidth > maxHeight && maxWidth >= 840.dp) {
+            Box(modifier = Modifier.fillMaxSize().padding(AerixSpacing.mdPlus)) {
+                WideMockupHomeDashboard(selected, recent, count, accent, taskCount, actions)
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        start = AerixSpacing.mdPlus,
+                        end = AerixSpacing.smCompact,
+                        top = AerixSpacing.smPlus
+                    )
+            ) {
+                CompactHomeDashboard(selected, recent, count, accent, taskCount, actions)
+            }
+        }
+    }
 }
 
 /**

@@ -66,6 +66,7 @@ import net.kdt.pojavlaunch.aerix.theme.AerixRadii
 import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
 import net.kdt.pojavlaunch.aerix.theme.AerixSurface
 import net.kdt.pojavlaunch.prefs.LauncherPreferences
+import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
 
 /**
  * The floating Home: wallpaper visible everywhere, glass chrome on top.
@@ -106,7 +107,7 @@ internal fun FloatingHome(
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(R.drawable.ic_vortex_raven),
+                            painter = painterResource(AerixPreferences.logoSkin),
                             contentDescription = "Vortex",
                             modifier = Modifier.size(34.dp)
                         )

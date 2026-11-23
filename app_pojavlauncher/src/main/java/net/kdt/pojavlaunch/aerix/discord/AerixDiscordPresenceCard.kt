@@ -307,7 +307,7 @@ private fun DiscordRichPresenceLivePreview(
                             }
                     ) {
                         Image(
-                            painter = painterResource(R.drawable.aerix_logo),
+                            painter = painterResource(AerixPreferences.logoSkin),
                             contentDescription = "Vortex Cover Art",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
@@ -332,7 +332,7 @@ private fun DiscordRichPresenceLivePreview(
                                 )
                             } else {
                                 Image(
-                                    painter = painterResource(R.drawable.aerix_logo),
+                                    painter = painterResource(AerixPreferences.logoSkin),
                                     contentDescription = "Vortex Badge",
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier

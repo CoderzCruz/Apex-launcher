@@ -57,6 +57,7 @@ import net.kdt.pojavlaunch.aerix.components.GlassPanel
 import net.kdt.pojavlaunch.aerix.components.SectionLabel
 import net.kdt.pojavlaunch.aerix.theme.AerixSpacing
 import net.kdt.pojavlaunch.aerix.theme.AerixSurface
+import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
 
 private const val TARGET_SOURCE_URL = "https://github.com/entitybrian69-bit/Aerix-launcher"
 private const val UI_SOURCE_URL = "https://github.com/entitybrian69-bit/mirai-launcher-"
@@ -77,7 +78,7 @@ fun AboutScreen(activity: FragmentActivity) {
         ) {
             GlassPanel(modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AerixSpacing.lg)) {
-                    Image(painter = painterResource(R.drawable.aerix_logo), contentDescription = null, modifier = Modifier.size(72.dp))
+                    Image(painter = painterResource(AerixPreferences.logoSkin), contentDescription = null, modifier = Modifier.size(72.dp))
                     Column {
                         Text(text = stringResource(R.string.aerix_app_label), color = AerixSurface.textPrimary, fontSize = 20.sp, fontWeight = FontWeight.Black)
                         Text(text = stringResource(R.string.aerix_about_version, BuildConfig.VERSION_NAME), color = AerixSurface.textSecondary, fontSize = 12.sp)

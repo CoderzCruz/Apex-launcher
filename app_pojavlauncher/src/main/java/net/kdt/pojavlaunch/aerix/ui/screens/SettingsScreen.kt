@@ -1448,6 +1448,20 @@ private fun LauncherTabContent(activity: FragmentActivity) {
                         AerixPreferences.saveColorTheme(AerixColorTheme.valueOf(item.first))
                     }
                 )
+                MiraiSwitchSettingsCard(
+                    position = CardPosition.Middle,
+                    title = stringResource(R.string.aerix_settings_classic_home),
+                    summary = stringResource(R.string.aerix_settings_classic_home_sub),
+                    checked = AerixPreferences.classicHome,
+                    onCheckedChange = { AerixPreferences.saveClassicHome(it) }
+                )
+                MiraiSwitchSettingsCard(
+                    position = CardPosition.Middle,
+                    title = stringResource(R.string.aerix_settings_classic_logo),
+                    summary = stringResource(R.string.aerix_settings_classic_logo_sub),
+                    checked = AerixPreferences.classicLogo,
+                    onCheckedChange = { AerixPreferences.saveClassicLogo(it) }
+                )
                 MiraiActionSettingsCard(
                     position = CardPosition.Middle,
                     title = stringResource(R.string.aerix_settings_custom_color),
@@ -2035,7 +2049,7 @@ private fun AboutInfoTabContent(activity: FragmentActivity) {
                     verticalArrangement = Arrangement.spacedBy(AerixSpacing.smPlus)
                 ) {
                     AboutRowCard(
-                        iconRes = R.drawable.ic_aerix_mark,
+                        iconRes = AerixPreferences.markSkin,
                         iconTint = Color.Unspecified,
                         title = "Vortex Launcher v1",
                         subtitle = "Launcher Version: ${BuildConfig.VERSION_NAME}",

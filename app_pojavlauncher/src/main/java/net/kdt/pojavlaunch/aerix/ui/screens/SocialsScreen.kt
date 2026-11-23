@@ -112,6 +112,7 @@ import net.kdt.pojavlaunch.aerix.theme.accentRing
 import net.kdt.pojavlaunch.aerix.ui.AerixNav
 import java.net.HttpURLConnection
 import java.net.URL
+import net.kdt.pojavlaunch.aerix.bridge.AerixPreferences
 
 private enum class SocialTab(val label: String) {
     FRIENDS("Friends"),
@@ -658,7 +659,7 @@ private fun SocialSignIn(activity: FragmentActivity) {
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.ic_aerix_mark),
+                            painter = painterResource(AerixPreferences.markSkin),
                             contentDescription = null,
                             tint = Color.Unspecified,
                             modifier = Modifier.size(24.dp)

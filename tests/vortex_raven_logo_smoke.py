@@ -1,4 +1,4 @@
-"""The raven mark from the owner's artwork is the launcher's logo.
+"""The raven mark from the owner's artwork is the launcher's logo (classic V optional).
 
 Pins the cut-out assets, the adaptive-icon wiring and the places that show the mark, so a
 future edit cannot quietly bring back the cyan background or a lettering "V+" placeholder.
@@ -96,12 +96,44 @@ for rel in ("drawable-nodpi/ic_aerix_mark.png", "drawable-nodpi/aerix_logo.png")
     assert alpha_coverage(f) > 0.30, f"{rel} is not the cut-out raven (no transparency)"
 
 floating = (screens / "ui/screens/FloatingHome.kt").read_text()
-assert "R.drawable.ic_vortex_raven" in floating, "Home does not show the raven"
+assert "AerixPreferences.logoSkin" in floating, "Home does not follow the logo setting"
 assert '"PLUS"' in floating, "the Home card does not say PLUS"
 assert 'Text("V+"' not in floating, "the old V+ lettering is still in Home"
 
 # Tint must be unspecified wherever the mark is drawn, or the raven turns into a flat glyph.
 rail = (screens / "ui/AerixNavigationRail.kt").read_text()
-assert "R.drawable.ic_aerix_mark" in rail and "Color.Unspecified" in rail
+assert "AerixPreferences.markSkin" in rail and "Color.Unspecified" in rail
+
+# ── Classic mode: the owner can switch back to the old dashboard and the old mark ─────────
+prefs = (ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/bridge/"
+         "AerixPreferences.kt").read_text()
+assert 'const val KEY_CLASSIC_HOME = "aerixClassicHome"' in prefs
+assert 'const val KEY_CLASSIC_LOGO = "aerixClassicLogo"' in prefs
+assert "val logoSkin: Int" in prefs and "R.drawable.aerix_logo_classic" in prefs
+assert "val markSkin: Int" in prefs and "R.drawable.ic_aerix_mark_classic" in prefs
+home = (screens / "ui/screens/HomeScreen.kt").read_text()
+assert "AerixPreferences.classicHome" in home, "Home does not check the classic layout switch"
+assert "ClassicHome(" in home and "FloatingHome(" in home, "both layouts must stay reachable"
+assert "CompactHomeDashboard(" in home and "WideMockupHomeDashboard(" in home
+settings = (screens / "ui/screens/SettingsScreen.kt").read_text()
+assert "aerix_settings_classic_home" in settings and "aerix_settings_classic_logo" in settings
+for rel, size in (("drawable/ic_aerix_mark_classic.png", 192),
+                  ("drawable-nodpi/aerix_logo_classic.png", 512)):
+    assert png_size(RES / rel)[0] == size, f"{rel} classic asset changed size"
+for density, px in expected.items():
+    legacy = RES / f"mipmap-{density}/ic_launcher_classic.png"
+    assert png_size(legacy) == (px, px), f"{legacy} missing/wrong size"
+# The home-screen entry follows the setting through two manifest aliases, never by disabling
+# the app itself (that would kill the running process on some vendors).
+manifest = (ROOT / "app_pojavlauncher/src/main/AndroidManifest.xml").read_text()
+assert manifest.count("android.intent.category.LAUNCHER") >= 2
+raven_alias = manifest.split('net.kdt.pojavlaunch.RavenLauncher', 1)[1].split("</activity-alias>", 1)[0]
+classic_alias = manifest.split('net.kdt.pojavlaunch.ClassicLauncher', 1)[1].split("</activity-alias>", 1)[0]
+assert 'android:enabled="true"' in raven_alias and "@mipmap/ic_launcher" == raven_alias.split('android:icon="', 1)[1].split('"', 1)[0]
+assert 'android:enabled="false"' in classic_alias
+assert "@mipmap/ic_launcher_classic" in classic_alias
+for alias in (raven_alias, classic_alias):
+    assert 'android:targetActivity="net.kdt.pojavlaunch.TestStorageActivity"' in alias
+assert "setComponentEnabledSetting" in prefs and "DONT_KILL_APP" in prefs
 
 print("Raven logo: cut-out, icon set, adaptive foreground, Home and rail passed")

@@ -396,7 +396,7 @@ private fun GameMenuMainPage(
 private fun MenuHeader(compact: Boolean, versionLine: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Image(
-            painter = painterResource(R.drawable.ic_aerix_mark),
+            painter = painterResource(AerixPreferences.markSkin),
             contentDescription = null,
             modifier = Modifier.size(if (compact) 36.dp else 46.dp)
         )

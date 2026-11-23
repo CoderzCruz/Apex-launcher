@@ -20,8 +20,11 @@
 
 package net.kdt.pojavlaunch.aerix.bridge
 
+import android.content.ComponentName
 import android.content.Context
+import androidx.annotation.DrawableRes
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import net.kdt.pojavlaunch.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -88,6 +91,14 @@ object AerixPreferences {
     const val KEY_DISCORD_GAME_PROFILE_MODE = "aerixDiscordGameProfileMode"
     /** Attach modpack art, clickable info URLs, and action buttons to Discord Rich Presence cards. */
     const val KEY_DISCORD_CLICKABLE_LINKS = "aerixDiscordClickableLinks"
+    /** Home layout: the floating reference layout (default) or the classic dashboard. */
+    const val KEY_CLASSIC_HOME = "aerixClassicHome"
+    /** Launcher logo: the raven artwork (default) or the previous golden V mark. */
+    const val KEY_CLASSIC_LOGO = "aerixClassicLogo"
+
+    /** Manifest aliases that carry the home-screen entry for each logo. */
+    private const val CLASSIC_ALIAS = "net.kdt.pojavlaunch.ClassicLauncher"
+    private const val RAVEN_ALIAS = "net.kdt.pojavlaunch.RavenLauncher"
 
     const val DEFAULT_CUSTOM_COLOR = 0xFFDC2626.toInt()
     const val DEFAULT_BACKGROUND_OPACITY = 60
@@ -97,6 +108,7 @@ object AerixPreferences {
     const val DEFAULT_LOG_BUFFER_FLUSH_INTERVAL = 200
 
     private var prefs: SharedPreferences? = null
+    private var appContext: Context? = null
 
     var colorTheme by mutableStateOf(AerixColorTheme.AERIX)
         private set
@@ -197,11 +209,18 @@ object AerixPreferences {
 
     /** True to attach modpack art, clickable info URLs, and action buttons to Rich Presence cards. */
     var discordClickableLinks by mutableStateOf(true)
+
+    /** Off = floating Home, on = the classic dashboard Home. */
+    var classicHome by mutableStateOf(false)
+
+    /** Off = raven mark, on = the previous golden V mark. */
+    var classicLogo by mutableStateOf(false)
         private set
 
     fun init(context: Context) {
         val p = context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
         prefs = p
+        appContext = context.applicationContext
         bakedAiKey = runCatching { context.getString(R.string.apex_service_ai_key).trim() }
             .getOrDefault("")
         googleAiKey = p.getString(KEY_GOOGLE_AI_KEY, "") ?: ""
@@ -252,6 +271,41 @@ object AerixPreferences {
         discordAppId = p.getString(KEY_DISCORD_APP_ID, "") ?: ""
         discordGameProfileMode = p.getBoolean(KEY_DISCORD_GAME_PROFILE_MODE, true)
         discordClickableLinks = p.getBoolean(KEY_DISCORD_CLICKABLE_LINKS, true)
+        classicHome = p.getBoolean(KEY_CLASSIC_HOME, false)
+        classicLogo = p.getBoolean(KEY_CLASSIC_LOGO, false)
+        // Keep the home-screen entry in sync (cheap, idempotent) — covers a reinstall or an
+        // app update that reset component states.
+        applyLauncherIcon(classicLogo)
+    }
+
+    fun saveClassicHome(value: Boolean) {
+        classicHome = value
+        edit { putBoolean(KEY_CLASSIC_HOME, value) }
+    }
+
+    fun saveClassicLogo(value: Boolean) {
+        classicLogo = value
+        edit { putBoolean(KEY_CLASSIC_LOGO, value) }
+        applyLauncherIcon(value)
+    }
+
+    /**
+     * Android cannot change an app's icon at runtime, so the launcher entry lives on two manifest
+     * aliases with different icons — exactly one is enabled. This only affects the home-screen
+     * entry; the app keeps running and its data is untouched.
+     */
+    private fun applyLauncherIcon(classic: Boolean) {
+        val ctx = appContext ?: return
+        listOf(CLASSIC_ALIAS to classic, RAVEN_ALIAS to !classic).forEach { (alias, enabled) ->
+            runCatching {
+                ctx.packageManager.setComponentEnabledSetting(
+                    ComponentName(ctx.packageName, alias),
+                    if (enabled) PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                    else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    PackageManager.DONT_KILL_APP
+                )
+            }
+        }
     }
 
     fun saveFavoritesJson(value: String) {
@@ -422,4 +476,14 @@ object AerixPreferences {
 
     /** Pojav notch handling, exposed here so the Aerix launcher settings page can show it. */
     fun ignoreNotch(): Boolean = LauncherPreferences.PREF_IGNORE_NOTCH
+
+    /** The launcher mark for the current look: raven by default, golden V in classic mode. */
+    @get:DrawableRes
+    val logoSkin: Int
+        get() = if (classicLogo) R.drawable.aerix_logo_classic else R.drawable.ic_vortex_raven
+
+    /** The compact mark used in rails and headers for the current look. */
+    @get:DrawableRes
+    val markSkin: Int
+        get() = if (classicLogo) R.drawable.ic_aerix_mark_classic else R.drawable.ic_aerix_mark
 }
