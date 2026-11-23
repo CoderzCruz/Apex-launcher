@@ -115,8 +115,15 @@ home = (screens / "ui/screens/HomeScreen.kt").read_text()
 assert "AerixPreferences.classicHome" in home, "Home does not check the classic layout switch"
 assert "ClassicHome(" in home and "FloatingHome(" in home, "both layouts must stay reachable"
 assert "CompactHomeDashboard(" in home and "WideMockupHomeDashboard(" in home
+# Android refuses to merge a values file with a repeated string name — catch it here first.
+import collections, re
+strings_xml = (RES / "values/aerix_strings.xml").read_text()
+names = re.findall(r'<string name="([^"]+)"', strings_xml)
+dups = [n for n, c in collections.Counter(names).items() if c > 1]
+assert not dups, f"duplicate string names: {dups}"
 settings = (screens / "ui/screens/SettingsScreen.kt").read_text()
-assert "aerix_settings_classic_home" in settings and "aerix_settings_classic_logo" in settings
+assert "aerix_settings_appearance_classic_home" in settings
+assert "aerix_settings_appearance_classic_logo" in settings
 for rel, size in (("drawable/ic_aerix_mark_classic.png", 192),
                   ("drawable-nodpi/aerix_logo_classic.png", 512)):
     assert png_size(RES / rel)[0] == size, f"{rel} classic asset changed size"
