@@ -136,8 +136,11 @@ manifest = (ROOT / "app_pojavlauncher/src/main/AndroidManifest.xml").read_text()
 assert manifest.count("android.intent.category.LAUNCHER") >= 2
 raven_alias = manifest.split('net.kdt.pojavlaunch.RavenLauncher', 1)[1].split("</activity-alias>", 1)[0]
 classic_alias = manifest.split('net.kdt.pojavlaunch.ClassicLauncher', 1)[1].split("</activity-alias>", 1)[0]
-assert 'android:enabled="true"' in raven_alias and "@mipmap/ic_launcher" == raven_alias.split('android:icon="', 1)[1].split('"', 1)[0]
-assert 'android:enabled="false"' in classic_alias
+assert 'android:enabled="false"' in raven_alias and "@mipmap/ic_launcher" == raven_alias.split('android:icon="', 1)[1].split('"', 1)[0]
+assert 'android:enabled="true"' in classic_alias, "the golden V is the default home-screen entry"
+assert '"aerixClassicLogo"' in prefs
+assert "p.getBoolean(KEY_CLASSIC_LOGO, true)" in prefs, "classic logo is the default"
+assert "p.getBoolean(KEY_CLASSIC_HOME, true)" in prefs, "classic Home is the default"
 assert "@mipmap/ic_launcher_classic" in classic_alias
 for alias in (raven_alias, classic_alias):
     assert 'android:targetActivity="net.kdt.pojavlaunch.TestStorageActivity"' in alias

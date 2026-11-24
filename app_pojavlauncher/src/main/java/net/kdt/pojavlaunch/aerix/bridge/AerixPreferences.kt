@@ -210,11 +210,11 @@ object AerixPreferences {
     /** True to attach modpack art, clickable info URLs, and action buttons to Rich Presence cards. */
     var discordClickableLinks by mutableStateOf(true)
 
-    /** Off = floating Home, on = the classic dashboard Home. */
-    var classicHome by mutableStateOf(false)
+    /** On = the classic dashboard Home (default, the owner's layout), off = the floating one. */
+    var classicHome by mutableStateOf(true)
 
-    /** Off = raven mark, on = the previous golden V mark. */
-    var classicLogo by mutableStateOf(false)
+    /** On = the golden V mark (default, the owner's logo), off = the raven. */
+    var classicLogo by mutableStateOf(true)
         private set
 
     fun init(context: Context) {
@@ -271,8 +271,8 @@ object AerixPreferences {
         discordAppId = p.getString(KEY_DISCORD_APP_ID, "") ?: ""
         discordGameProfileMode = p.getBoolean(KEY_DISCORD_GAME_PROFILE_MODE, true)
         discordClickableLinks = p.getBoolean(KEY_DISCORD_CLICKABLE_LINKS, true)
-        classicHome = p.getBoolean(KEY_CLASSIC_HOME, false)
-        classicLogo = p.getBoolean(KEY_CLASSIC_LOGO, false)
+        classicHome = p.getBoolean(KEY_CLASSIC_HOME, true)
+        classicLogo = p.getBoolean(KEY_CLASSIC_LOGO, true)
         // Keep the home-screen entry in sync (cheap, idempotent) — covers a reinstall or an
         // app update that reset component states.
         applyLauncherIcon(classicLogo)

@@ -74,7 +74,7 @@
         </activity>
         <activity-alias
             android:name="net.kdt.pojavlaunch.RavenLauncher"
-            android:enabled="true"
+            android:enabled="false"
             android:exported="true"
             android:icon="@mipmap/ic_launcher"
             android:roundIcon="@mipmap/ic_launcher_round"
@@ -91,7 +91,7 @@
              the "Classic logo" preference. Only one of the two is ever enabled. -->
         <activity-alias
             android:name="net.kdt.pojavlaunch.ClassicLauncher"
-            android:enabled="false"
+            android:enabled="true"
             android:exported="true"
             android:icon="@mipmap/ic_launcher_classic"
             android:roundIcon="@mipmap/ic_launcher_classic"
