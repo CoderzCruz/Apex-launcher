@@ -99,8 +99,13 @@ private val aerixDark = darkColorScheme(
     surfaceContainerHighest = AerixSurface.panelRaised,
 )
 
-/** "Dark blue" preset: deep navy accent that reads well on the near-black Aerix surfaces. */
-val DarkBlueAccent = Color(0xFF1E40AF)
+/**
+ * "Dark blue" preset. The canvas is already navy (0xFF07131D), so the accent cannot be a deep
+ * navy too or the switch looks like nothing happened — it is the bright blue that glows against
+ * night, paired with a navy tint for containers.
+ */
+val DarkBlueAccent = Color(0xFF3B82F6)
+val DarkBlueAccentDim = Color(0xFF1E40AF)
 
 /**
  * The CUSTOM theme in Zalith builds a full tonal palette through MaterialKolor. The port keeps the

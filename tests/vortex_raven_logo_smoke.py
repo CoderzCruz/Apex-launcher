@@ -128,7 +128,8 @@ assert "aerix_settings_appearance_classic_logo" in settings
 theme_kt = (ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/theme/AerixTheme.kt").read_text()
 assert "DARK_BLUE" in prefs, "enum entry missing"
 assert "AerixColorTheme.DARK_BLUE -> customAccentScheme(DarkBlueAccent)" in theme_kt
-assert "val DarkBlueAccent = Color(0xFF1E40AF)" in theme_kt, "dark blue accent value changed"
+assert "val DarkBlueAccent = Color(0xFF3B82F6)" in theme_kt, "dark blue accent must stay readable on the navy canvas"
+assert "val DarkBlueAccentDim = Color(0xFF1E40AF)" in theme_kt, "navy container tint missing"
 assert "AerixColorTheme.DARK_BLUE.name to darkBlueLabel" in settings, "settings entry missing"
 assert "aerix_settings_theme_dark_blue" in settings
 
