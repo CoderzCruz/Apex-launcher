@@ -124,6 +124,14 @@ assert not dups, f"duplicate string names: {dups}"
 settings = (screens / "ui/screens/SettingsScreen.kt").read_text()
 assert "aerix_settings_appearance_classic_home" in settings
 assert "aerix_settings_appearance_classic_logo" in settings
+# ── Colour themes: the "Dark blue" preset is a real, selectable theme ────────────────────
+theme_kt = (ROOT / "app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/aerix/theme/AerixTheme.kt").read_text()
+assert "DARK_BLUE" in prefs, "enum entry missing"
+assert "AerixColorTheme.DARK_BLUE -> customAccentScheme(DarkBlueAccent)" in theme_kt
+assert "val DarkBlueAccent = Color(0xFF1E40AF)" in theme_kt, "dark blue accent value changed"
+assert "AerixColorTheme.DARK_BLUE.name to darkBlueLabel" in settings, "settings entry missing"
+assert "aerix_settings_theme_dark_blue" in settings
+
 for rel, size in (("drawable/ic_aerix_mark_classic.png", 192),
                   ("drawable-nodpi/aerix_logo_classic.png", 512)):
     assert png_size(RES / rel)[0] == size, f"{rel} classic asset changed size"

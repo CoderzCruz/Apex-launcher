@@ -125,10 +125,12 @@ object AerixThemeManager {
     }
 
     @Composable
-    fun currentAccent(): Color = if (AerixPreferences.colorTheme == AerixColorTheme.CUSTOM) {
-        Color(AerixPreferences.customColor)
-    } else {
-        MaterialTheme.colorScheme.primary
+    fun currentAccent(): Color = when (AerixPreferences.colorTheme) {
+        AerixColorTheme.CUSTOM -> Color(AerixPreferences.customColor)
+        // The preset has its own accent; MaterialTheme already carries it, but reading it here
+        // keeps callers that run outside the theme (drawers, Java views) in sync too.
+        AerixColorTheme.DARK_BLUE -> DarkBlueAccent
+        AerixColorTheme.AERIX -> MaterialTheme.colorScheme.primary
     }
 
     /** Canvas tint drawn over the wallpaper; opacity follows the Aerix background opacity slider. */

@@ -99,6 +99,9 @@ private val aerixDark = darkColorScheme(
     surfaceContainerHighest = AerixSurface.panelRaised,
 )
 
+/** "Dark blue" preset: deep navy accent that reads well on the near-black Aerix surfaces. */
+val DarkBlueAccent = Color(0xFF1E40AF)
+
 /**
  * The CUSTOM theme in Zalith builds a full tonal palette through MaterialKolor. The port keeps the
  * Aerix glass surfaces and swaps only the accent roles, which is what the Aerix shell renders.
@@ -121,6 +124,7 @@ fun AerixLauncherTheme(content: @Composable () -> Unit) {
     val scheme = remember(theme, custom) {
         when (theme) {
             AerixColorTheme.AERIX -> aerixDark
+            AerixColorTheme.DARK_BLUE -> customAccentScheme(DarkBlueAccent)
             AerixColorTheme.CUSTOM -> customAccentScheme(Color(custom))
         }
     }

@@ -1393,9 +1393,11 @@ private fun LauncherTabContent(activity: FragmentActivity) {
         AerixTransitionType.SLICE_IN.name to stringResource(R.string.aerix_settings_transition_slice)
     )
     val aerixLabel = stringResource(R.string.aerix_settings_theme_aerix)
+    val darkBlueLabel = stringResource(R.string.aerix_settings_theme_dark_blue)
     val customLabel = stringResource(R.string.aerix_settings_theme_custom)
     val themeEntries = listOf(
         AerixColorTheme.AERIX.name to aerixLabel,
+        AerixColorTheme.DARK_BLUE.name to darkBlueLabel,
         AerixColorTheme.CUSTOM.name to customLabel
     )
     val downloadSourceSetting = remember {
