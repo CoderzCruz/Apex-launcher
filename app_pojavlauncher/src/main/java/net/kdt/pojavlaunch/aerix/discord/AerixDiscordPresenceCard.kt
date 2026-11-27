@@ -147,7 +147,7 @@ fun DiscordPresenceSettingsCard() {
             position = CardPosition.Middle,
             title = "Modpack art, clickable info links & buttons",
             summary = "Show modpack cover artwork, make the headline & status clickable " +
-                "(opening the official website & Discord), and display \u201CAbout Vortex\u201D " +
+                "(opening the Vortex project page & Discord), and display \u201CAbout Vortex\u201D " +
                 "+ \u201CJoin Vortex Discord\u201D buttons on your profile card.",
             checked = clickableLinks,
             enabled = enabled,
@@ -168,7 +168,7 @@ fun DiscordPresenceSettingsCard() {
                 onPreviewModeChange = { previewInGame = it },
                 gameProfileMode = gameProfileMode && appId.trim().length < 15,
                 clickableLinks = clickableLinks,
-                onOpenWebsite = { openUrl(AerixDiscordPresence.AERIX_WEBSITE_URL) },
+                onOpenWebsite = { openUrl(AerixDiscordPresence.VORTEX_PROJECT_URL) },
                 onOpenDiscord = { openUrl(AerixDiscordPresence.AERIX_DISCORD_URL) }
             )
         }
@@ -422,9 +422,7 @@ private fun DiscordRichPresenceLivePreview(
                         DiscordActionButtonPreview(
                             label = "About Vortex",
                             modifier = Modifier.weight(1f),
-                            onClick = {
-                                Toast.makeText(previewContext, "Website will Not Ready", Toast.LENGTH_SHORT).show()
-                            }
+                            onClick = onOpenWebsite
                         )
                         DiscordActionButtonPreview(
                             label = "Join Vortex Discord",
@@ -439,7 +437,7 @@ private fun DiscordRichPresenceLivePreview(
         Text(
             text = if (usingOfficialMcProfile) {
                 "Tip: In Official Minecraft mode, friends tapping the game card open Minecraft's native " +
-                    "Discord Game Profile sheet, while tapping the text/buttons opens Vortex's website & Discord."
+                    "Discord Game Profile sheet, while tapping the text/buttons opens the Vortex project page & Discord."
             } else {
                 "Note: Discord shows Rich Presence action buttons to friends and server members viewing your " +
                     "profile (tap any link or button above to test where it opens)."

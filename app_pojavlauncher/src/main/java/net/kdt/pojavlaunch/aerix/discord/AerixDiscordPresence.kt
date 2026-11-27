@@ -70,8 +70,11 @@ object AerixDiscordPresence {
     private const val CLOSE_INVALID_CLIENT_ID = 4000
     private const val MAX_ASSET_URL_LEN = 256
 
-    /** Official clickable destinations & artwork for Aerix Rich Presence cards. */
-    const val AERIX_WEBSITE_URL = "https://entitybrian69-bit.github.io/Aerix-launcher/"
+    /**
+     * Official clickable destinations & artwork for Vortex Rich Presence cards. The old Aerix
+     * GitHub Pages site is gone: the project page on our own repo is the only live destination.
+     */
+    const val VORTEX_PROJECT_URL = "https://github.com/CoderzCruz/Apex-launcher"
     const val AERIX_DISCORD_URL = "https://discord.gg/wpjAVkf2V"
     const val AERIX_LOGO_URL =
         "https://raw.githubusercontent.com/CoderzCruz/Apex-launcher/arena/a426cc08-apex-launcher/assets/aerix-logo.png"
@@ -1012,23 +1015,23 @@ object AerixDiscordPresence {
         } else {
             assets.put("large_image", AERIX_LOGO_URL)
             assets.put("large_text", if (usingMinecraftProfile)
-                "Vortex Launcher v1 — Minecraft Java Edition on Android" else "Vortex Launcher v1 — Official Website & Info")
+                "Vortex Launcher v1 — Minecraft Java Edition on Android" else "Vortex Launcher v1 — Minecraft Java Edition on Android")
             if (usingMinecraftProfile) {
                 assets.put("small_image", currentSkinAvatarUrl() ?: AERIX_LOGO_URL)
                 assets.put("small_text", "Powered by Vortex Launcher")
             }
         }
         if (clickable) {
-            activity.put("details_url", AERIX_WEBSITE_URL)
+            activity.put("details_url", VORTEX_PROJECT_URL)
             activity.put("state_url", AERIX_DISCORD_URL)
-            assets.put("large_url", AERIX_WEBSITE_URL)
+            assets.put("large_url", VORTEX_PROJECT_URL)
             if (validPackIcon != null || usingMinecraftProfile) assets.put("small_url", AERIX_DISCORD_URL)
             if (supportsExtendedFields) {
                 val buttons = JSONArray()
                     .put(
                         JSONObject()
                             .put("label", "About Vortex")
-                            .put("url", AERIX_WEBSITE_URL)
+                            .put("url", VORTEX_PROJECT_URL)
                     )
                     .put(
                         JSONObject()

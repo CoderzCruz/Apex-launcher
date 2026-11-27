@@ -22,7 +22,11 @@ preview = (base / 'AerixDiscordPresenceCard.kt').read_text().split('fun DiscordR
 assert 'painterResource(AerixPreferences.logoSkin)' in preview, "card follows the logo setting"
 assert 'https://discord.gg/wpjAVkf2V' in src, "our Discord invite"
 assert '"About Vortex"' in preview and '"Join Vortex Discord"' in preview, "renamed buttons"
-assert 'Website will Not Ready' in preview, "about button shows not-ready toast"
+# The Aerix website is gone: the About button opens our own project page, not a dead toast.
+assert 'Website will Not Ready' not in preview, "fake not-ready toast came back"
+assert 'onClick = onOpenWebsite' in preview, "About button must be a real link"
+assert 'AERIX_WEBSITE_URL' not in src and 'Aerix-launcher/' not in src, "Aerix site URL still wired"
+assert 'const val VORTEX_PROJECT_URL = "https://github.com/CoderzCruz/Apex-launcher"' in src
 assert 'badgeFace' in preview, "skin replaces the badge logo"
 assert 'via Vortex Launcher' in preview, "via line renamed"
 assert 'mc-heads.net/avatar/' in src, "real card badge uses the skin face"

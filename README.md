@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/entitybrian69-bit/Aerix-launcher/releases"><img src="https://img.shields.io/badge/Platform-Android%208.0%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Platform"></a>
+  <a href="https://github.com/CoderzCruz/Apex-launcher/releases"><img src="https://img.shields.io/badge/Platform-Android%208.0%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Platform"></a>
   <a href="#-quality-bar"><img src="https://img.shields.io/badge/100%25-Human%20Made-7C3AED?style=for-the-badge" alt="Human Made"></a>
   <a href="#-the-team"><img src="https://img.shields.io/badge/Maintained%20by-entitybrian-F59E0B?style=for-the-badge" alt="Team"></a>
   <a href="#%EF%B8%8F-private-on-purpose"><img src="https://img.shields.io/badge/Privacy-No%20Trackers-111827?style=for-the-badge" alt="Privacy"></a>
@@ -20,10 +20,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/entitybrian69-bit/Aerix-launcher/releases"><img src="https://img.shields.io/github/downloads/entitybrian69-bit/Aerix-launcher/total?style=for-the-badge&label=TOTAL%20DOWNLOADS&color=C8102E&logo=github&logoColor=white" alt="Total downloads across every release"></a>
-  <a href="https://github.com/entitybrian69-bit/Aerix-launcher/releases/latest"><img src="https://img.shields.io/github/downloads/entitybrian69-bit/Aerix-launcher/latest/total?style=for-the-badge&label=THIS%20RELEASE&color=101014&logo=android&logoColor=3DDC84" alt="Downloads of the latest release"></a>
-  <a href="https://github.com/entitybrian69-bit/Aerix-launcher/releases/latest"><img src="https://img.shields.io/github/v/release/entitybrian69-bit/Aerix-launcher?style=for-the-badge&label=LATEST&color=C8102E" alt="Latest release"></a>
-  <a href="https://entitybrian69-bit.github.io/Aerix-launcher/"><img src="https://img.shields.io/badge/Website-Live-C8102E?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Website"></a>
+  <a href="https://github.com/CoderzCruz/Apex-launcher/releases"><img src="https://img.shields.io/github/downloads/CoderzCruz/Apex-launcher/total?style=for-the-badge&label=TOTAL%20DOWNLOADS&color=C8102E&logo=github&logoColor=white" alt="Total downloads across every release"></a>
+  <a href="https://github.com/CoderzCruz/Apex-launcher/releases/latest"><img src="https://img.shields.io/github/downloads/CoderzCruz/Apex-launcher/latest/total?style=for-the-badge&label=THIS%20RELEASE&color=101014&logo=android&logoColor=3DDC84" alt="Downloads of the latest release"></a>
+  <a href="https://github.com/CoderzCruz/Apex-launcher/releases/latest"><img src="https://img.shields.io/github/v/release/CoderzCruz/Apex-launcher?style=for-the-badge&label=LATEST&color=C8102E" alt="Latest release"></a>
 </p>
 
 ***
@@ -188,8 +187,7 @@ Aerix consolidates instance optimization, engine selection, profile customizatio
 </p>
 
 <p align="center">
-  <a href="https://github.com/entitybrian69-bit"><img src="https://img.shields.io/badge/GitHub-entitybrian69--bit-101014?style=for-the-badge&logo=github&logoColor=white" alt="GitHub profile"></a>
-  <a href="https://entitybrian69-bit.github.io/Aerix-launcher/"><img src="https://img.shields.io/badge/Website-Aerix%20Launcher-C8102E?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Website"></a>
+  <a href="https://github.com/CoderzCruz"><img src="https://img.shields.io/badge/GitHub-CoderzCruz-101014?style=for-the-badge&logo=github&logoColor=white" alt="GitHub profile"></a>
   <a href="https://discord.gg/RS7q9KaCm6"><img src="https://img.shields.io/badge/Discord-Say%20hello-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
 </p>
 
@@ -203,7 +201,7 @@ That is why the product stays coherent: the people who add offline capes are the
 
 ## 📥 Install
 
-1. Download the latest APK from [Releases](https://github.com/entitybrian69-bit/Aerix-launcher/releases).
+1. Download the latest APK from [Releases](https://github.com/CoderzCruz/Apex-launcher/releases).
 2. Allow install from this source in Android settings.
 3. Open Aerix, add an offline account or sign in with Microsoft, equip a skin and cape, and play.
 
@@ -211,7 +209,6 @@ That is why the product stays coherent: the people who add offline capes are the
 
 Debug builds from CI are for testing. Release builds are the ones to keep.
 
-🌐 **Website:** <https://entitybrian69-bit.github.io/Aerix-launcher/> — screenshots, the full renderer lineup, a setup guide and an FAQ.
 
 ---
 
@@ -258,6 +255,6 @@ Minecraft is a trademark of Mojang Synergies AB. Aerix Launcher is an independen
 
 **Configurable renderers. Private by design. Offline accounts and capes. Updated with care.**
 
-🌐 **[Website](https://entitybrian69-bit.github.io/Aerix-launcher/)** · 💬 **[Discord](https://discord.gg/RS7q9KaCm6)** · ⭐ [Star Aerix](https://github.com/entitybrian69-bit/Aerix-launcher) · 📦 [Get the APK](https://github.com/entitybrian69-bit/Aerix-launcher/releases)
+💬 **[Discord](https://discord.gg/RS7q9KaCm6)** · ⭐ [Star Aerix](https://github.com/CoderzCruz/Apex-launcher) · 📦 [Get the APK](https://github.com/CoderzCruz/Apex-launcher/releases)
 
 </div>
